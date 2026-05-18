@@ -13,7 +13,9 @@
 #include <QHeaderView>
 #include <QInputDialog>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonParseError>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
@@ -22,6 +24,8 @@
 #include <QSplitter>
 #include <QStatusBar>
 #include <QTabWidget>
+#include <QTableWidget>
+#include <QTableWidgetItem>
 #include <QTextBrowser>
 #include <QTextEdit>
 #include <QToolBar>
@@ -39,6 +43,43 @@ constexpr int CommitHashRole = Qt::UserRole + 3;
 QString htmlEscape(const QString& text) {
     QString escaped = text.toHtmlEscaped();
     return escaped.replace('\n', "<br>");
+}
+
+QString extractJsonObjectText(const QString& text) {
+    QString trimmed = text.trimmed();
+    if (trimmed.startsWith("```")) {
+        const int firstNewline = trimmed.indexOf('\n');
+        const int lastFence = trimmed.lastIndexOf("```");
+        if (firstNewline >= 0 && lastFence > firstNewline)
+            trimmed = trimmed.mid(firstNewline + 1, lastFence - firstNewline - 1).trimmed();
+    }
+
+    const int firstBrace = trimmed.indexOf('{');
+    const int lastBrace = trimmed.lastIndexOf('}');
+    if (firstBrace >= 0 && lastBrace > firstBrace)
+        return trimmed.mid(firstBrace, lastBrace - firstBrace + 1);
+
+    return trimmed;
+}
+
+QString structuredFeedbackInstruction() {
+    return
+        "请严格输出一个 JSON 对象，不要在 JSON 外添加解释文字。JSON 结构如下：\n"
+        "{\n"
+        "  \"summary\": \"一句话总结本次反馈\",\n"
+        "  \"items\": [\n"
+        "    {\n"
+        "      \"severity\": \"high|medium|low\",\n"
+        "      \"filePath\": \"相关文件路径，无法判断则留空\",\n"
+        "      \"line\": 具体行号，无法判断则为 -1,\n"
+        "      \"category\": \"bug|boundary|memory|style|design|test|learning|other\",\n"
+        "      \"title\": \"问题标题\",\n"
+        "      \"suggestion\": \"具体修改或学习建议\"\n"
+        "    }\n"
+        "  ],\n"
+        "  \"rawReport\": \"完整自然语言反馈报告\"\n"
+        "}\n"
+        "如果没有发现具体问题，items 输出空数组，并在 summary 与 rawReport 中说明。";
 }
 }  // namespace
 
@@ -147,12 +188,25 @@ void MainWindow::buildCenterPanel() {
     m_changeSummary = new QTextBrowser(this);
     m_history = new QTextBrowser(this);
     m_reviewReport = new QTextBrowser(this);
+    m_feedbackIssueTable = new QTableWidget(this);
+    m_feedbackIssueTable->setColumnCount(7);
+    m_feedbackIssueTable->setHorizontalHeaderLabels({"严重度", "状态", "文件", "行号", "类别", "问题", "建议"});
+    m_feedbackIssueTable->horizontalHeader()->setStretchLastSection(true);
+    m_feedbackIssueTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_feedbackIssueTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    auto* feedbackPanel = new QWidget(this);
+    auto* feedbackLayout = new QVBoxLayout(feedbackPanel);
+    feedbackLayout->setContentsMargins(0, 0, 0, 0);
+    feedbackLayout->setSpacing(8);
+    feedbackLayout->addWidget(m_reviewReport, 1);
+    feedbackLayout->addWidget(m_feedbackIssueTable, 1);
 
     m_tabs->addTab(m_overview, "概览");
     m_tabs->addTab(m_fileList, "文件");
     m_tabs->addTab(m_changeSummary, "变更");
     m_tabs->addTab(m_history, "提交记录");
-    m_tabs->addTab(m_reviewReport, "AI 反馈");
+    m_tabs->addTab(feedbackPanel, "AI 反馈");
 }
 
 void MainWindow::buildAiPanel() {
@@ -193,6 +247,8 @@ void MainWindow::applyStyle() {
         "QPushButton:disabled { color: #8b97a7; background: #eef1f5; }"
         "QTreeWidget, QListWidget, QTextEdit, QTextBrowser, QComboBox { background: #ffffff; border: 1px solid #d9dee7; border-radius: "
         "6px; }"
+        "QTableWidget { background: #ffffff; border: 1px solid #d9dee7; border-radius: 6px; gridline-color: #e5e9f0; }"
+        "QHeaderView::section { background: #eef1f5; border: none; border-right: 1px solid #d9dee7; padding: 6px; }"
         "QTreeWidget::item, QListWidget::item { padding: 5px; }"
         "QTreeWidget::item:selected, QListWidget::item:selected { background: #dbeafe; color: #102a43; }"
         "QTabWidget::pane { border: 1px solid #d9dee7; background: #ffffff; border-radius: 6px; }"
@@ -216,6 +272,14 @@ void MainWindow::setProjectFolder(const QString& folderPath) {
     if (!m_projectManager.openProject(m_projectDir, &errorMessage)) {
         QMessageBox::warning(this, "项目初始化失败", errorMessage);
         return;
+    }
+    if (!m_feedbackStore.openProject(m_projectDir, &errorMessage)) {
+        QMessageBox::warning(this, "反馈仓库初始化失败", errorMessage);
+        return;
+    }
+    if (m_feedbackStore.isEmpty() && !m_projectManager.data().feedbacks.isEmpty()) {
+        m_feedbackStore.importFeedbacks(m_projectManager.data().feedbacks);
+        m_feedbackStore.save(&errorMessage);
     }
 
     m_gitService.setWorkingDirectory(m_projectDir);
@@ -286,9 +350,10 @@ void MainWindow::refreshOverview() {
     html += QString("<p><b>Git 仓库：</b>%1</p>").arg(m_gitService.isGitRepo() ? "已连接" : "未初始化");
     const QString status = m_gitService.statusPorcelain().trimmed();
     html += QString("<p><b>工作区状态：</b>%1</p>").arg(status.isEmpty() ? "干净" : "有未提交修改");
+    html += QString("<p><b>已保存 AI 反馈：</b>%1 条</p>").arg(m_feedbackStore.allFeedbacks().size());
     html += "<hr>";
     html += "<p>建议工作流：打开项目 -> 扫描文件 -> 查看 Git 变更 -> AI 分析 -> 保存反馈 -> 提交真实版本。</p>";
-    html += "<p>AI 反馈会保存到项目的 .hwpilot/project.json，并按当前 Git 版本关联。</p>";
+    html += "<p>AI 反馈会保存到项目的 .hwpilot/feedbacks.json，并按当前 Git 版本关联。</p>";
     m_overview->setHtml(html);
 }
 
@@ -323,7 +388,7 @@ void MainWindow::refreshVersionHistory() {
 
     html += "<ul>";
     for (const GitCommit& commit : m_commits) {
-        const int feedbackCount = m_projectManager.data().feedbacksForCommit(commit.hash).size();
+        const int feedbackCount = m_feedbackStore.feedbacksForCommit(commit.hash).size();
         html += QString("<li><b>%1</b> %2<br>%3<br>AI 反馈：%4 条</li>")
                     .arg(htmlEscape(commit.shortHash))
                     .arg(htmlEscape(commit.subject))
@@ -350,7 +415,7 @@ void MainWindow::rebuildVersionTree() {
         appendVersionNode("尚无提交", "当前项目已经连接 Git，但还没有真实提交。");
     } else {
         for (const GitCommit& commit : m_commits) {
-            const int feedbackCount = m_projectManager.data().feedbacksForCommit(commit.hash).size();
+            const int feedbackCount = m_feedbackStore.feedbacksForCommit(commit.hash).size();
             const QString title = QString("%1  %2%3")
                                       .arg(commit.shortHash)
                                       .arg(commit.subject)
@@ -409,11 +474,7 @@ void MainWindow::submitVersion() {
 
     const QString newHead = m_gitService.currentHead();
     if (!newHead.isEmpty()) {
-        for (FeedbackRecord& record : m_projectManager.data().feedbacks) {
-            if (record.commitHash == "working-tree")
-                record.commitHash = newHead;
-        }
-        m_projectManager.save(&errorMessage);
+        m_feedbackStore.reassignCommit("working-tree", newHead, &errorMessage);
     }
 
     scanCurrentProject();
@@ -461,11 +522,88 @@ QString MainWindow::currentWorkContextHash() const {
 QString MainWindow::currentFeedbackHistory() const {
     QString history;
     const QString commitHash = currentWorkContextHash();
-    const QList<FeedbackRecord> records = m_projectManager.data().feedbacksForCommit(commitHash);
+    const QList<FeedbackRecord> records = m_feedbackStore.feedbacksForCommit(commitHash);
     for (const FeedbackRecord& record : records) {
-        history += QString("### %1 %2\n%3\n\n").arg(record.createdAt, record.mode, record.content);
+        history += QString("### %1 %2\n%3\n%4\n\n").arg(record.createdAt, record.mode, record.summary, record.rawContent);
     }
     return history.trimmed();
+}
+
+FeedbackRecord MainWindow::buildFeedbackRecord(const QString& replyText) const {
+    FeedbackRecord record;
+    record.id = QString::number(QDateTime::currentMSecsSinceEpoch());
+    record.commitHash = currentWorkContextHash();
+    record.mode = currentModeName();
+    record.createdAt = QDateTime::currentDateTime().toString(Qt::ISODate);
+    record.rawContent = replyText;
+
+    QJsonParseError parseError;
+    const QJsonDocument document = QJsonDocument::fromJson(extractJsonObjectText(replyText).toUtf8(), &parseError);
+    if (!document.isObject()) {
+        record.parseStatus = "raw";
+        record.summary = "未能解析结构化 JSON，已保存原始回复。";
+        return record;
+    }
+
+    const QJsonObject object = document.object();
+    record.parseStatus = "parsed";
+    record.summary = object["summary"].toString("AI 已返回结构化反馈。");
+    record.rawContent = object["rawReport"].toString(replyText);
+
+    const QJsonArray items = object["items"].toArray();
+    int index = 1;
+    for (const QJsonValue& value : items) {
+        if (!value.isObject())
+            continue;
+
+        FeedbackItem item = FeedbackItem::fromJson(value.toObject());
+        item.id = QString("%1-item-%2").arg(record.id).arg(index++);
+        if (item.status.isEmpty())
+            item.status = "open";
+        if (item.severity.isEmpty())
+            item.severity = "medium";
+        if (item.category.isEmpty())
+            item.category = "other";
+        record.items.append(item);
+    }
+
+    return record;
+}
+
+void MainWindow::populateFeedbackPanel(const QList<FeedbackRecord>& feedbacks) {
+    QString html;
+    if (feedbacks.isEmpty()) {
+        html = "<p>当前版本还没有保存 AI 反馈。</p>";
+    } else {
+        html += "<h3>已保存的 AI 反馈</h3>";
+        for (const FeedbackRecord& feedback : feedbacks) {
+            html += QString("<h4>%1 - %2</h4>").arg(htmlEscape(feedback.createdAt), htmlEscape(feedback.mode));
+            html += QString("<p><b>解析状态：</b>%1</p>").arg(htmlEscape(feedback.parseStatus));
+            html += QString("<p><b>摘要：</b>%1</p>").arg(htmlEscape(feedback.summary));
+            html += QString("<p>%1</p>").arg(htmlEscape(feedback.rawContent));
+        }
+    }
+    m_reviewReport->setHtml(html);
+
+    int rowCount = 0;
+    for (const FeedbackRecord& feedback : feedbacks)
+        rowCount += feedback.items.size();
+
+    m_feedbackIssueTable->setRowCount(rowCount);
+    int row = 0;
+    for (const FeedbackRecord& feedback : feedbacks) {
+        for (const FeedbackItem& item : feedback.items) {
+            m_feedbackIssueTable->setItem(row, 0, new QTableWidgetItem(item.severity));
+            m_feedbackIssueTable->setItem(row, 1, new QTableWidgetItem(item.status));
+            m_feedbackIssueTable->setItem(row, 2, new QTableWidgetItem(item.filePath));
+            m_feedbackIssueTable->setItem(row, 3, new QTableWidgetItem(item.line < 0 ? QString() : QString::number(item.line)));
+            m_feedbackIssueTable->setItem(row, 4, new QTableWidgetItem(item.category));
+            m_feedbackIssueTable->setItem(row, 5, new QTableWidgetItem(item.title));
+            m_feedbackIssueTable->setItem(row, 6, new QTableWidgetItem(item.suggestion));
+            ++row;
+        }
+    }
+    m_feedbackIssueTable->resizeColumnsToContents();
 }
 
 QString MainWindow::currentModePrompt() const {
@@ -546,7 +684,7 @@ void MainWindow::startAiAnalysis() {
     QJsonArray messages;
     QJsonObject systemMsg;
     systemMsg["role"] = "system";
-    systemMsg["content"] = currentModePrompt();
+    systemMsg["content"] = currentModePrompt() + "\n\n" + structuredFeedbackInstruction();
     messages.append(systemMsg);
 
     QJsonObject userMsg;
@@ -587,15 +725,10 @@ void MainWindow::saveFeedbackToVersion() {
         return;
     }
 
-    FeedbackRecord record;
-    record.id = QString::number(QDateTime::currentMSecsSinceEpoch());
-    record.commitHash = currentWorkContextHash();
-    record.mode = currentModeName();
-    record.createdAt = QDateTime::currentDateTime().toString(Qt::ISODate);
-    record.content = feedback;
+    FeedbackRecord record = buildFeedbackRecord(feedback);
 
     QString errorMessage;
-    if (!m_projectManager.addFeedback(record, &errorMessage)) {
+    if (!m_feedbackStore.addFeedback(record, &errorMessage)) {
         QMessageBox::warning(this, "保存失败", errorMessage);
         return;
     }
@@ -603,7 +736,7 @@ void MainWindow::saveFeedbackToVersion() {
     item->setData(0, FeedbackRole, feedback);
     refreshGitState();
     updateCurrentVersionPanel();
-    m_statusLabel->setText("已将 AI 反馈保存到 .hwpilot/project.json");
+    m_statusLabel->setText("已将 AI 反馈保存到 .hwpilot/feedbacks.json");
 }
 
 void MainWindow::updateCurrentVersionPanel() {
@@ -612,21 +745,13 @@ void MainWindow::updateCurrentVersionPanel() {
         return;
 
     const QString commitHash = item->data(0, CommitHashRole).toString().isEmpty() ? "working-tree" : item->data(0, CommitHashRole).toString();
-    const QList<FeedbackRecord> feedbacks = m_projectManager.data().feedbacksForCommit(commitHash);
+    const QList<FeedbackRecord> feedbacks = m_feedbackStore.feedbacksForCommit(commitHash);
     QString html;
     html += QString("<h2>%1</h2>").arg(htmlEscape(item->text(0)));
     html += QString("<p>%1</p>").arg(htmlEscape(item->data(0, NoteRole).toString()));
     html += "<hr>";
-    if (feedbacks.isEmpty()) {
-        html += "<p>当前版本还没有保存 AI 反馈。</p>";
-    } else {
-        html += "<h3>已保存的 AI 反馈</h3>";
-        for (const FeedbackRecord& feedback : feedbacks) {
-            html += QString("<h4>%1 - %2</h4>").arg(htmlEscape(feedback.createdAt), htmlEscape(feedback.mode));
-            html += QString("<p>%1</p>").arg(htmlEscape(feedback.content));
-        }
-    }
     m_reviewReport->setHtml(html);
+    populateFeedbackPanel(feedbacks);
     refreshOverview();
 }
 

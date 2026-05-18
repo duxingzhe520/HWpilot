@@ -5,12 +5,29 @@
 #include <QList>
 #include <QString>
 
+struct FeedbackItem {
+    QString id;
+    QString severity;
+    QString filePath;
+    int line = -1;
+    QString category;
+    QString title;
+    QString suggestion;
+    QString status = "open";
+
+    QJsonObject toJson() const;
+    static FeedbackItem fromJson(const QJsonObject& object);
+};
+
 struct FeedbackRecord {
     QString id;
     QString commitHash;
     QString mode;
     QString createdAt;
-    QString content;
+    QString summary;
+    QString rawContent;
+    QString parseStatus;
+    QList<FeedbackItem> items;
 
     QJsonObject toJson() const;
     static FeedbackRecord fromJson(const QJsonObject& object);
@@ -25,7 +42,6 @@ struct ProjectData {
 
     QJsonObject toJson() const;
     static ProjectData fromJson(const QJsonObject& object);
-    QList<FeedbackRecord> feedbacksForCommit(const QString& commitHash) const;
 };
 
 #endif  // PROJECTDATA_H

@@ -2,13 +2,47 @@
 
 #include <QJsonArray>
 
+QJsonObject FeedbackItem::toJson() const {
+    QJsonObject object;
+    object["id"] = id;
+    object["severity"] = severity;
+    object["filePath"] = filePath;
+    object["line"] = line;
+    object["category"] = category;
+    object["title"] = title;
+    object["suggestion"] = suggestion;
+    object["status"] = status;
+    return object;
+}
+
+FeedbackItem FeedbackItem::fromJson(const QJsonObject& object) {
+    FeedbackItem item;
+    item.id = object["id"].toString();
+    item.severity = object["severity"].toString();
+    item.filePath = object["filePath"].toString();
+    item.line = object["line"].toInt(-1);
+    item.category = object["category"].toString();
+    item.title = object["title"].toString();
+    item.suggestion = object["suggestion"].toString();
+    item.status = object["status"].toString("open");
+    return item;
+}
+
 QJsonObject FeedbackRecord::toJson() const {
     QJsonObject object;
     object["id"] = id;
     object["commitHash"] = commitHash;
     object["mode"] = mode;
     object["createdAt"] = createdAt;
-    object["content"] = content;
+    object["summary"] = summary;
+    object["rawContent"] = rawContent;
+    object["parseStatus"] = parseStatus;
+
+    QJsonArray itemArray;
+    for (const FeedbackItem& item : items)
+        itemArray.append(item.toJson());
+    object["items"] = itemArray;
+
     return object;
 }
 
@@ -18,7 +52,19 @@ FeedbackRecord FeedbackRecord::fromJson(const QJsonObject& object) {
     record.commitHash = object["commitHash"].toString();
     record.mode = object["mode"].toString();
     record.createdAt = object["createdAt"].toString();
-    record.content = object["content"].toString();
+    record.summary = object["summary"].toString();
+    record.rawContent = object["rawContent"].toString(object["content"].toString());
+    record.parseStatus = object["parseStatus"].toString(record.rawContent.isEmpty() ? QString("parsed") : QString("raw"));
+
+    const QJsonArray itemArray = object["items"].toArray();
+    for (const QJsonValue& value : itemArray) {
+        if (value.isObject())
+            record.items.append(FeedbackItem::fromJson(value.toObject()));
+    }
+
+    if (record.summary.isEmpty())
+        record.summary = record.rawContent.left(160);
+
     return record;
 }
 
@@ -51,13 +97,4 @@ ProjectData ProjectData::fromJson(const QJsonObject& object) {
     }
 
     return data;
-}
-
-QList<FeedbackRecord> ProjectData::feedbacksForCommit(const QString& commitHash) const {
-    QList<FeedbackRecord> result;
-    for (const FeedbackRecord& record : feedbacks) {
-        if (record.commitHash == commitHash)
-            result.append(record);
-    }
-    return result;
 }
