@@ -30,8 +30,6 @@ public:
 
 private slots:
     void openProjectFolder();
-    void scanCurrentProject();
-    void submitVersion();
     void startAiAnalysis();
     void saveFeedbackToVersion();
     void updateCurrentVersionPanel();
@@ -45,15 +43,13 @@ private:
     void applyStyle();
 
     void setProjectFolder(const QString& folderPath);
+    void scanCurrentProject();
     void populateFileList();
-    void refreshOverview();
     void refreshChangeSummary();
-    void refreshVersionHistory();
     void refreshGitState();
     void rebuildVersionTree();
     void appendVersionNode(const QString& title, const QString& note, const QString& commitHash = QString());
     QList<CodeFile> selectedFiles() const;
-    QString selectedCommitHash() const;
     QString currentWorkContextHash() const;
     QString currentFeedbackHistory() const;
     FeedbackRecord buildFeedbackRecord(const QString& replyText) const;
@@ -77,20 +73,17 @@ private:
     QTreeWidgetItem* m_versionRoot = nullptr;
 
     QTabWidget* m_tabs = nullptr;
-    QTextBrowser* m_overview = nullptr;
     QListWidget* m_fileList = nullptr;
     QTextBrowser* m_changeSummary = nullptr;
-    QTextBrowser* m_history = nullptr;
     QTextBrowser* m_reviewReport = nullptr;
     QTableWidget* m_feedbackIssueTable = nullptr;
 
     QTextEdit* m_taskEdit = nullptr;
     QTextEdit* m_questionEdit = nullptr;
     QTextEdit* m_responseView = nullptr;
+    QLabel* m_aiTitleLabel = nullptr;
     QCheckBox* m_includeCodeCheck = nullptr;
     QCheckBox* m_includeHistoryCheck = nullptr;
-    QPushButton* m_scanButton = nullptr;
-    QPushButton* m_submitButton = nullptr;
     QPushButton* m_analyzeButton = nullptr;
     QPushButton* m_saveFeedbackButton = nullptr;
     QLabel* m_statusLabel = nullptr;

@@ -34,7 +34,6 @@
 #include "HWpilotLLM/HWpilotLLM.h"
 
 namespace {
-constexpr int FeedbackRole = Qt::UserRole + 1;
 constexpr int NoteRole = Qt::UserRole + 2;
 constexpr int CommitHashRole = Qt::UserRole + 3;
 
@@ -84,12 +83,11 @@ QString structuredFeedbackInstruction() {
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     buildUi();
     applyStyle();
-    refreshOverview();
 }
 
 void MainWindow::buildUi() {
     setWindowTitle("HWpilot - 单作业 AI 代码分析工具");
-    resize(1320, 820);
+    resize(1220, 780);
 
     buildToolBar();
 
@@ -118,6 +116,7 @@ void MainWindow::buildUi() {
     auto* aiLayout = new QVBoxLayout(aiPanel);
     aiLayout->setContentsMargins(0, 0, 0, 0);
     buildAiPanel();
+    aiLayout->addWidget(m_aiTitleLabel);
     aiLayout->addWidget(m_taskEdit);
     aiLayout->addWidget(m_questionEdit);
     aiLayout->addWidget(m_includeCodeCheck);
@@ -132,7 +131,7 @@ void MainWindow::buildUi() {
     splitter->setStretchFactor(0, 0);
     splitter->setStretchFactor(1, 1);
     splitter->setStretchFactor(2, 0);
-    splitter->setSizes({260, 680, 380});
+    splitter->setSizes({250, 650, 360});
 
     rootLayout->addWidget(splitter);
     setCentralWidget(root);
@@ -145,17 +144,8 @@ void MainWindow::buildToolBar() {
     auto* toolbar = addToolBar("主工具栏");
     toolbar->setMovable(false);
 
-    auto* openAction = toolbar->addAction("打开项目");
+    auto* openAction = toolbar->addAction("打开项目并扫描");
     connect(openAction, &QAction::triggered, this, &MainWindow::openProjectFolder);
-
-    auto* scanAction = toolbar->addAction("扫描文件");
-    connect(scanAction, &QAction::triggered, this, &MainWindow::scanCurrentProject);
-
-    auto* submitAction = toolbar->addAction("提交存档");
-    connect(submitAction, &QAction::triggered, this, &MainWindow::submitVersion);
-
-    auto* aiAction = toolbar->addAction("AI 分析");
-    connect(aiAction, &QAction::triggered, this, &MainWindow::startAiAnalysis);
 }
 
 void MainWindow::buildLeftPanel() {
@@ -179,11 +169,9 @@ void MainWindow::buildLeftPanel() {
 void MainWindow::buildCenterPanel() {
     m_tabs = new QTabWidget(this);
 
-    m_overview = new QTextBrowser(this);
     m_fileList = new QListWidget(this);
     m_fileList->setSelectionMode(QAbstractItemView::ExtendedSelection);
     m_changeSummary = new QTextBrowser(this);
-    m_history = new QTextBrowser(this);
     m_reviewReport = new QTextBrowser(this);
     m_feedbackIssueTable = new QTableWidget(this);
     m_feedbackIssueTable->setColumnCount(6);
@@ -199,14 +187,15 @@ void MainWindow::buildCenterPanel() {
     feedbackLayout->addWidget(m_reviewReport, 1);
     feedbackLayout->addWidget(m_feedbackIssueTable, 1);
 
-    m_tabs->addTab(m_overview, "概览");
     m_tabs->addTab(m_fileList, "文件");
     m_tabs->addTab(m_changeSummary, "变更");
-    m_tabs->addTab(m_history, "存档记录");
     m_tabs->addTab(feedbackPanel, "AI 反馈");
 }
 
 void MainWindow::buildAiPanel() {
+    m_aiTitleLabel = new QLabel("AI 分析", this);
+    m_aiTitleLabel->setObjectName("PanelTitle");
+
     m_taskEdit = new QTextEdit(this);
     m_taskEdit->setPlaceholderText("作业要求 / 评分标准 / 希望 AI 关注的点");
     m_taskEdit->setFixedHeight(118);
@@ -222,27 +211,31 @@ void MainWindow::buildAiPanel() {
     m_includeHistoryCheck->setChecked(true);
 
     m_analyzeButton = new QPushButton("AI 分析", this);
+    m_analyzeButton->setObjectName("PrimaryButton");
     connect(m_analyzeButton, &QPushButton::clicked, this, &MainWindow::startAiAnalysis);
 
     m_responseView = new QTextEdit(this);
     m_responseView->setReadOnly(true);
     m_responseView->setPlaceholderText("AI 回复会显示在这里。");
 
-    m_saveFeedbackButton = new QPushButton("保存 AI 反馈", this);
+    m_saveFeedbackButton = new QPushButton("保存反馈并提交存档", this);
     connect(m_saveFeedbackButton, &QPushButton::clicked, this, &MainWindow::saveFeedbackToVersion);
 }
 
 void MainWindow::applyStyle() {
     qApp->setStyleSheet(
-        "QMainWindow, QWidget { background: #f6f7f9; color: #1f2933; font-size: 14px; }"
-        "QToolBar { background: #ffffff; border-bottom: 1px solid #d9dee7; spacing: 8px; padding: 6px; }"
-        "QToolButton, QPushButton { background: #ffffff; border: 1px solid #cbd3df; border-radius: 6px; padding: 7px 12px; }"
-        "QToolButton:hover, QPushButton:hover { background: #eef4ff; border-color: #8fb5ff; }"
+        "QMainWindow, QWidget { background: #f4f6f8; color: #202936; font-size: 14px; }"
+        "QToolBar { background: #ffffff; border-bottom: 1px solid #d8dee8; spacing: 8px; padding: 8px; }"
+        "QToolButton, QPushButton { background: #ffffff; border: 1px solid #c8d1de; border-radius: 6px; padding: 8px 13px; }"
+        "QToolButton:hover, QPushButton:hover { background: #edf4ff; border-color: #78a7f8; }"
+        "QPushButton#PrimaryButton { background: #2563eb; color: white; border-color: #2563eb; font-weight: 600; }"
+        "QPushButton#PrimaryButton:hover { background: #1d4ed8; border-color: #1d4ed8; }"
         "QPushButton:disabled { color: #8b97a7; background: #eef1f5; }"
         "QTreeWidget, QListWidget, QTextEdit, QTextBrowser, QComboBox { background: #ffffff; border: 1px solid #d9dee7; border-radius: "
         "6px; }"
         "QTableWidget { background: #ffffff; border: 1px solid #d9dee7; border-radius: 6px; gridline-color: #e5e9f0; }"
         "QHeaderView::section { background: #eef1f5; border: none; border-right: 1px solid #d9dee7; padding: 6px; }"
+        "QLabel#PanelTitle { background: transparent; color: #111827; font-size: 17px; font-weight: 700; padding: 2px 0 6px 0; }"
         "QTreeWidget::item, QListWidget::item { padding: 5px; }"
         "QTreeWidget::item:selected, QListWidget::item:selected { background: #dbeafe; color: #102a43; }"
         "QTabWidget::pane { border: 1px solid #d9dee7; background: #ffffff; border-radius: 6px; }"
@@ -309,9 +302,7 @@ void MainWindow::scanCurrentProject() {
     QString errorMessage;
     m_projectManager.save(&errorMessage);
     populateFileList();
-    refreshOverview();
     refreshChangeSummary();
-    refreshVersionHistory();
     m_statusLabel->setText(QString("已扫描 %1 个代码/文本文件").arg(m_files.size()));
 
     if (m_files.isEmpty()) {
@@ -327,27 +318,6 @@ void MainWindow::populateFileList() {
         item->setData(Qt::UserRole, file.absolutePath);
         item->setToolTip(file.absolutePath);
     }
-}
-
-void MainWindow::refreshOverview() {
-    const QString projectName = m_projectDir.isEmpty() ? "未打开项目" : QFileInfo(m_projectDir).fileName();
-    QTreeWidgetItem* version = m_versionTree ? m_versionTree->currentItem() : nullptr;
-    const QString versionName = version ? version->text(0) : "无";
-
-    QString html;
-    html += "<h2>项目概览</h2>";
-    html += QString("<p><b>当前项目：</b>%1</p>").arg(htmlEscape(projectName));
-    html += QString("<p><b>项目路径：</b>%1</p>").arg(htmlEscape(m_projectDir.isEmpty() ? "尚未选择" : m_projectDir));
-    html += QString("<p><b>当前版本：</b>%1</p>").arg(htmlEscape(versionName));
-    html += QString("<p><b>已扫描文件：</b>%1 个</p>").arg(m_files.size());
-    html += QString("<p><b>Git 仓库：</b>%1</p>").arg(m_gitService.isGitRepo() ? "已连接" : "未初始化");
-    const QString status = m_gitService.statusPorcelain().trimmed();
-    html += QString("<p><b>工作区状态：</b>%1</p>").arg(status.isEmpty() ? "干净" : "有未提交修改");
-    html += QString("<p><b>已保存 AI 反馈：</b>%1 条</p>").arg(m_feedbackStore.allFeedbacks().size());
-    html += "<hr>";
-    html += "<p>建议工作流：打开项目 -> 扫描文件 -> 查看变更 -> AI 分析 -> 保存反馈 -> 可选提交存档。</p>";
-    html += "<p>AI 反馈会保存到项目的 .hwpilot/feedbacks.json。</p>";
-    m_overview->setHtml(html);
 }
 
 void MainWindow::refreshChangeSummary() {
@@ -371,33 +341,10 @@ void MainWindow::refreshChangeSummary() {
     m_changeSummary->setHtml(html);
 }
 
-void MainWindow::refreshVersionHistory() {
-    QString html = "<h2>提交存档</h2>";
-    if (m_commits.isEmpty()) {
-        html += "<p>当前项目还没有提交存档。可在分析后点击“提交存档”。</p>";
-        m_history->setHtml(html);
-        return;
-    }
-
-    html += "<ul>";
-    for (const GitCommit& commit : m_commits) {
-        const int feedbackCount = m_feedbackStore.feedbacksForCommit(commit.hash).size();
-        html += QString("<li><b>%1</b> %2<br>%3<br>AI 反馈：%4 条</li>")
-                    .arg(htmlEscape(commit.shortHash))
-                    .arg(htmlEscape(commit.subject))
-                    .arg(htmlEscape(commit.date))
-                    .arg(feedbackCount);
-    }
-    html += "</ul>";
-    m_history->setHtml(html);
-}
-
 void MainWindow::refreshGitState() {
     m_commits = m_gitService.log();
     rebuildVersionTree();
-    refreshOverview();
     refreshChangeSummary();
-    refreshVersionHistory();
 }
 
 void MainWindow::rebuildVersionTree() {
@@ -430,51 +377,6 @@ void MainWindow::appendVersionNode(const QString& title, const QString& note, co
     m_versionRoot->addChild(item);
 }
 
-void MainWindow::submitVersion() {
-    if (m_projectDir.isEmpty()) {
-        QMessageBox::information(this, "尚未打开项目", "请先打开一个作业项目文件夹。");
-        return;
-    }
-
-    const QString status = m_gitService.statusPorcelain().trimmed();
-    if (status.isEmpty()) {
-        QMessageBox::information(this, "没有可提交的修改", "当前 Git 工作区是干净的，不需要提交存档。");
-        return;
-    }
-
-    bool ok = false;
-    const QString defaultMessage = QString("HWpilot analysis archive %1").arg(QDateTime::currentDateTime().toString("MM-dd HH:mm"));
-    const QString message = QInputDialog::getText(this, "提交存档", "存档说明：", QLineEdit::Normal, defaultMessage, &ok).trimmed();
-    if (!ok || message.isEmpty())
-        return;
-
-    m_projectManager.data().assignmentText = m_taskEdit->toPlainText().trimmed();
-    QString errorMessage;
-    m_projectManager.save(&errorMessage);
-
-    const GitCommandResult addResult = m_gitService.addAll();
-    if (!addResult.success) {
-        QMessageBox::warning(this, "Git add 失败", addResult.stderrText.trimmed());
-        return;
-    }
-
-    const GitCommandResult commitResult = m_gitService.commit(message);
-    if (!commitResult.success) {
-        const QString detail = commitResult.stderrText.trimmed().isEmpty() ? commitResult.stdoutText.trimmed() : commitResult.stderrText.trimmed();
-        QMessageBox::warning(this, "Git commit 失败", detail);
-        return;
-    }
-
-    const QString newHead = m_gitService.currentHead();
-    if (!newHead.isEmpty()) {
-        m_feedbackStore.reassignCommit("working-tree", newHead, &errorMessage);
-    }
-
-    scanCurrentProject();
-    refreshGitState();
-    m_statusLabel->setText("已提交一个 Git 存档");
-}
-
 QList<CodeFile> MainWindow::selectedFiles() const {
     QList<CodeFile> files;
     for (int i = 0; i < m_fileList->count(); ++i) {
@@ -491,18 +393,6 @@ QList<CodeFile> MainWindow::selectedFiles() const {
         }
     }
     return files;
-}
-
-QString MainWindow::selectedCommitHash() const {
-    QTreeWidgetItem* item = m_versionTree->currentItem();
-    if (!item || item == m_versionRoot)
-        return m_gitService.currentHead().isEmpty() ? "working-tree" : m_gitService.currentHead();
-
-    const QString selectedHash = item->data(0, CommitHashRole).toString();
-    const QString head = m_gitService.currentHead();
-    if (!selectedHash.isEmpty())
-        return selectedHash;
-    return head.isEmpty() ? "working-tree" : head;
 }
 
 QString MainWindow::currentWorkContextHash() const {
@@ -699,9 +589,8 @@ void MainWindow::startAiAnalysis() {
 }
 
 void MainWindow::saveFeedbackToVersion() {
-    QTreeWidgetItem* item = m_versionTree->currentItem();
-    if (!item || item == m_versionRoot) {
-        QMessageBox::information(this, "请选择存档", "请先在左侧选择一个存档节点；如果尚无存档，可选择“尚无存档”节点保存为当前工作区反馈。");
+    if (m_projectDir.isEmpty()) {
+        QMessageBox::information(this, "尚未打开项目", "请先打开一个作业项目文件夹。");
         return;
     }
 
@@ -719,10 +608,36 @@ void MainWindow::saveFeedbackToVersion() {
         return;
     }
 
-    item->setData(0, FeedbackRole, feedback);
+    const QString status = m_gitService.statusPorcelain().trimmed();
+    if (!status.isEmpty()) {
+        bool ok = false;
+        const QString defaultMessage = QString("HWpilot analysis archive %1").arg(QDateTime::currentDateTime().toString("MM-dd HH:mm"));
+        const QString message = QInputDialog::getText(this, "提交存档", "存档说明：", QLineEdit::Normal, defaultMessage, &ok).trimmed();
+        if (ok && !message.isEmpty()) {
+            const GitCommandResult addResult = m_gitService.addAll();
+            if (!addResult.success) {
+                QMessageBox::warning(this, "Git add 失败", addResult.stderrText.trimmed());
+            } else {
+                const GitCommandResult commitResult = m_gitService.commit(message);
+                if (!commitResult.success) {
+                    const QString detail = commitResult.stderrText.trimmed().isEmpty() ? commitResult.stdoutText.trimmed() : commitResult.stderrText.trimmed();
+                    QMessageBox::warning(this, "Git commit 失败", detail);
+                } else {
+                    const QString newHead = m_gitService.currentHead();
+                    if (!newHead.isEmpty())
+                        m_feedbackStore.reassignCommit("working-tree", newHead, &errorMessage);
+                    m_statusLabel->setText("已保存 AI 反馈并提交存档");
+                }
+            }
+        } else {
+            m_statusLabel->setText("已保存 AI 反馈，未提交存档");
+        }
+    } else {
+        m_statusLabel->setText("已保存 AI 反馈");
+    }
+
     refreshGitState();
     updateCurrentVersionPanel();
-    m_statusLabel->setText("已将 AI 反馈保存到 .hwpilot/feedbacks.json");
 }
 
 void MainWindow::updateCurrentVersionPanel() {
@@ -738,7 +653,6 @@ void MainWindow::updateCurrentVersionPanel() {
     html += "<hr>";
     m_reviewReport->setHtml(html);
     populateFeedbackPanel(feedbacks);
-    refreshOverview();
 }
 
 void MainWindow::setBusy(bool busy) {
