@@ -23,8 +23,6 @@
 #include <QSplitter>
 #include <QStatusBar>
 #include <QTabWidget>
-#include <QTableWidget>
-#include <QTableWidgetItem>
 #include <QTextBrowser>
 #include <QTextEdit>
 #include <QTreeWidget>
@@ -37,6 +35,7 @@ constexpr int NoteRole = Qt::UserRole + 2;
 constexpr int CommitHashRole = Qt::UserRole + 3;
 constexpr int FilePathRole = Qt::UserRole + 4;
 constexpr int IsDirectoryRole = Qt::UserRole + 5;
+constexpr int DetailHtmlRole = Qt::UserRole + 6;
 
 struct DiffFileBlock {
     QString path;
@@ -272,6 +271,59 @@ QString renderDiffStat(const QString& diffStat) {
     html += "</table>";
     return html;
 }
+
+QString pillHtml(const QString& text, const QString& color, const QString& background, const QString& border) {
+    return QString("<span style=\"display:inline-block; border:1px solid %1; border-radius:6px; padding:3px 8px; color:%2; background:%3; font-size:12px;\">%4</span>")
+        .arg(border, color, background, htmlEscape(text));
+}
+
+QString severityPill(const QString& severity) {
+    if (severity == "high")
+        return pillHtml("high", "#991b1b", "#fef2f2", "#fecaca");
+    if (severity == "low")
+        return pillHtml("low", "#166534", "#ecfdf3", "#bbf7d0");
+    return pillHtml(severity.isEmpty() ? "medium" : severity, "#92400e", "#fffbeb", "#fde68a");
+}
+
+QString renderFeedbackRecordDetail(const FeedbackRecord& feedback) {
+    QString html;
+    html += "<div style=\"padding:2px 0;\">";
+    html += QString("<h2 style=\"margin:0 0 8px 0; color:#111827;\">%1</h2>").arg(htmlEscape(feedback.summary.isEmpty() ? "AI 反馈记录" : feedback.summary));
+    html += "<div style=\"display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;\">";
+    html += pillHtml(feedback.mode.isEmpty() ? "AI 分析" : feedback.mode, "#1d4ed8", "#eff6ff", "#bfdbfe");
+    html += pillHtml(feedback.parseStatus.isEmpty() ? "unknown" : feedback.parseStatus, "#475569", "#f8fafc", "#d9dee7");
+    html += pillHtml(QString("%1 个问题").arg(feedback.items.size()), "#334155", "#f1f5f9", "#d9dee7");
+    html += QString("<span style=\"color:#64748b; padding:3px 0;\">%1</span>").arg(htmlEscape(feedback.createdAt));
+    html += "</div>";
+
+    html += "<h3 style=\"margin:12px 0 6px 0; color:#0f172a;\">完整反馈</h3>";
+    html += QString("<div style=\"border:1px solid #d9dee7; border-radius:6px; background:#ffffff; padding:10px; line-height:1.55; color:#1f2937;\">%1</div>")
+                .arg(htmlEscape(feedback.rawContent.isEmpty() ? "这次反馈没有保存正文。" : feedback.rawContent));
+    html += "</div>";
+    return html;
+}
+
+QString renderFeedbackItemDetail(const FeedbackItem& item) {
+    QString html;
+    html += "<div style=\"padding:2px 0;\">";
+    html += QString("<h2 style=\"margin:0 0 8px 0; color:#111827;\">%1</h2>").arg(htmlEscape(item.title.isEmpty() ? "问题详情" : item.title));
+    html += "<div style=\"display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;\">";
+    html += severityPill(item.severity);
+    html += pillHtml(item.category.isEmpty() ? "other" : item.category, "#475569", "#f8fafc", "#d9dee7");
+    html += pillHtml(item.status.isEmpty() ? "open" : item.status, "#1d4ed8", "#eff6ff", "#bfdbfe");
+    html += "</div>";
+
+    const QString location = item.filePath.isEmpty()
+                                 ? "未定位到具体文件"
+                                 : QString("%1%2").arg(item.filePath, item.line >= 0 ? QString(":%1").arg(item.line) : QString());
+    html += QString("<p style=\"margin:0 0 10px 0; color:#475569;\"><b>位置：</b>%1</p>").arg(htmlEscape(location));
+    html += "<h3 style=\"margin:12px 0 6px 0; color:#0f172a;\">建议</h3>";
+    html += QString("<div style=\"border:1px solid #d9dee7; border-radius:6px; background:#ffffff; padding:10px; line-height:1.55; color:#1f2937;\">%1</div>")
+                .arg(htmlEscape(item.suggestion.isEmpty() ? "这条问题没有保存建议。" : item.suggestion));
+    html += "</div>";
+    return html;
+}
+
 }  // namespace
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
@@ -281,7 +333,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
 
 void MainWindow::buildUi() {
     setWindowTitle("HWpilot - 单作业 AI 代码分析工具");
-    resize(1220, 780);
+    resize(1280, 820);
 
     auto* root = new QWidget(this);
     auto* rootLayout = new QHBoxLayout(root);
@@ -302,32 +354,19 @@ void MainWindow::buildUi() {
     leftLayout->addWidget(m_openProjectButton);
     leftLayout->addWidget(m_versionTree, 1);
 
+    buildAiPanel();
+    buildCenterPanel();
+
     auto* centerPanel = new QWidget(splitter);
     auto* centerLayout = new QVBoxLayout(centerPanel);
     centerLayout->setContentsMargins(0, 0, 0, 0);
-    buildCenterPanel();
     centerLayout->addWidget(m_tabs);
-
-    auto* aiPanel = new QWidget(splitter);
-    auto* aiLayout = new QVBoxLayout(aiPanel);
-    aiLayout->setContentsMargins(0, 0, 0, 0);
-    buildAiPanel();
-    aiLayout->addWidget(m_aiTitleLabel);
-    aiLayout->addWidget(m_taskEdit);
-    aiLayout->addWidget(m_questionEdit);
-    aiLayout->addWidget(m_includeCodeCheck);
-    aiLayout->addWidget(m_includeHistoryCheck);
-    aiLayout->addWidget(m_analyzeButton);
-    aiLayout->addWidget(m_responseView, 1);
-    aiLayout->addWidget(m_saveFeedbackButton);
 
     splitter->addWidget(leftPanel);
     splitter->addWidget(centerPanel);
-    splitter->addWidget(aiPanel);
     splitter->setStretchFactor(0, 0);
     splitter->setStretchFactor(1, 1);
-    splitter->setStretchFactor(2, 0);
-    splitter->setSizes({250, 650, 360});
+    splitter->setSizes({260, 1000});
 
     rootLayout->addWidget(splitter);
     setCentralWidget(root);
@@ -363,11 +402,6 @@ void MainWindow::buildLeftPanel() {
 void MainWindow::buildCenterPanel() {
     m_tabs = new QTabWidget(this);
 
-    auto* filePanel = new QWidget(this);
-    auto* fileLayout = new QVBoxLayout(filePanel);
-    fileLayout->setContentsMargins(0, 0, 0, 0);
-    fileLayout->setSpacing(8);
-
     m_selectAllFilesButton = new QPushButton("全选文件", this);
     connect(m_selectAllFilesButton, &QPushButton::clicked, this, &MainWindow::selectAllFiles);
 
@@ -376,32 +410,67 @@ void MainWindow::buildCenterPanel() {
     m_fileTree->setSelectionMode(QAbstractItemView::SingleSelection);
     connect(m_fileTree, &QTreeWidget::itemChanged, this, &MainWindow::handleFileItemChanged);
 
-    fileLayout->addWidget(m_selectAllFilesButton);
-    fileLayout->addWidget(m_fileTree, 1);
-
     m_changeSummary = new QTextBrowser(this);
     m_reviewReport = new QTextBrowser(this);
-    m_feedbackIssueTable = new QTableWidget(this);
-    m_feedbackIssueTable->setColumnCount(6);
-    m_feedbackIssueTable->setHorizontalHeaderLabels({"严重度", "文件", "行号", "类别", "分析项", "建议"});
-    m_feedbackIssueTable->horizontalHeader()->setStretchLastSection(true);
-    m_feedbackIssueTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_feedbackIssueTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_feedbackTree = new QTreeWidget(this);
+    m_feedbackTree->setHeaderLabels({"反馈记录 / 问题", "严重度", "位置", "状态"});
+    m_feedbackTree->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_feedbackTree->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_feedbackTree->header()->setStretchLastSection(false);
+    m_feedbackTree->header()->setSectionResizeMode(0, QHeaderView::Stretch);
+    connect(m_feedbackTree, &QTreeWidget::currentItemChanged, this, &MainWindow::handleFeedbackTreeSelection);
+
+    auto* versionPanel = new QWidget(this);
+    auto* versionLayout = new QVBoxLayout(versionPanel);
+    versionLayout->setContentsMargins(0, 0, 0, 0);
+    versionLayout->addWidget(m_changeSummary, 1);
+
+    auto* fileAnalysisPanel = new QWidget(this);
+    auto* fileAnalysisLayout = new QVBoxLayout(fileAnalysisPanel);
+    fileAnalysisLayout->setContentsMargins(0, 0, 0, 0);
+
+    auto* fileAnalysisSplitter = new QSplitter(Qt::Horizontal, fileAnalysisPanel);
+    auto* filePickerPanel = new QWidget(fileAnalysisSplitter);
+    auto* filePickerLayout = new QVBoxLayout(filePickerPanel);
+    filePickerLayout->setContentsMargins(0, 0, 0, 0);
+    filePickerLayout->setSpacing(8);
+    filePickerLayout->addWidget(m_selectAllFilesButton);
+    filePickerLayout->addWidget(m_fileTree, 1);
+
+    auto* aiPanel = new QWidget(fileAnalysisSplitter);
+    auto* aiLayout = new QVBoxLayout(aiPanel);
+    aiLayout->setContentsMargins(0, 0, 0, 0);
+    aiLayout->setSpacing(8);
+    aiLayout->addWidget(m_aiTitleLabel);
+    aiLayout->addWidget(m_taskEdit);
+    aiLayout->addWidget(m_questionEdit);
+    aiLayout->addWidget(m_includeCodeCheck);
+    aiLayout->addWidget(m_includeHistoryCheck);
+    aiLayout->addWidget(m_analyzeButton);
+    aiLayout->addWidget(m_responseView, 1);
+    aiLayout->addWidget(m_saveFeedbackButton);
+
+    fileAnalysisSplitter->addWidget(filePickerPanel);
+    fileAnalysisSplitter->addWidget(aiPanel);
+    fileAnalysisSplitter->setStretchFactor(0, 1);
+    fileAnalysisSplitter->setStretchFactor(1, 1);
+    fileAnalysisSplitter->setSizes({360, 540});
+    fileAnalysisLayout->addWidget(fileAnalysisSplitter, 1);
 
     auto* feedbackPanel = new QWidget(this);
     auto* feedbackLayout = new QVBoxLayout(feedbackPanel);
     feedbackLayout->setContentsMargins(0, 0, 0, 0);
     feedbackLayout->setSpacing(8);
     feedbackLayout->addWidget(m_reviewReport, 1);
-    feedbackLayout->addWidget(m_feedbackIssueTable, 1);
+    feedbackLayout->addWidget(m_feedbackTree, 1);
 
-    m_tabs->addTab(filePanel, "文件");
-    m_tabs->addTab(m_changeSummary, "版本概览");
+    m_tabs->addTab(versionPanel, "版本概览");
+    m_tabs->addTab(fileAnalysisPanel, "文件分析");
     m_tabs->addTab(feedbackPanel, "AI 反馈");
 }
 
 void MainWindow::buildAiPanel() {
-    m_aiTitleLabel = new QLabel("AI 分析", this);
+    m_aiTitleLabel = new QLabel("文件分析", this);
     m_aiTitleLabel->setObjectName("PanelTitle");
 
     m_taskEdit = new QTextEdit(this);
@@ -418,7 +487,7 @@ void MainWindow::buildAiPanel() {
     m_includeHistoryCheck = new QCheckBox("包含当前版本的历史反馈", this);
     m_includeHistoryCheck->setChecked(true);
 
-    m_analyzeButton = new QPushButton("AI 分析", this);
+    m_analyzeButton = new QPushButton("文件分析", this);
     m_analyzeButton->setObjectName("PrimaryButton");
     connect(m_analyzeButton, &QPushButton::clicked, this, &MainWindow::startAiAnalysis);
 
@@ -426,7 +495,7 @@ void MainWindow::buildAiPanel() {
     m_responseView->setReadOnly(true);
     m_responseView->setPlaceholderText("AI 回复会显示在这里。");
 
-    m_saveFeedbackButton = new QPushButton("保存反馈并提交存档", this);
+    m_saveFeedbackButton = new QPushButton("保存为一条 AI 反馈记录", this);
     connect(m_saveFeedbackButton, &QPushButton::clicked, this, &MainWindow::saveFeedbackToVersion);
 }
 
@@ -440,7 +509,6 @@ void MainWindow::applyStyle() {
         "QPushButton:disabled { color: #8b97a7; background: #eef1f5; }"
         "QTreeWidget, QTextEdit, QTextBrowser, QComboBox { background: #ffffff; border: 1px solid #d9dee7; border-radius: "
         "6px; }"
-        "QTableWidget { background: #ffffff; border: 1px solid #d9dee7; border-radius: 6px; gridline-color: #e5e9f0; }"
         "QHeaderView::section { background: #eef1f5; border: none; border-right: 1px solid #d9dee7; padding: 6px; }"
         "QLabel#PanelTitle { background: transparent; color: #111827; font-size: 17px; font-weight: 700; padding: 2px 0 6px 0; }"
         "QLabel#ProjectName { background: transparent; color: #111827; font-size: 17px; font-weight: 700; padding: 2px 0 2px 0; }"
@@ -449,7 +517,7 @@ void MainWindow::applyStyle() {
         "QTreeWidget::item:selected { background: #dbeafe; color: #102a43; }"
         "QTabWidget::pane { border: 1px solid #d9dee7; background: #ffffff; border-radius: 6px; }"
         "QTabBar::tab { background: #eef1f5; padding: 8px 14px; border: 1px solid #d9dee7; border-bottom: none; }"
-        "QTabBar::tab:selected { background: #ffffff; }"
+        "QTabBar::tab:selected { background: #ffffff; color: #111827; font-weight: 600; }"
         "QStatusBar { background: #ffffff; border-top: 1px solid #d9dee7; }");
 }
 
@@ -852,38 +920,43 @@ FeedbackRecord MainWindow::buildFeedbackRecord(const QString& replyText) const {
 }
 
 void MainWindow::populateFeedbackPanel(const QList<FeedbackRecord>& feedbacks) {
-    QString html;
+    m_feedbackTree->clear();
+
     if (feedbacks.isEmpty()) {
-        html = "<p>当前版本还没有保存 AI 反馈。</p>";
-    } else {
-        html += "<h3>已保存的 AI 反馈</h3>";
-        for (const FeedbackRecord& feedback : feedbacks) {
-            html += QString("<h4>%1 - %2</h4>").arg(htmlEscape(feedback.createdAt), htmlEscape(feedback.mode));
-            html += QString("<p><b>解析状态：</b>%1</p>").arg(htmlEscape(feedback.parseStatus));
-            html += QString("<p><b>摘要：</b>%1</p>").arg(htmlEscape(feedback.summary));
-            html += QString("<p>%1</p>").arg(htmlEscape(feedback.rawContent));
-        }
+        m_reviewReport->setHtml("<h2 style=\"margin:0 0 8px 0; color:#111827;\">AI 反馈</h2><p style=\"color:#64748b;\">当前版本还没有保存 AI 反馈。</p>");
+        return;
     }
-    m_reviewReport->setHtml(html);
 
-    int rowCount = 0;
-    for (const FeedbackRecord& feedback : feedbacks)
-        rowCount += feedback.items.size();
-
-    m_feedbackIssueTable->setRowCount(rowCount);
-    int row = 0;
     for (const FeedbackRecord& feedback : feedbacks) {
+        const QString title = QString("%1  |  %2").arg(feedback.createdAt, feedback.summary.isEmpty() ? "AI 反馈记录" : feedback.summary);
+        auto* recordItem = new QTreeWidgetItem(m_feedbackTree, QStringList() << title << QString("%1 项").arg(feedback.items.size()) << feedback.mode << feedback.parseStatus);
+        recordItem->setData(0, DetailHtmlRole, renderFeedbackRecordDetail(feedback));
+
         for (const FeedbackItem& item : feedback.items) {
-            m_feedbackIssueTable->setItem(row, 0, new QTableWidgetItem(item.severity));
-            m_feedbackIssueTable->setItem(row, 1, new QTableWidgetItem(item.filePath));
-            m_feedbackIssueTable->setItem(row, 2, new QTableWidgetItem(item.line < 0 ? QString() : QString::number(item.line)));
-            m_feedbackIssueTable->setItem(row, 3, new QTableWidgetItem(item.category));
-            m_feedbackIssueTable->setItem(row, 4, new QTableWidgetItem(item.title));
-            m_feedbackIssueTable->setItem(row, 5, new QTableWidgetItem(item.suggestion));
-            ++row;
+            const QString location = item.filePath.isEmpty()
+                                         ? QString()
+                                         : QString("%1%2").arg(item.filePath, item.line >= 0 ? QString(":%1").arg(item.line) : QString());
+            auto* itemNode = new QTreeWidgetItem(recordItem, QStringList() << (item.title.isEmpty() ? "未命名问题" : item.title) << item.severity << location << item.status);
+            itemNode->setData(0, DetailHtmlRole, renderFeedbackItemDetail(item));
         }
     }
-    m_feedbackIssueTable->resizeColumnsToContents();
+
+    m_feedbackTree->expandAll();
+    for (int column = 1; column < m_feedbackTree->columnCount(); ++column)
+        m_feedbackTree->resizeColumnToContents(column);
+
+    if (m_feedbackTree->topLevelItemCount() > 0)
+        m_feedbackTree->setCurrentItem(m_feedbackTree->topLevelItem(0));
+}
+
+void MainWindow::handleFeedbackTreeSelection(QTreeWidgetItem* current, QTreeWidgetItem* previous) {
+    Q_UNUSED(previous);
+    if (!current)
+        return;
+
+    const QString detailHtml = current->data(0, DetailHtmlRole).toString();
+    if (!detailHtml.isEmpty())
+        m_reviewReport->setHtml(detailHtml);
 }
 
 QString MainWindow::currentModePrompt() const {

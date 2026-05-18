@@ -14,7 +14,6 @@ class QCheckBox;
 class QLabel;
 class QPushButton;
 class QTabWidget;
-class QTableWidget;
 class QTextEdit;
 class QTextBrowser;
 class QTreeWidget;
@@ -34,6 +33,7 @@ private slots:
     void updateCurrentVersionPanel();
     void selectAllFiles();
     void handleFileItemChanged(QTreeWidgetItem* item, int column);
+    void handleFeedbackTreeSelection(QTreeWidgetItem* current, QTreeWidgetItem* previous);
 
 private:
     void buildUi();
@@ -87,7 +87,7 @@ private:
     QPushButton* m_selectAllFilesButton = nullptr;
     QTextBrowser* m_changeSummary = nullptr;
     QTextBrowser* m_reviewReport = nullptr;
-    QTableWidget* m_feedbackIssueTable = nullptr;
+    QTreeWidget* m_feedbackTree = nullptr;
 
     QTextEdit* m_taskEdit = nullptr;
     QTextEdit* m_questionEdit = nullptr;
