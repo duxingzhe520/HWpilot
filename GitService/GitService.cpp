@@ -31,6 +31,38 @@ QString GitService::diffStat() const {
     return runGit({"diff", "--stat", "--", "."}).stdoutText;
 }
 
+QString GitService::diffForCommit(const QString& commitHash) const {
+    if (commitHash.isEmpty())
+        return diff();
+
+    return runGit({"show", "--format=", "--patch", commitHash, "--", "."}).stdoutText;
+}
+
+QString GitService::diffStatForCommit(const QString& commitHash) const {
+    if (commitHash.isEmpty())
+        return diffStat();
+
+    return runGit({"show", "--format=", "--stat", commitHash, "--", "."}).stdoutText;
+}
+
+QStringList GitService::filesAtCommit(const QString& commitHash) const {
+    if (commitHash.isEmpty())
+        return {};
+
+    const GitCommandResult result = runGit({"ls-tree", "-r", "--name-only", commitHash});
+    if (!result.success)
+        return {};
+
+    return result.stdoutText.split('\n', Qt::SkipEmptyParts);
+}
+
+QString GitService::fileContentAtCommit(const QString& commitHash, const QString& filePath) const {
+    if (commitHash.isEmpty() || filePath.isEmpty())
+        return {};
+
+    return runGit({"show", QString("%1:%2").arg(commitHash, filePath)}).stdoutText;
+}
+
 QString GitService::currentHead() const {
     const GitCommandResult result = runGit({"rev-parse", "HEAD"});
     return result.success ? result.stdoutText.trimmed() : QString();

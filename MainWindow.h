@@ -12,7 +12,6 @@
 
 class QCheckBox;
 class QLabel;
-class QListWidget;
 class QPushButton;
 class QTabWidget;
 class QTableWidget;
@@ -33,10 +32,11 @@ private slots:
     void startAiAnalysis();
     void saveFeedbackToVersion();
     void updateCurrentVersionPanel();
+    void selectAllFiles();
+    void handleFileItemChanged(QTreeWidgetItem* item, int column);
 
 private:
     void buildUi();
-    void buildToolBar();
     void buildLeftPanel();
     void buildCenterPanel();
     void buildAiPanel();
@@ -44,12 +44,19 @@ private:
 
     void setProjectFolder(const QString& folderPath);
     void scanCurrentProject();
-    void populateFileList();
+    void refreshProjectPanel();
+    void populateFileTree();
+    void populateFileTreeForPaths(const QStringList& paths);
+    void setTreeChildrenCheckState(QTreeWidgetItem* item, Qt::CheckState state);
+    void updateParentCheckState(QTreeWidgetItem* item);
     void refreshChangeSummary();
     void refreshGitState();
     void rebuildVersionTree();
     void appendVersionNode(const QString& title, const QString& note, const QString& commitHash = QString());
     QList<CodeFile> selectedFiles() const;
+    QStringList checkedFilePaths() const;
+    QString selectedCommitHash() const;
+    QString feedbackContextHash() const;
     QString currentWorkContextHash() const;
     QString currentFeedbackHistory() const;
     FeedbackRecord buildFeedbackRecord(const QString& replyText) const;
@@ -67,13 +74,17 @@ private:
     GitService m_gitService;
     QPointer<HWpilotLLM> m_llm;
 
-    QTreeWidget* m_projectTree = nullptr;
     QTreeWidget* m_versionTree = nullptr;
-    QTreeWidgetItem* m_projectRoot = nullptr;
     QTreeWidgetItem* m_versionRoot = nullptr;
+    QLabel* m_projectNameLabel = nullptr;
+    QLabel* m_projectPathLabel = nullptr;
+    QLabel* m_fileCountLabel = nullptr;
+    QLabel* m_feedbackCountLabel = nullptr;
+    QPushButton* m_openProjectButton = nullptr;
 
     QTabWidget* m_tabs = nullptr;
-    QListWidget* m_fileList = nullptr;
+    QTreeWidget* m_fileTree = nullptr;
+    QPushButton* m_selectAllFilesButton = nullptr;
     QTextBrowser* m_changeSummary = nullptr;
     QTextBrowser* m_reviewReport = nullptr;
     QTableWidget* m_feedbackIssueTable = nullptr;
@@ -87,6 +98,7 @@ private:
     QPushButton* m_analyzeButton = nullptr;
     QPushButton* m_saveFeedbackButton = nullptr;
     QLabel* m_statusLabel = nullptr;
+    bool m_updatingFileTree = false;
 };
 
 #endif  // MAINWINDOW_H

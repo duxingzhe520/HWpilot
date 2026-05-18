@@ -17,7 +17,7 @@
 #include <QJsonParseError>
 #include <QLabel>
 #include <QLineEdit>
-#include <QListWidget>
+#include <QMap>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QSplitter>
@@ -27,7 +27,6 @@
 #include <QTableWidgetItem>
 #include <QTextBrowser>
 #include <QTextEdit>
-#include <QToolBar>
 #include <QTreeWidget>
 #include <QVBoxLayout>
 
@@ -36,6 +35,14 @@
 namespace {
 constexpr int NoteRole = Qt::UserRole + 2;
 constexpr int CommitHashRole = Qt::UserRole + 3;
+constexpr int FilePathRole = Qt::UserRole + 4;
+constexpr int IsDirectoryRole = Qt::UserRole + 5;
+
+struct DiffFileBlock {
+    QString path;
+    QString folder;
+    QStringList lines;
+};
 
 QString htmlEscape(const QString& text) {
     QString escaped = text.toHtmlEscaped();
@@ -78,6 +85,127 @@ QString structuredFeedbackInstruction() {
         "}\n"
         "如果没有发现具体问题，items 输出空数组，并在 summary 与 rawReport 中说明。";
 }
+
+bool isSupportedFilePath(const QString& path) {
+    const QFileInfo info(path);
+    if (info.fileName().compare("CMakeLists.txt", Qt::CaseInsensitive) == 0)
+        return true;
+
+    return HWFileScanner::DEFAULT_CODE_EXTENSIONS.contains(info.suffix().toLower());
+}
+
+QString extensionForPath(const QString& path) {
+    const QFileInfo info(path);
+    if (info.fileName().compare("CMakeLists.txt", Qt::CaseInsensitive) == 0)
+        return "cmake";
+
+    return info.suffix().toLower();
+}
+
+QString folderForPath(const QString& path) {
+    const int slash = path.lastIndexOf('/');
+    if (slash <= 0)
+        return "根目录";
+    return path.left(slash);
+}
+
+QString pathFromDiffHeader(const QString& line) {
+    const QString prefix = "diff --git ";
+    if (!line.startsWith(prefix))
+        return QString();
+
+    const QStringList parts = line.mid(prefix.size()).split(' ', Qt::SkipEmptyParts);
+    if (parts.size() < 2)
+        return QString();
+
+    QString path = parts.at(1);
+    if (path.startsWith("b/"))
+        path = path.mid(2);
+    return path;
+}
+
+QString diffLineHtml(const QString& line) {
+    QString color = "#475569";
+    QString background = "#ffffff";
+    QString border = "#e5e7eb";
+    QString prefix = "&nbsp;";
+
+    if (line.startsWith("@@")) {
+        color = "#1d4ed8";
+        background = "#eff6ff";
+        border = "#bfdbfe";
+        prefix = "@";
+    } else if (line.startsWith('+') && !line.startsWith("+++")) {
+        color = "#166534";
+        background = "#ecfdf3";
+        border = "#bbf7d0";
+        prefix = "+";
+    } else if (line.startsWith('-') && !line.startsWith("---")) {
+        color = "#991b1b";
+        background = "#fef2f2";
+        border = "#fecaca";
+        prefix = "-";
+    } else if (line.startsWith("diff --git") || line.startsWith("index ") || line.startsWith("---") || line.startsWith("+++")) {
+        color = "#64748b";
+        background = "#f8fafc";
+        border = "#e2e8f0";
+        prefix = " ";
+    }
+
+    QString text = line.toHtmlEscaped();
+    text.replace(" ", "&nbsp;");
+    return QString("<div style=\"font-family: Menlo, Consolas, monospace; font-size: 12px; line-height: 1.45; color: %1; background: %2; border-left: 3px solid %3; padding: 1px 8px;\"><span style=\"display:inline-block; width:18px; color:%1;\">%4</span>%5</div>")
+        .arg(color, background, border, prefix, text);
+}
+
+QString renderReadableDiff(const QString& diff) {
+    if (diff.trimmed().isEmpty())
+        return "<p>没有可显示的内容变更。</p>";
+
+    QList<DiffFileBlock> blocks;
+    DiffFileBlock current;
+    const QStringList lines = diff.split('\n');
+    for (const QString& line : lines) {
+        if (line.startsWith("diff --git ")) {
+            if (!current.path.isEmpty())
+                blocks.append(current);
+
+            current = DiffFileBlock();
+            current.path = pathFromDiffHeader(line);
+            if (current.path.isEmpty())
+                current.path = "未知文件";
+            current.folder = folderForPath(current.path);
+        }
+
+        if (current.path.isEmpty()) {
+            current.path = "变更内容";
+            current.folder = "根目录";
+        }
+        current.lines.append(line);
+    }
+
+    if (!current.path.isEmpty())
+        blocks.append(current);
+
+    QMap<QString, QList<DiffFileBlock>> groups;
+    for (const DiffFileBlock& block : blocks)
+        groups[block.folder].append(block);
+
+    QString html;
+    for (auto it = groups.cbegin(); it != groups.cend(); ++it) {
+        html += QString("<h4 style=\"margin:18px 0 8px 0; color:#0f172a;\">%1</h4>").arg(htmlEscape(it.key()));
+        for (const DiffFileBlock& block : it.value()) {
+            html += QString("<div style=\"border:1px solid #d9dee7; border-radius:6px; overflow:hidden; margin-bottom:10px; background:#ffffff;\">"
+                            "<div style=\"background:#f1f5f9; padding:8px 10px; font-weight:600; color:#1f2937;\">%1</div>")
+                        .arg(htmlEscape(block.path));
+            for (const QString& line : block.lines)
+                html += diffLineHtml(line);
+            html += "</div>";
+        }
+    }
+
+    return html;
+}
 }  // namespace
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
@@ -88,8 +216,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
 void MainWindow::buildUi() {
     setWindowTitle("HWpilot - 单作业 AI 代码分析工具");
     resize(1220, 780);
-
-    buildToolBar();
 
     auto* root = new QWidget(this);
     auto* rootLayout = new QHBoxLayout(root);
@@ -103,7 +229,11 @@ void MainWindow::buildUi() {
     leftLayout->setContentsMargins(0, 0, 0, 0);
     leftLayout->setSpacing(8);
     buildLeftPanel();
-    leftLayout->addWidget(m_projectTree);
+    leftLayout->addWidget(m_projectNameLabel);
+    leftLayout->addWidget(m_projectPathLabel);
+    leftLayout->addWidget(m_fileCountLabel);
+    leftLayout->addWidget(m_feedbackCountLabel);
+    leftLayout->addWidget(m_openProjectButton);
     leftLayout->addWidget(m_versionTree, 1);
 
     auto* centerPanel = new QWidget(splitter);
@@ -138,28 +268,26 @@ void MainWindow::buildUi() {
 
     m_statusLabel = new QLabel("请选择一个作业项目文件夹", this);
     statusBar()->addWidget(m_statusLabel, 1);
-}
-
-void MainWindow::buildToolBar() {
-    auto* toolbar = addToolBar("主工具栏");
-    toolbar->setMovable(false);
-
-    auto* openAction = toolbar->addAction("打开项目并扫描");
-    connect(openAction, &QAction::triggered, this, &MainWindow::openProjectFolder);
+    refreshProjectPanel();
 }
 
 void MainWindow::buildLeftPanel() {
-    m_projectTree = new QTreeWidget(this);
-    m_projectTree->setHeaderLabel("当前项目");
-    m_projectRoot = new QTreeWidgetItem(QStringList() << "尚未打开项目");
-    m_projectTree->addTopLevelItem(m_projectRoot);
-    m_projectTree->expandAll();
+    m_projectNameLabel = new QLabel(this);
+    m_projectNameLabel->setObjectName("ProjectName");
+    m_projectPathLabel = new QLabel(this);
+    m_projectPathLabel->setObjectName("MetaLabel");
+    m_projectPathLabel->setWordWrap(true);
+    m_fileCountLabel = new QLabel(this);
+    m_fileCountLabel->setObjectName("MetaLabel");
+    m_feedbackCountLabel = new QLabel(this);
+    m_feedbackCountLabel->setObjectName("MetaLabel");
+
+    m_openProjectButton = new QPushButton("打开项目并扫描", this);
+    connect(m_openProjectButton, &QPushButton::clicked, this, &MainWindow::openProjectFolder);
 
     m_versionTree = new QTreeWidget(this);
     m_versionTree->setHeaderLabel("提交存档");
-    m_versionRoot = new QTreeWidgetItem(QStringList() << "当前作业");
-    m_versionRoot->setData(0, NoteRole, "打开项目后会显示简单 Git 提交记录。");
-    m_versionTree->addTopLevelItem(m_versionRoot);
+    m_versionRoot = m_versionTree->invisibleRootItem();
     appendVersionNode("尚未打开项目", "请选择一个作业项目文件夹。");
     m_versionTree->expandAll();
     m_versionTree->setCurrentItem(m_versionRoot->child(0));
@@ -169,8 +297,22 @@ void MainWindow::buildLeftPanel() {
 void MainWindow::buildCenterPanel() {
     m_tabs = new QTabWidget(this);
 
-    m_fileList = new QListWidget(this);
-    m_fileList->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    auto* filePanel = new QWidget(this);
+    auto* fileLayout = new QVBoxLayout(filePanel);
+    fileLayout->setContentsMargins(0, 0, 0, 0);
+    fileLayout->setSpacing(8);
+
+    m_selectAllFilesButton = new QPushButton("全选文件", this);
+    connect(m_selectAllFilesButton, &QPushButton::clicked, this, &MainWindow::selectAllFiles);
+
+    m_fileTree = new QTreeWidget(this);
+    m_fileTree->setHeaderLabel("项目文件");
+    m_fileTree->setSelectionMode(QAbstractItemView::SingleSelection);
+    connect(m_fileTree, &QTreeWidget::itemChanged, this, &MainWindow::handleFileItemChanged);
+
+    fileLayout->addWidget(m_selectAllFilesButton);
+    fileLayout->addWidget(m_fileTree, 1);
+
     m_changeSummary = new QTextBrowser(this);
     m_reviewReport = new QTextBrowser(this);
     m_feedbackIssueTable = new QTableWidget(this);
@@ -187,8 +329,8 @@ void MainWindow::buildCenterPanel() {
     feedbackLayout->addWidget(m_reviewReport, 1);
     feedbackLayout->addWidget(m_feedbackIssueTable, 1);
 
-    m_tabs->addTab(m_fileList, "文件");
-    m_tabs->addTab(m_changeSummary, "变更");
+    m_tabs->addTab(filePanel, "文件");
+    m_tabs->addTab(m_changeSummary, "版本概览");
     m_tabs->addTab(feedbackPanel, "AI 反馈");
 }
 
@@ -225,19 +367,20 @@ void MainWindow::buildAiPanel() {
 void MainWindow::applyStyle() {
     qApp->setStyleSheet(
         "QMainWindow, QWidget { background: #f4f6f8; color: #202936; font-size: 14px; }"
-        "QToolBar { background: #ffffff; border-bottom: 1px solid #d8dee8; spacing: 8px; padding: 8px; }"
         "QToolButton, QPushButton { background: #ffffff; border: 1px solid #c8d1de; border-radius: 6px; padding: 8px 13px; }"
         "QToolButton:hover, QPushButton:hover { background: #edf4ff; border-color: #78a7f8; }"
         "QPushButton#PrimaryButton { background: #2563eb; color: white; border-color: #2563eb; font-weight: 600; }"
         "QPushButton#PrimaryButton:hover { background: #1d4ed8; border-color: #1d4ed8; }"
         "QPushButton:disabled { color: #8b97a7; background: #eef1f5; }"
-        "QTreeWidget, QListWidget, QTextEdit, QTextBrowser, QComboBox { background: #ffffff; border: 1px solid #d9dee7; border-radius: "
+        "QTreeWidget, QTextEdit, QTextBrowser, QComboBox { background: #ffffff; border: 1px solid #d9dee7; border-radius: "
         "6px; }"
         "QTableWidget { background: #ffffff; border: 1px solid #d9dee7; border-radius: 6px; gridline-color: #e5e9f0; }"
         "QHeaderView::section { background: #eef1f5; border: none; border-right: 1px solid #d9dee7; padding: 6px; }"
         "QLabel#PanelTitle { background: transparent; color: #111827; font-size: 17px; font-weight: 700; padding: 2px 0 6px 0; }"
-        "QTreeWidget::item, QListWidget::item { padding: 5px; }"
-        "QTreeWidget::item:selected, QListWidget::item:selected { background: #dbeafe; color: #102a43; }"
+        "QLabel#ProjectName { background: transparent; color: #111827; font-size: 17px; font-weight: 700; padding: 2px 0 2px 0; }"
+        "QLabel#MetaLabel { background: transparent; color: #526070; padding: 1px 0; }"
+        "QTreeWidget::item { padding: 5px; }"
+        "QTreeWidget::item:selected { background: #dbeafe; color: #102a43; }"
         "QTabWidget::pane { border: 1px solid #d9dee7; background: #ffffff; border-radius: 6px; }"
         "QTabBar::tab { background: #eef1f5; padding: 8px 14px; border: 1px solid #d9dee7; border-bottom: none; }"
         "QTabBar::tab:selected { background: #ffffff; }"
@@ -277,16 +420,8 @@ void MainWindow::setProjectFolder(const QString& folderPath) {
         }
     }
 
-    const QString name = m_projectManager.data().projectName.isEmpty() ? QFileInfo(m_projectDir).fileName() : m_projectManager.data().projectName;
     m_taskEdit->setPlainText(m_projectManager.data().assignmentText);
-
-    m_projectRoot->setText(0, name.isEmpty() ? m_projectDir : name);
-    m_projectRoot->takeChildren();
-    m_projectRoot->addChild(new QTreeWidgetItem(QStringList() << "文件"));
-    m_projectRoot->addChild(new QTreeWidgetItem(QStringList() << "AI 反馈"));
-    m_projectTree->expandAll();
-
-    m_versionRoot->setText(0, name.isEmpty() ? "当前作业" : name);
+    refreshProjectPanel();
     refreshGitState();
 }
 
@@ -301,7 +436,8 @@ void MainWindow::scanCurrentProject() {
     m_projectManager.data().assignmentText = m_taskEdit->toPlainText().trimmed();
     QString errorMessage;
     m_projectManager.save(&errorMessage);
-    populateFileList();
+    populateFileTree();
+    refreshProjectPanel();
     refreshChangeSummary();
     m_statusLabel->setText(QString("已扫描 %1 个代码/文本文件").arg(m_files.size()));
 
@@ -310,40 +446,169 @@ void MainWindow::scanCurrentProject() {
     }
 }
 
-void MainWindow::populateFileList() {
-    m_fileList->clear();
-    for (const CodeFile& file : m_files) {
-        auto* item = new QListWidgetItem(file.relativePath, m_fileList);
-        item->setCheckState(Qt::Checked);
-        item->setData(Qt::UserRole, file.absolutePath);
-        item->setToolTip(file.absolutePath);
+void MainWindow::refreshProjectPanel() {
+    const QString name = m_projectDir.isEmpty() ? "尚未打开项目" : QFileInfo(m_projectDir).fileName();
+    m_projectNameLabel->setText(name);
+    m_projectPathLabel->setText(m_projectDir.isEmpty() ? "请选择一个作业文件夹开始分析" : m_projectDir);
+    m_fileCountLabel->setText(QString("文件：%1").arg(m_files.size()));
+    m_feedbackCountLabel->setText(QString("AI 反馈：%1").arg(m_feedbackStore.allFeedbacks().size()));
+}
+
+void MainWindow::populateFileTree() {
+    QStringList paths;
+    const QString commitHash = selectedCommitHash();
+    if (commitHash.isEmpty()) {
+        for (const CodeFile& file : m_files)
+            paths.append(file.relativePath);
+    } else {
+        const QStringList committedPaths = m_gitService.filesAtCommit(commitHash);
+        for (const QString& path : committedPaths) {
+            if (isSupportedFilePath(path))
+                paths.append(path);
+        }
+    }
+
+    populateFileTreeForPaths(paths);
+}
+
+void MainWindow::populateFileTreeForPaths(const QStringList& paths) {
+    m_updatingFileTree = true;
+    m_fileTree->clear();
+
+    QStringList sortedPaths = paths;
+    sortedPaths.removeDuplicates();
+    sortedPaths.sort(Qt::CaseInsensitive);
+
+    for (const QString& path : sortedPaths) {
+        QTreeWidgetItem* parent = m_fileTree->invisibleRootItem();
+        QString currentPath;
+        const QStringList parts = path.split('/', Qt::SkipEmptyParts);
+        for (int i = 0; i < parts.size(); ++i) {
+            const bool isLast = i == parts.size() - 1;
+            currentPath = currentPath.isEmpty() ? parts.at(i) : currentPath + "/" + parts.at(i);
+
+            QTreeWidgetItem* child = nullptr;
+            for (int childIndex = 0; childIndex < parent->childCount(); ++childIndex) {
+                QTreeWidgetItem* existing = parent->child(childIndex);
+                if (existing->text(0) == parts.at(i)) {
+                    child = existing;
+                    break;
+                }
+            }
+
+            if (!child) {
+                child = new QTreeWidgetItem(parent, QStringList() << parts.at(i));
+                child->setFlags(child->flags() | Qt::ItemIsUserCheckable);
+                child->setCheckState(0, Qt::Checked);
+            }
+
+            child->setData(0, FilePathRole, currentPath);
+            child->setData(0, IsDirectoryRole, !isLast);
+            child->setToolTip(0, currentPath);
+            parent = child;
+        }
+    }
+
+    m_fileTree->expandAll();
+    m_updatingFileTree = false;
+}
+
+void MainWindow::setTreeChildrenCheckState(QTreeWidgetItem* item, Qt::CheckState state) {
+    for (int i = 0; i < item->childCount(); ++i) {
+        QTreeWidgetItem* child = item->child(i);
+        child->setCheckState(0, state);
+        setTreeChildrenCheckState(child, state);
+    }
+}
+
+void MainWindow::updateParentCheckState(QTreeWidgetItem* item) {
+    QTreeWidgetItem* parent = item->parent();
+    while (parent) {
+        int checkedCount = 0;
+        int partialCount = 0;
+        for (int i = 0; i < parent->childCount(); ++i) {
+            const Qt::CheckState state = parent->child(i)->checkState(0);
+            if (state == Qt::Checked)
+                ++checkedCount;
+            else if (state == Qt::PartiallyChecked)
+                ++partialCount;
+        }
+
+        if (checkedCount == parent->childCount()) {
+            parent->setCheckState(0, Qt::Checked);
+        } else if (checkedCount == 0 && partialCount == 0) {
+            parent->setCheckState(0, Qt::Unchecked);
+        } else {
+            parent->setCheckState(0, Qt::PartiallyChecked);
+        }
+
+        parent = parent->parent();
     }
 }
 
 void MainWindow::refreshChangeSummary() {
-    QString html = "<h2>变更视图</h2>";
+    QString html = "<h2>版本概览</h2>";
     if (m_projectDir.isEmpty()) {
         html += "<p>尚未打开项目。</p>";
         m_changeSummary->setHtml(html);
         return;
     }
 
-    const QString status = m_gitService.statusPorcelain().trimmed();
-    const QString diffStat = m_gitService.diffStat().trimmed();
-    const QString diff = m_gitService.diff().trimmed();
+    const QString commitHash = selectedCommitHash();
+    const QString versionTitle = m_versionTree->currentItem() ? m_versionTree->currentItem()->text(0) : QString("当前工作区");
+    const QList<FeedbackRecord> feedbacks = m_feedbackStore.feedbacksForCommit(feedbackContextHash());
+    const int fileCount = commitHash.isEmpty() ? m_files.size() : m_gitService.filesAtCommit(commitHash).size();
 
-    html += "<h3>Git Status</h3>";
-    html += QString("<pre>%1</pre>").arg(htmlEscape(status.isEmpty() ? "工作区干净，没有未提交修改。" : status));
-    html += "<h3>Diff Stat</h3>";
-    html += QString("<pre>%1</pre>").arg(htmlEscape(diffStat.isEmpty() ? "暂无已跟踪文件变更统计。" : diffStat));
-    html += "<h3>Diff</h3>";
-    html += QString("<pre>%1</pre>").arg(htmlEscape(diff.isEmpty() ? "暂无已跟踪文件内容变更。" : diff));
+    html += "<h3>信息概览</h3>";
+    html += "<table cellspacing=\"0\" cellpadding=\"6\" style=\"border-collapse:collapse; width:100%;\">";
+    html += QString("<tr><td style=\"color:#64748b; width:110px;\">版本</td><td><b>%1</b></td></tr>").arg(htmlEscape(versionTitle));
+    html += QString("<tr><td style=\"color:#64748b;\">文件数量</td><td>%1</td></tr>").arg(fileCount);
+    html += QString("<tr><td style=\"color:#64748b;\">AI 反馈</td><td>%1 条</td></tr>").arg(feedbacks.size());
+
+    if (commitHash.isEmpty()) {
+        const QString status = m_gitService.statusPorcelain().trimmed();
+        const QString diffStat = m_gitService.diffStat().trimmed();
+        const QString diff = m_gitService.diff().trimmed();
+
+        html += QString("<tr><td style=\"color:#64748b;\">类型</td><td>当前工作区</td></tr>");
+        const QString head = m_gitService.currentHead();
+        html += QString("<tr><td style=\"color:#64748b;\">当前 HEAD</td><td>%1</td></tr>")
+                    .arg(head.isEmpty() ? "尚无提交" : QString("<code>%1</code>").arg(htmlEscape(head)));
+        html += QString("<tr><td style=\"color:#64748b;\">Git 状态</td><td>%1</td></tr>")
+                    .arg(htmlEscape(status.isEmpty() ? "工作区干净，没有未提交修改。" : status));
+        html += QString("<tr><td style=\"color:#64748b; vertical-align:top;\">变更统计</td><td><pre style=\"margin:0; white-space:pre-wrap;\">%1</pre></td></tr>")
+                    .arg(htmlEscape(diffStat.isEmpty() ? "暂无已跟踪文件变更统计。" : diffStat));
+        html += "</table>";
+        html += "<h3>相对上一版本的变更</h3>";
+        html += renderReadableDiff(diff);
+    } else {
+        GitCommit selectedCommit;
+        for (const GitCommit& commit : m_commits) {
+            if (commit.hash == commitHash) {
+                selectedCommit = commit;
+                break;
+            }
+        }
+        const QString diffStat = m_gitService.diffStatForCommit(commitHash).trimmed();
+        const QString diff = m_gitService.diffForCommit(commitHash).trimmed();
+
+        html += QString("<tr><td style=\"color:#64748b;\">类型</td><td>历史提交</td></tr>");
+        html += QString("<tr><td style=\"color:#64748b;\">提交信息</td><td>%1</td></tr>").arg(htmlEscape(selectedCommit.subject));
+        html += QString("<tr><td style=\"color:#64748b;\">提交日期</td><td>%1</td></tr>").arg(htmlEscape(selectedCommit.date));
+        html += QString("<tr><td style=\"color:#64748b;\">Commit Hash</td><td><code>%1</code></td></tr>").arg(htmlEscape(commitHash));
+        html += QString("<tr><td style=\"color:#64748b; vertical-align:top;\">变更统计</td><td><pre style=\"margin:0; white-space:pre-wrap;\">%1</pre></td></tr>")
+                    .arg(htmlEscape(diffStat.isEmpty() ? "这个提交没有可显示的文件变更统计。" : diffStat));
+        html += "</table>";
+        html += "<h3>相对上一版本的变更</h3>";
+        html += renderReadableDiff(diff);
+    }
     m_changeSummary->setHtml(html);
 }
 
 void MainWindow::refreshGitState() {
     m_commits = m_gitService.log();
     rebuildVersionTree();
+    populateFileTree();
     refreshChangeSummary();
 }
 
@@ -351,15 +616,11 @@ void MainWindow::rebuildVersionTree() {
     m_versionRoot->takeChildren();
     if (m_projectDir.isEmpty()) {
         appendVersionNode("尚未打开项目", "请选择一个作业项目文件夹。");
-    } else if (m_commits.isEmpty()) {
-        appendVersionNode("尚无存档", "当前项目还没有提交存档。");
     } else {
+        appendVersionNode("当前工作区", "当前磁盘上的项目文件和未提交变更。");
+
         for (const GitCommit& commit : m_commits) {
-            const int feedbackCount = m_feedbackStore.feedbacksForCommit(commit.hash).size();
-            const QString title = QString("%1  %2%3")
-                                      .arg(commit.shortHash)
-                                      .arg(commit.subject)
-                                      .arg(feedbackCount > 0 ? QString(" [AI:%1]").arg(feedbackCount) : QString());
+            const QString title = commit.subject.trimmed().isEmpty() ? "未命名提交" : commit.subject.trimmed();
             const QString note = QString("%1\n%2").arg(commit.date, commit.hash);
             appendVersionNode(title, note, commit.hash);
         }
@@ -379,20 +640,82 @@ void MainWindow::appendVersionNode(const QString& title, const QString& note, co
 
 QList<CodeFile> MainWindow::selectedFiles() const {
     QList<CodeFile> files;
-    for (int i = 0; i < m_fileList->count(); ++i) {
-        QListWidgetItem* item = m_fileList->item(i);
-        if (item->checkState() != Qt::Checked)
-            continue;
-
-        const QString absolutePath = item->data(Qt::UserRole).toString();
-        for (const CodeFile& file : m_files) {
-            if (file.absolutePath == absolutePath) {
-                files.append(file);
-                break;
+    const QString commitHash = selectedCommitHash();
+    const QStringList paths = checkedFilePaths();
+    for (const QString& path : paths) {
+        if (commitHash.isEmpty()) {
+            const QString absolutePath = QDir(m_projectDir).filePath(path);
+            for (const CodeFile& file : m_files) {
+                if (file.absolutePath == absolutePath || file.relativePath == path) {
+                    files.append(file);
+                    break;
+                }
             }
+            continue;
         }
+
+        CodeFile file;
+        file.relativePath = path;
+        file.absolutePath = QDir(m_projectDir).filePath(path);
+        file.extension = extensionForPath(path);
+        file.content = m_gitService.fileContentAtCommit(commitHash, path);
+        files.append(file);
     }
     return files;
+}
+
+QStringList MainWindow::checkedFilePaths() const {
+    QStringList paths;
+    auto collect = [&](auto&& self, QTreeWidgetItem* item) -> void {
+        for (int i = 0; i < item->childCount(); ++i) {
+            QTreeWidgetItem* child = item->child(i);
+            if (child->data(0, IsDirectoryRole).toBool()) {
+                self(self, child);
+            } else if (child->checkState(0) == Qt::Checked) {
+                paths.append(child->data(0, FilePathRole).toString());
+            }
+        }
+    };
+
+    collect(collect, m_fileTree->invisibleRootItem());
+    return paths;
+}
+
+QString MainWindow::selectedCommitHash() const {
+    QTreeWidgetItem* item = m_versionTree->currentItem();
+    if (!item || item == m_versionRoot)
+        return QString();
+    return item->data(0, CommitHashRole).toString();
+}
+
+QString MainWindow::feedbackContextHash() const {
+    const QString commitHash = selectedCommitHash();
+    return commitHash.isEmpty() ? currentWorkContextHash() : commitHash;
+}
+
+void MainWindow::selectAllFiles() {
+    if (!m_fileTree)
+        return;
+
+    m_updatingFileTree = true;
+    QTreeWidgetItem* root = m_fileTree->invisibleRootItem();
+    for (int i = 0; i < root->childCount(); ++i) {
+        QTreeWidgetItem* item = root->child(i);
+        item->setCheckState(0, Qt::Checked);
+        setTreeChildrenCheckState(item, Qt::Checked);
+    }
+    m_updatingFileTree = false;
+}
+
+void MainWindow::handleFileItemChanged(QTreeWidgetItem* item, int column) {
+    if (!item || column != 0 || m_updatingFileTree)
+        return;
+
+    m_updatingFileTree = true;
+    if (item->data(0, IsDirectoryRole).toBool())
+        setTreeChildrenCheckState(item, item->checkState(0));
+    updateParentCheckState(item);
+    m_updatingFileTree = false;
 }
 
 QString MainWindow::currentWorkContextHash() const {
@@ -404,7 +727,7 @@ QString MainWindow::currentWorkContextHash() const {
 
 QString MainWindow::currentFeedbackHistory() const {
     QString history;
-    const QString commitHash = currentWorkContextHash();
+    const QString commitHash = feedbackContextHash();
     const QList<FeedbackRecord> records = m_feedbackStore.feedbacksForCommit(commitHash);
     for (const FeedbackRecord& record : records) {
         history += QString("### %1 %2\n%3\n%4\n\n").arg(record.createdAt, record.mode, record.summary, record.rawContent);
@@ -415,7 +738,7 @@ QString MainWindow::currentFeedbackHistory() const {
 FeedbackRecord MainWindow::buildFeedbackRecord(const QString& replyText) const {
     FeedbackRecord record;
     record.id = QString::number(QDateTime::currentMSecsSinceEpoch());
-    record.commitHash = currentWorkContextHash();
+    record.commitHash = feedbackContextHash();
     record.mode = currentModeName();
     record.createdAt = QDateTime::currentDateTime().toString(Qt::ISODate);
     record.rawContent = replyText;
@@ -534,16 +857,19 @@ void MainWindow::startAiAnalysis() {
         }
     }
 
-    const QString gitDiff = m_gitService.diff().trimmed();
+    const QString selectedCommit = selectedCommitHash();
+    const QString gitDiff = selectedCommit.isEmpty() ? m_gitService.diff().trimmed() : m_gitService.diffForCommit(selectedCommit).trimmed();
     if (!gitDiff.isEmpty()) {
-        userContent += "【当前 Git 变更 diff】\n";
+        userContent += selectedCommit.isEmpty() ? "【当前 Git 变更 diff】\n" : "【当前提交相对于上一个提交的 diff】\n";
         userContent += gitDiff + "\n\n";
     }
 
-    const QString gitStatus = m_gitService.statusPorcelain().trimmed();
-    if (!gitStatus.isEmpty()) {
-        userContent += "【当前 Git status】\n";
-        userContent += gitStatus + "\n\n";
+    if (selectedCommit.isEmpty()) {
+        const QString gitStatus = m_gitService.statusPorcelain().trimmed();
+        if (!gitStatus.isEmpty()) {
+            userContent += "【当前 Git status】\n";
+            userContent += gitStatus + "\n\n";
+        }
     }
 
     if (m_includeCodeCheck->isChecked()) {
@@ -608,8 +934,9 @@ void MainWindow::saveFeedbackToVersion() {
         return;
     }
 
+    const bool savingHistoricalVersion = !selectedCommitHash().isEmpty();
     const QString status = m_gitService.statusPorcelain().trimmed();
-    if (!status.isEmpty()) {
+    if (!status.isEmpty() && !savingHistoricalVersion) {
         bool ok = false;
         const QString defaultMessage = QString("HWpilot analysis archive %1").arg(QDateTime::currentDateTime().toString("MM-dd HH:mm"));
         const QString message = QInputDialog::getText(this, "提交存档", "存档说明：", QLineEdit::Normal, defaultMessage, &ok).trimmed();
@@ -633,10 +960,11 @@ void MainWindow::saveFeedbackToVersion() {
             m_statusLabel->setText("已保存 AI 反馈，未提交存档");
         }
     } else {
-        m_statusLabel->setText("已保存 AI 反馈");
+        m_statusLabel->setText(savingHistoricalVersion ? "已保存到选中的历史提交" : "已保存 AI 反馈");
     }
 
     refreshGitState();
+    refreshProjectPanel();
     updateCurrentVersionPanel();
 }
 
@@ -645,7 +973,10 @@ void MainWindow::updateCurrentVersionPanel() {
     if (!item)
         return;
 
-    const QString commitHash = item->data(0, CommitHashRole).toString().isEmpty() ? "working-tree" : item->data(0, CommitHashRole).toString();
+    populateFileTree();
+    refreshChangeSummary();
+
+    const QString commitHash = feedbackContextHash();
     const QList<FeedbackRecord> feedbacks = m_feedbackStore.feedbacksForCommit(commitHash);
     QString html;
     html += QString("<h2>%1</h2>").arg(htmlEscape(item->text(0)));
