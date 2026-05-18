@@ -49,18 +49,28 @@ QStringList GitService::filesAtCommit(const QString& commitHash) const {
     if (commitHash.isEmpty())
         return {};
 
-    const GitCommandResult result = runGit({"ls-tree", "-r", "--name-only", commitHash});
+    const GitCommandResult result = runGit({"-c", "core.quotepath=false", "ls-tree", "-r", "--name-only", commitHash});
     if (!result.success)
         return {};
 
-    return result.stdoutText.split('\n', Qt::SkipEmptyParts);
+    QStringList paths = result.stdoutText.split('\n', Qt::SkipEmptyParts);
+    for (QString& path : paths)
+        path = path.trimmed();
+    paths.removeAll(QString());
+    return paths;
 }
 
 QString GitService::fileContentAtCommit(const QString& commitHash, const QString& filePath) const {
     if (commitHash.isEmpty() || filePath.isEmpty())
         return {};
 
-    return runGit({"show", QString("%1:%2").arg(commitHash, filePath)}).stdoutText;
+    const QString objectName = QString("%1:%2").arg(commitHash, filePath);
+    GitCommandResult result = runGit({"show", "--no-ext-diff", "--no-textconv", objectName});
+    if (result.success)
+        return result.stdoutText;
+
+    result = runGit({"cat-file", "-p", objectName});
+    return result.success ? result.stdoutText : QString();
 }
 
 QString GitService::currentHead() const {
@@ -71,7 +81,7 @@ QString GitService::currentHead() const {
 QList<GitCommit> GitService::log(int limit) const {
     QList<GitCommit> commits;
     const QString format = "%H%x1f%h%x1f%ad%x1f%s%x1e";
-    const GitCommandResult result = runGit({"log", QString("--max-count=%1").arg(limit), "--date=short", QString("--pretty=format:%1").arg(format)});
+    const GitCommandResult result = runGit({"log", "--branches", "--remotes", QString("--max-count=%1").arg(limit), "--date=format:%Y-%m-%d %H:%M", QString("--pretty=format:%1").arg(format)});
     if (!result.success)
         return commits;
 
@@ -92,6 +102,25 @@ QList<GitCommit> GitService::log(int limit) const {
     return commits;
 }
 
+QStringList GitService::branchesContainingCommit(const QString& commitHash) const {
+    if (commitHash.isEmpty())
+        return {};
+
+    const GitCommandResult result = runGit({"branch", "-a", "--contains", commitHash, "--format=%(refname:short)"});
+    if (!result.success)
+        return {};
+
+    QStringList branches = result.stdoutText.split('\n', Qt::SkipEmptyParts);
+    for (QString& branch : branches)
+        branch = branch.trimmed();
+    branches.removeAll(QString());
+    branches.removeAll("origin/HEAD");
+    branches.removeAll("remotes/origin/HEAD");
+    branches.removeDuplicates();
+    branches.sort(Qt::CaseInsensitive);
+    return branches;
+}
+
 GitCommandResult GitService::addAll() const {
     return runGit({"add", "-A"});
 }
@@ -110,7 +139,7 @@ GitCommandResult GitService::runGit(const QStringList& arguments) const {
     QProcess process;
     process.setWorkingDirectory(m_workingDirectory);
     process.start("git", arguments);
-    if (!process.waitForFinished(10000)) {
+    if (!process.waitForFinished(30000)) {
         process.kill();
         process.waitForFinished();
         result.stderrText = "Git 命令执行超时。";

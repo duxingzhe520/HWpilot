@@ -44,6 +44,13 @@ struct DiffFileBlock {
     QStringList lines;
 };
 
+struct DiffStatEntry {
+    QString path;
+    int additions = 0;
+    int deletions = 0;
+    QString detail;
+};
+
 QString htmlEscape(const QString& text) {
     QString escaped = text.toHtmlEscaped();
     return escaped.replace('\n', "<br>");
@@ -206,6 +213,65 @@ QString renderReadableDiff(const QString& diff) {
 
     return html;
 }
+
+QString renderDiffStat(const QString& diffStat) {
+    if (diffStat.trimmed().isEmpty())
+        return "<p style=\"margin:0; color:#64748b;\">暂无文件变更统计。</p>";
+
+    QList<DiffStatEntry> entries;
+    QString summary;
+    const QStringList lines = diffStat.split('\n', Qt::SkipEmptyParts);
+    for (const QString& rawLine : lines) {
+        const QString line = rawLine.trimmed();
+        const int pipeIndex = line.indexOf('|');
+        if (pipeIndex < 0) {
+            summary = line;
+            continue;
+        }
+
+        DiffStatEntry entry;
+        entry.path = line.left(pipeIndex).trimmed();
+        entry.detail = line.mid(pipeIndex + 1).trimmed();
+        for (const QChar ch : entry.detail) {
+            if (ch == '+')
+                ++entry.additions;
+            else if (ch == '-')
+                ++entry.deletions;
+        }
+        entries.append(entry);
+    }
+
+    if (entries.isEmpty())
+        return QString("<p style=\"margin:0; color:#64748b;\">%1</p>").arg(htmlEscape(summary.isEmpty() ? diffStat.trimmed() : summary));
+
+    int totalAdditions = 0;
+    int totalDeletions = 0;
+    for (const DiffStatEntry& entry : entries) {
+        totalAdditions += entry.additions;
+        totalDeletions += entry.deletions;
+    }
+
+    QString html;
+    html += "<div style=\"display:flex; gap:8px; margin:2px 0 10px 0; flex-wrap:wrap;\">";
+    html += QString("<span style=\"background:#f1f5f9; border:1px solid #d9dee7; border-radius:6px; padding:5px 9px; color:#334155;\">%1 个文件</span>").arg(entries.size());
+    html += QString("<span style=\"background:#ecfdf3; border:1px solid #bbf7d0; border-radius:6px; padding:5px 9px; color:#166534;\">+%1</span>").arg(totalAdditions);
+    html += QString("<span style=\"background:#fef2f2; border:1px solid #fecaca; border-radius:6px; padding:5px 9px; color:#991b1b;\">-%1</span>").arg(totalDeletions);
+    if (!summary.isEmpty())
+        html += QString("<span style=\"color:#64748b; padding:5px 0;\">%1</span>").arg(htmlEscape(summary));
+    html += "</div>";
+
+    html += "<table cellspacing=\"0\" cellpadding=\"6\" style=\"border-collapse:collapse; width:100%; border:1px solid #e2e8f0; border-radius:6px; overflow:hidden;\">";
+    html += "<tr style=\"background:#f8fafc;\"><th align=\"left\" style=\"color:#475569; font-weight:600;\">文件</th><th align=\"right\" style=\"color:#166534; font-weight:600; width:70px;\">新增</th><th align=\"right\" style=\"color:#991b1b; font-weight:600; width:70px;\">删除</th><th align=\"left\" style=\"color:#64748b; font-weight:600; width:160px;\">变化</th></tr>";
+    for (const DiffStatEntry& entry : entries) {
+        html += QString("<tr style=\"border-top:1px solid #e2e8f0;\"><td>%1</td><td align=\"right\" style=\"color:#166534;\">+%2</td><td align=\"right\" style=\"color:#991b1b;\">-%3</td><td style=\"font-family:Menlo, Consolas, monospace; color:#64748b;\">%4</td></tr>")
+                    .arg(htmlEscape(entry.path))
+                    .arg(entry.additions)
+                    .arg(entry.deletions)
+                    .arg(htmlEscape(entry.detail));
+    }
+    html += "</table>";
+    return html;
+}
 }  // namespace
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
@@ -286,7 +352,7 @@ void MainWindow::buildLeftPanel() {
     connect(m_openProjectButton, &QPushButton::clicked, this, &MainWindow::openProjectFolder);
 
     m_versionTree = new QTreeWidget(this);
-    m_versionTree->setHeaderLabel("提交存档");
+    m_versionTree->setHeaderLabel("提交存档（所有分支）");
     m_versionRoot = m_versionTree->invisibleRootItem();
     appendVersionNode("尚未打开项目", "请选择一个作业项目文件夹。");
     m_versionTree->expandAll();
@@ -576,8 +642,8 @@ void MainWindow::refreshChangeSummary() {
                     .arg(head.isEmpty() ? "尚无提交" : QString("<code>%1</code>").arg(htmlEscape(head)));
         html += QString("<tr><td style=\"color:#64748b;\">Git 状态</td><td>%1</td></tr>")
                     .arg(htmlEscape(status.isEmpty() ? "工作区干净，没有未提交修改。" : status));
-        html += QString("<tr><td style=\"color:#64748b; vertical-align:top;\">变更统计</td><td><pre style=\"margin:0; white-space:pre-wrap;\">%1</pre></td></tr>")
-                    .arg(htmlEscape(diffStat.isEmpty() ? "暂无已跟踪文件变更统计。" : diffStat));
+        html += QString("<tr><td style=\"color:#64748b; vertical-align:top;\">变更统计</td><td>%1</td></tr>")
+                    .arg(renderDiffStat(diffStat));
         html += "</table>";
         html += "<h3>相对上一版本的变更</h3>";
         html += renderReadableDiff(diff);
@@ -595,9 +661,12 @@ void MainWindow::refreshChangeSummary() {
         html += QString("<tr><td style=\"color:#64748b;\">类型</td><td>历史提交</td></tr>");
         html += QString("<tr><td style=\"color:#64748b;\">提交信息</td><td>%1</td></tr>").arg(htmlEscape(selectedCommit.subject));
         html += QString("<tr><td style=\"color:#64748b;\">提交日期</td><td>%1</td></tr>").arg(htmlEscape(selectedCommit.date));
+        const QStringList branches = m_gitService.branchesContainingCommit(commitHash);
+        html += QString("<tr><td style=\"color:#64748b;\">所在分支</td><td>%1</td></tr>")
+                    .arg(htmlEscape(branches.isEmpty() ? "未找到本地分支引用" : branches.join(", ")));
         html += QString("<tr><td style=\"color:#64748b;\">Commit Hash</td><td><code>%1</code></td></tr>").arg(htmlEscape(commitHash));
-        html += QString("<tr><td style=\"color:#64748b; vertical-align:top;\">变更统计</td><td><pre style=\"margin:0; white-space:pre-wrap;\">%1</pre></td></tr>")
-                    .arg(htmlEscape(diffStat.isEmpty() ? "这个提交没有可显示的文件变更统计。" : diffStat));
+        html += QString("<tr><td style=\"color:#64748b; vertical-align:top;\">变更统计</td><td>%1</td></tr>")
+                    .arg(renderDiffStat(diffStat));
         html += "</table>";
         html += "<h3>相对上一版本的变更</h3>";
         html += renderReadableDiff(diff);
@@ -620,8 +689,14 @@ void MainWindow::rebuildVersionTree() {
         appendVersionNode("当前工作区", "当前磁盘上的项目文件和未提交变更。");
 
         for (const GitCommit& commit : m_commits) {
-            const QString title = commit.subject.trimmed().isEmpty() ? "未命名提交" : commit.subject.trimmed();
-            const QString note = QString("%1\n%2").arg(commit.date, commit.hash);
+            const QString baseTitle = commit.subject.trimmed().isEmpty() ? "未命名提交" : commit.subject.trimmed();
+            const QStringList branches = m_gitService.branchesContainingCommit(commit.hash);
+            const QString branchHint = branches.isEmpty() ? "无分支引用" : branches.first();
+            const QString title = QString("%1  |  %2  |  %3").arg(baseTitle, commit.date, branchHint);
+
+            QString note = QString("日期：%1\nCommit：%2").arg(commit.date, commit.hash);
+            if (!branches.isEmpty())
+                note += QString("\n所在分支：%1").arg(branches.join(", "));
             appendVersionNode(title, note, commit.hash);
         }
     }
@@ -828,9 +903,25 @@ double MainWindow::currentTemperature() const {
 }
 
 void MainWindow::startAiAnalysis() {
-    if (m_includeCodeCheck->isChecked() && selectedFiles().isEmpty()) {
-        QMessageBox::information(this, "没有可分析的文件", "请先打开项目并勾选至少一个文件，或取消“包含勾选的代码文件”。");
-        return;
+    QList<CodeFile> filesForAnalysis;
+    if (m_includeCodeCheck->isChecked()) {
+        filesForAnalysis = selectedFiles();
+        if (filesForAnalysis.isEmpty()) {
+            QMessageBox::information(this, "没有可分析的文件", "请先打开项目并勾选至少一个文件，或取消“包含勾选的代码文件”。");
+            return;
+        }
+
+        bool hasReadableContent = false;
+        for (const CodeFile& file : filesForAnalysis) {
+            if (!file.content.isEmpty()) {
+                hasReadableContent = true;
+                break;
+            }
+        }
+        if (!hasReadableContent) {
+            QMessageBox::warning(this, "文件内容为空", "已勾选文件，但没有读取到任何文件内容。请重新扫描项目，或切换到其它提交后再试。");
+            return;
+        }
     }
 
     const QString apiKey = qEnvironmentVariable("DEEPSEEK_API_KEY");
@@ -873,7 +964,7 @@ void MainWindow::startAiAnalysis() {
     }
 
     if (m_includeCodeCheck->isChecked()) {
-        userContent += HWFileScanner::formatFilesForLLM(selectedFiles(), task);
+        userContent += HWFileScanner::formatFilesForLLM(filesForAnalysis, task);
     } else if (!task.isEmpty()) {
         userContent += "【作业要求 / 任务描述】\n" + task + "\n\n";
     }
