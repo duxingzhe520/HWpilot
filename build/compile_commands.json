@@ -1,0 +1,32 @@
+[
+{
+  "directory": "/Users/duxingzhe520/Desktop/Project/HWpilot/build",
+  "command": "/usr/bin/clang++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/include -I/Users/duxingzhe520/Desktop/Project/HWpilot -I/Users/duxingzhe520/Desktop/Project/HWpilot/HWpilotLLM -I/Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers -iframework /Users/duxingzhe520/Qt/6.11.0/macos/lib -isystem /Users/duxingzhe520/Qt/6.11.0/macos/mkspecs/macx-clang -isystem /Users/duxingzhe520/Qt/6.11.0/macos/include -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers -std=gnu++17 -arch arm64 -o CMakeFiles/HWpilot.dir/HWpilot_autogen/mocs_compilation.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/mocs_compilation.cpp",
+  "file": "/Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/mocs_compilation.cpp",
+  "output": "CMakeFiles/HWpilot.dir/HWpilot_autogen/mocs_compilation.cpp.o"
+},
+{
+  "directory": "/Users/duxingzhe520/Desktop/Project/HWpilot/build",
+  "command": "/usr/bin/clang++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/include -I/Users/duxingzhe520/Desktop/Project/HWpilot -I/Users/duxingzhe520/Desktop/Project/HWpilot/HWpilotLLM -I/Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers -iframework /Users/duxingzhe520/Qt/6.11.0/macos/lib -isystem /Users/duxingzhe520/Qt/6.11.0/macos/mkspecs/macx-clang -isystem /Users/duxingzhe520/Qt/6.11.0/macos/include -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers -std=gnu++17 -arch arm64 -o CMakeFiles/HWpilot.dir/main.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/main.cpp",
+  "file": "/Users/duxingzhe520/Desktop/Project/HWpilot/main.cpp",
+  "output": "CMakeFiles/HWpilot.dir/main.cpp.o"
+},
+{
+  "directory": "/Users/duxingzhe520/Desktop/Project/HWpilot/build",
+  "command": "/usr/bin/clang++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/include -I/Users/duxingzhe520/Desktop/Project/HWpilot -I/Users/duxingzhe520/Desktop/Project/HWpilot/HWpilotLLM -I/Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers -iframework /Users/duxingzhe520/Qt/6.11.0/macos/lib -isystem /Users/duxingzhe520/Qt/6.11.0/macos/mkspecs/macx-clang -isystem /Users/duxingzhe520/Qt/6.11.0/macos/include -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers -std=gnu++17 -arch arm64 -o CMakeFiles/HWpilot.dir/MainWindow.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow.cpp",
+  "file": "/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow.cpp",
+  "output": "CMakeFiles/HWpilot.dir/MainWindow.cpp.o"
+},
+{
+  "directory": "/Users/duxingzhe520/Desktop/Project/HWpilot/build",
+  "command": "/usr/bin/clang++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/include -I/Users/duxingzhe520/Desktop/Project/HWpilot -I/Users/duxingzhe520/Desktop/Project/HWpilot/HWpilotLLM -I/Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers -iframework /Users/duxingzhe520/Qt/6.11.0/macos/lib -isystem /Users/duxingzhe520/Qt/6.11.0/macos/mkspecs/macx-clang -isystem /Users/duxingzhe520/Qt/6.11.0/macos/include -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers -std=gnu++17 -arch arm64 -o CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/HWpilotLLM/HWpilotLLM.cpp",
+  "file": "/Users/duxingzhe520/Desktop/Project/HWpilot/HWpilotLLM/HWpilotLLM.cpp",
+  "output": "CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.o"
+},
+{
+  "directory": "/Users/duxingzhe520/Desktop/Project/HWpilot/build",
+  "command": "/usr/bin/clang++ -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_NO_DEBUG -DQT_WIDGETS_LIB -I/Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/include -I/Users/duxingzhe520/Desktop/Project/HWpilot -I/Users/duxingzhe520/Desktop/Project/HWpilot/HWpilotLLM -I/Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers -iframework /Users/duxingzhe520/Qt/6.11.0/macos/lib -isystem /Users/duxingzhe520/Qt/6.11.0/macos/mkspecs/macx-clang -isystem /Users/duxingzhe520/Qt/6.11.0/macos/include -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers -std=gnu++17 -arch arm64 -o CMakeFiles/HWpilot.dir/HWFileScanner/HWFileScanner.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner/HWFileScanner.cpp",
+  "file": "/Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner/HWFileScanner.cpp",
+  "output": "CMakeFiles/HWpilot.dir/HWFileScanner/HWFileScanner.cpp.o"
+}
+]
