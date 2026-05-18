@@ -2,7 +2,6 @@
 
 #include <QApplication>
 #include <QCheckBox>
-#include <QComboBox>
 #include <QDateTime>
 #include <QDir>
 #include <QFileDialog>
@@ -33,7 +32,6 @@
 #include <QVBoxLayout>
 
 #include "HWpilotLLM/HWpilotLLM.h"
-#include "HWpilotLLM/Prompts.h"
 
 namespace {
 constexpr int FeedbackRole = Qt::UserRole + 1;
@@ -90,7 +88,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
 }
 
 void MainWindow::buildUi() {
-    setWindowTitle("HWpilot - AI 作业辅助系统");
+    setWindowTitle("HWpilot - 单作业 AI 代码分析工具");
     resize(1320, 820);
 
     buildToolBar();
@@ -120,7 +118,6 @@ void MainWindow::buildUi() {
     auto* aiLayout = new QVBoxLayout(aiPanel);
     aiLayout->setContentsMargins(0, 0, 0, 0);
     buildAiPanel();
-    aiLayout->addWidget(m_modeCombo);
     aiLayout->addWidget(m_taskEdit);
     aiLayout->addWidget(m_questionEdit);
     aiLayout->addWidget(m_includeCodeCheck);
@@ -154,7 +151,7 @@ void MainWindow::buildToolBar() {
     auto* scanAction = toolbar->addAction("扫描文件");
     connect(scanAction, &QAction::triggered, this, &MainWindow::scanCurrentProject);
 
-    auto* submitAction = toolbar->addAction("提交版本");
+    auto* submitAction = toolbar->addAction("提交存档");
     connect(submitAction, &QAction::triggered, this, &MainWindow::submitVersion);
 
     auto* aiAction = toolbar->addAction("AI 分析");
@@ -163,15 +160,15 @@ void MainWindow::buildToolBar() {
 
 void MainWindow::buildLeftPanel() {
     m_projectTree = new QTreeWidget(this);
-    m_projectTree->setHeaderLabel("作业项目");
+    m_projectTree->setHeaderLabel("当前项目");
     m_projectRoot = new QTreeWidgetItem(QStringList() << "尚未打开项目");
     m_projectTree->addTopLevelItem(m_projectRoot);
     m_projectTree->expandAll();
 
     m_versionTree = new QTreeWidget(this);
-    m_versionTree->setHeaderLabel("Git 版本");
+    m_versionTree->setHeaderLabel("提交存档");
     m_versionRoot = new QTreeWidgetItem(QStringList() << "当前作业");
-    m_versionRoot->setData(0, NoteRole, "打开项目后会显示真实 Git 提交历史。");
+    m_versionRoot->setData(0, NoteRole, "打开项目后会显示简单 Git 提交记录。");
     m_versionTree->addTopLevelItem(m_versionRoot);
     appendVersionNode("尚未打开项目", "请选择一个作业项目文件夹。");
     m_versionTree->expandAll();
@@ -189,8 +186,8 @@ void MainWindow::buildCenterPanel() {
     m_history = new QTextBrowser(this);
     m_reviewReport = new QTextBrowser(this);
     m_feedbackIssueTable = new QTableWidget(this);
-    m_feedbackIssueTable->setColumnCount(7);
-    m_feedbackIssueTable->setHorizontalHeaderLabels({"严重度", "状态", "文件", "行号", "类别", "问题", "建议"});
+    m_feedbackIssueTable->setColumnCount(6);
+    m_feedbackIssueTable->setHorizontalHeaderLabels({"严重度", "文件", "行号", "类别", "分析项", "建议"});
     m_feedbackIssueTable->horizontalHeader()->setStretchLastSection(true);
     m_feedbackIssueTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_feedbackIssueTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -205,20 +202,17 @@ void MainWindow::buildCenterPanel() {
     m_tabs->addTab(m_overview, "概览");
     m_tabs->addTab(m_fileList, "文件");
     m_tabs->addTab(m_changeSummary, "变更");
-    m_tabs->addTab(m_history, "提交记录");
+    m_tabs->addTab(m_history, "存档记录");
     m_tabs->addTab(feedbackPanel, "AI 反馈");
 }
 
 void MainWindow::buildAiPanel() {
-    m_modeCombo = new QComboBox(this);
-    m_modeCombo->addItems({"代码批改", "Bug 检查", "启发式引导", "学习模式", "复习总结"});
-
     m_taskEdit = new QTextEdit(this);
-    m_taskEdit->setPlaceholderText("作业要求 / 评分标准 / 课程资料摘要");
+    m_taskEdit->setPlaceholderText("作业要求 / 评分标准 / 希望 AI 关注的点");
     m_taskEdit->setFixedHeight(118);
 
     m_questionEdit = new QTextEdit(this);
-    m_questionEdit->setPlaceholderText("想问 AI 的具体问题，可留空");
+    m_questionEdit->setPlaceholderText("补充问题，可留空");
     m_questionEdit->setFixedHeight(86);
 
     m_includeCodeCheck = new QCheckBox("包含勾选的代码文件", this);
@@ -227,14 +221,14 @@ void MainWindow::buildAiPanel() {
     m_includeHistoryCheck = new QCheckBox("包含当前版本的历史反馈", this);
     m_includeHistoryCheck->setChecked(true);
 
-    m_analyzeButton = new QPushButton("开始分析", this);
+    m_analyzeButton = new QPushButton("AI 分析", this);
     connect(m_analyzeButton, &QPushButton::clicked, this, &MainWindow::startAiAnalysis);
 
     m_responseView = new QTextEdit(this);
     m_responseView->setReadOnly(true);
     m_responseView->setPlaceholderText("AI 回复会显示在这里。");
 
-    m_saveFeedbackButton = new QPushButton("保存反馈到当前版本", this);
+    m_saveFeedbackButton = new QPushButton("保存 AI 反馈", this);
     connect(m_saveFeedbackButton, &QPushButton::clicked, this, &MainWindow::saveFeedbackToVersion);
 }
 
@@ -297,7 +291,6 @@ void MainWindow::setProjectFolder(const QString& folderPath) {
     m_projectRoot->takeChildren();
     m_projectRoot->addChild(new QTreeWidgetItem(QStringList() << "文件"));
     m_projectRoot->addChild(new QTreeWidgetItem(QStringList() << "AI 反馈"));
-    m_projectRoot->addChild(new QTreeWidgetItem(QStringList() << ".hwpilot 数据"));
     m_projectTree->expandAll();
 
     m_versionRoot->setText(0, name.isEmpty() ? "当前作业" : name);
@@ -352,8 +345,8 @@ void MainWindow::refreshOverview() {
     html += QString("<p><b>工作区状态：</b>%1</p>").arg(status.isEmpty() ? "干净" : "有未提交修改");
     html += QString("<p><b>已保存 AI 反馈：</b>%1 条</p>").arg(m_feedbackStore.allFeedbacks().size());
     html += "<hr>";
-    html += "<p>建议工作流：打开项目 -> 扫描文件 -> 查看 Git 变更 -> AI 分析 -> 保存反馈 -> 提交真实版本。</p>";
-    html += "<p>AI 反馈会保存到项目的 .hwpilot/feedbacks.json，并按当前 Git 版本关联。</p>";
+    html += "<p>建议工作流：打开项目 -> 扫描文件 -> 查看变更 -> AI 分析 -> 保存反馈 -> 可选提交存档。</p>";
+    html += "<p>AI 反馈会保存到项目的 .hwpilot/feedbacks.json。</p>";
     m_overview->setHtml(html);
 }
 
@@ -379,9 +372,9 @@ void MainWindow::refreshChangeSummary() {
 }
 
 void MainWindow::refreshVersionHistory() {
-    QString html = "<h2>Git 提交记录</h2>";
+    QString html = "<h2>提交存档</h2>";
     if (m_commits.isEmpty()) {
-        html += "<p>当前项目还没有提交。请修改文件后点击“提交版本”。</p>";
+        html += "<p>当前项目还没有提交存档。可在分析后点击“提交存档”。</p>";
         m_history->setHtml(html);
         return;
     }
@@ -412,7 +405,7 @@ void MainWindow::rebuildVersionTree() {
     if (m_projectDir.isEmpty()) {
         appendVersionNode("尚未打开项目", "请选择一个作业项目文件夹。");
     } else if (m_commits.isEmpty()) {
-        appendVersionNode("尚无提交", "当前项目已经连接 Git，但还没有真实提交。");
+        appendVersionNode("尚无存档", "当前项目还没有提交存档。");
     } else {
         for (const GitCommit& commit : m_commits) {
             const int feedbackCount = m_feedbackStore.feedbacksForCommit(commit.hash).size();
@@ -445,13 +438,13 @@ void MainWindow::submitVersion() {
 
     const QString status = m_gitService.statusPorcelain().trimmed();
     if (status.isEmpty()) {
-        QMessageBox::information(this, "没有可提交的修改", "当前 Git 工作区是干净的，不需要提交新版本。");
+        QMessageBox::information(this, "没有可提交的修改", "当前 Git 工作区是干净的，不需要提交存档。");
         return;
     }
 
     bool ok = false;
-    const QString defaultMessage = QString("HWpilot checkpoint %1").arg(QDateTime::currentDateTime().toString("MM-dd HH:mm"));
-    const QString message = QInputDialog::getText(this, "提交版本", "提交说明：", QLineEdit::Normal, defaultMessage, &ok).trimmed();
+    const QString defaultMessage = QString("HWpilot analysis archive %1").arg(QDateTime::currentDateTime().toString("MM-dd HH:mm"));
+    const QString message = QInputDialog::getText(this, "提交存档", "存档说明：", QLineEdit::Normal, defaultMessage, &ok).trimmed();
     if (!ok || message.isEmpty())
         return;
 
@@ -479,7 +472,7 @@ void MainWindow::submitVersion() {
 
     scanCurrentProject();
     refreshGitState();
-    m_statusLabel->setText("已提交一个真实 Git 版本");
+    m_statusLabel->setText("已提交一个 Git 存档");
 }
 
 QList<CodeFile> MainWindow::selectedFiles() const {
@@ -594,12 +587,11 @@ void MainWindow::populateFeedbackPanel(const QList<FeedbackRecord>& feedbacks) {
     for (const FeedbackRecord& feedback : feedbacks) {
         for (const FeedbackItem& item : feedback.items) {
             m_feedbackIssueTable->setItem(row, 0, new QTableWidgetItem(item.severity));
-            m_feedbackIssueTable->setItem(row, 1, new QTableWidgetItem(item.status));
-            m_feedbackIssueTable->setItem(row, 2, new QTableWidgetItem(item.filePath));
-            m_feedbackIssueTable->setItem(row, 3, new QTableWidgetItem(item.line < 0 ? QString() : QString::number(item.line)));
-            m_feedbackIssueTable->setItem(row, 4, new QTableWidgetItem(item.category));
-            m_feedbackIssueTable->setItem(row, 5, new QTableWidgetItem(item.title));
-            m_feedbackIssueTable->setItem(row, 6, new QTableWidgetItem(item.suggestion));
+            m_feedbackIssueTable->setItem(row, 1, new QTableWidgetItem(item.filePath));
+            m_feedbackIssueTable->setItem(row, 2, new QTableWidgetItem(item.line < 0 ? QString() : QString::number(item.line)));
+            m_feedbackIssueTable->setItem(row, 3, new QTableWidgetItem(item.category));
+            m_feedbackIssueTable->setItem(row, 4, new QTableWidgetItem(item.title));
+            m_feedbackIssueTable->setItem(row, 5, new QTableWidgetItem(item.suggestion));
             ++row;
         }
     }
@@ -607,25 +599,19 @@ void MainWindow::populateFeedbackPanel(const QList<FeedbackRecord>& feedbacks) {
 }
 
 QString MainWindow::currentModePrompt() const {
-    const QString mode = currentModeName();
-    if (mode == "Bug 检查")
-        return Prompts::BUG_CHECK;
-    if (mode == "启发式引导")
-        return Prompts::HEURISTIC;
-    if (mode == "学习模式")
-        return Prompts::STUDY_MODE;
-    if (mode == "复习总结")
-        return Prompts::REVIEW_SUMMARY;
-    return Prompts::CODE_REVIEW;
+    return
+        "你是一位严谨、耐心的程序设计课助教。"
+        "用户会提供作业要求、代码文件、当前 Git 变更和补充问题。"
+        "请聚焦于这次作业代码本身，分析可能的 Bug、边界条件、代码质量和实现建议。"
+        "如果信息不足，请明确说明需要补充什么。";
 }
 
 QString MainWindow::currentModeName() const {
-    return m_modeCombo->currentText();
+    return "AI 分析";
 }
 
 double MainWindow::currentTemperature() const {
-    const QString mode = currentModeName();
-    return (mode == "启发式引导" || mode == "学习模式") ? 0.7 : 0.3;
+    return 0.3;
 }
 
 void MainWindow::startAiAnalysis() {
@@ -715,7 +701,7 @@ void MainWindow::startAiAnalysis() {
 void MainWindow::saveFeedbackToVersion() {
     QTreeWidgetItem* item = m_versionTree->currentItem();
     if (!item || item == m_versionRoot) {
-        QMessageBox::information(this, "请选择版本", "请先在左侧版本树中选择一个具体版本。");
+        QMessageBox::information(this, "请选择存档", "请先在左侧选择一个存档节点；如果尚无存档，可选择“尚无存档”节点保存为当前工作区反馈。");
         return;
     }
 

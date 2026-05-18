@@ -11,7 +11,6 @@
 #include "ProjectManager/ProjectManager.h"
 
 class QCheckBox;
-class QComboBox;
 class QLabel;
 class QListWidget;
 class QPushButton;
@@ -85,7 +84,6 @@ private:
     QTextBrowser* m_reviewReport = nullptr;
     QTableWidget* m_feedbackIssueTable = nullptr;
 
-    QComboBox* m_modeCombo = nullptr;
     QTextEdit* m_taskEdit = nullptr;
     QTextEdit* m_questionEdit = nullptr;
     QTextEdit* m_responseView = nullptr;
