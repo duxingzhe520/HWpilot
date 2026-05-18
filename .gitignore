@@ -85,6 +85,3 @@ ehthumbs.db
 *.tmp
 core
 core.*
-
-CMakeLists.txt
-main.cpp

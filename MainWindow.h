@@ -5,7 +5,9 @@
 #include <QMainWindow>
 #include <QPointer>
 
+#include "GitService/GitService.h"
 #include "HWFileScanner/HWFileScanner.h"
+#include "ProjectManager/ProjectManager.h"
 
 class QCheckBox;
 class QComboBox;
@@ -46,8 +48,13 @@ private:
     void refreshOverview();
     void refreshChangeSummary();
     void refreshVersionHistory();
-    void appendVersionNode(const QString& title, const QString& note);
+    void refreshGitState();
+    void rebuildVersionTree();
+    void appendVersionNode(const QString& title, const QString& note, const QString& commitHash = QString());
     QList<CodeFile> selectedFiles() const;
+    QString selectedCommitHash() const;
+    QString currentWorkContextHash() const;
+    QString currentFeedbackHistory() const;
     QString currentModePrompt() const;
     QString currentModeName() const;
     double currentTemperature() const;
@@ -55,6 +62,9 @@ private:
 
     QString m_projectDir;
     QList<CodeFile> m_files;
+    QList<GitCommit> m_commits;
+    ProjectManager m_projectManager;
+    GitService m_gitService;
     QPointer<HWpilotLLM> m_llm;
 
     QTreeWidget* m_projectTree = nullptr;

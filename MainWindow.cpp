@@ -11,6 +11,7 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QInputDialog>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QLabel>
@@ -33,6 +34,7 @@
 namespace {
 constexpr int FeedbackRole = Qt::UserRole + 1;
 constexpr int NoteRole = Qt::UserRole + 2;
+constexpr int CommitHashRole = Qt::UserRole + 3;
 
 QString htmlEscape(const QString& text) {
     QString escaped = text.toHtmlEscaped();
@@ -126,11 +128,11 @@ void MainWindow::buildLeftPanel() {
     m_projectTree->expandAll();
 
     m_versionTree = new QTreeWidget(this);
-    m_versionTree->setHeaderLabel("版本树");
+    m_versionTree->setHeaderLabel("Git 版本");
     m_versionRoot = new QTreeWidgetItem(QStringList() << "当前作业");
-    m_versionRoot->setData(0, NoteRole, "版本控制入口占位，后续可接入真实 git/树接口。");
+    m_versionRoot->setData(0, NoteRole, "打开项目后会显示真实 Git 提交历史。");
     m_versionTree->addTopLevelItem(m_versionRoot);
-    appendVersionNode("v1 初始版本", "打开项目后可以从这里查看和提交版本。");
+    appendVersionNode("尚未打开项目", "请选择一个作业项目文件夹。");
     m_versionTree->expandAll();
     m_versionTree->setCurrentItem(m_versionRoot->child(0));
     connect(m_versionTree, &QTreeWidget::currentItemChanged, this, &MainWindow::updateCurrentVersionPanel);
@@ -150,7 +152,7 @@ void MainWindow::buildCenterPanel() {
     m_tabs->addTab(m_fileList, "文件");
     m_tabs->addTab(m_changeSummary, "变更");
     m_tabs->addTab(m_history, "提交记录");
-    m_tabs->addTab(m_reviewReport, "复习报告");
+    m_tabs->addTab(m_reviewReport, "AI 反馈");
 }
 
 void MainWindow::buildAiPanel() {
@@ -210,20 +212,32 @@ void MainWindow::openProjectFolder() {
 
 void MainWindow::setProjectFolder(const QString& folderPath) {
     m_projectDir = QDir(folderPath).absolutePath();
-    const QString name = QFileInfo(m_projectDir).fileName();
+    QString errorMessage;
+    if (!m_projectManager.openProject(m_projectDir, &errorMessage)) {
+        QMessageBox::warning(this, "项目初始化失败", errorMessage);
+        return;
+    }
+
+    m_gitService.setWorkingDirectory(m_projectDir);
+    if (!m_gitService.isGitRepo()) {
+        const GitCommandResult initResult = m_gitService.initRepo();
+        if (!initResult.success) {
+            QMessageBox::warning(this, "Git 初始化失败", initResult.stderrText.trimmed());
+        }
+    }
+
+    const QString name = m_projectManager.data().projectName.isEmpty() ? QFileInfo(m_projectDir).fileName() : m_projectManager.data().projectName;
+    m_taskEdit->setPlainText(m_projectManager.data().assignmentText);
 
     m_projectRoot->setText(0, name.isEmpty() ? m_projectDir : name);
     m_projectRoot->takeChildren();
     m_projectRoot->addChild(new QTreeWidgetItem(QStringList() << "文件"));
     m_projectRoot->addChild(new QTreeWidgetItem(QStringList() << "AI 反馈"));
-    m_projectRoot->addChild(new QTreeWidgetItem(QStringList() << "复习报告"));
+    m_projectRoot->addChild(new QTreeWidgetItem(QStringList() << ".hwpilot 数据"));
     m_projectTree->expandAll();
 
     m_versionRoot->setText(0, name.isEmpty() ? "当前作业" : name);
-    m_versionRoot->takeChildren();
-    appendVersionNode("v1 初始扫描", "打开项目并建立第一版视图。");
-    m_versionTree->expandAll();
-    m_versionTree->setCurrentItem(m_versionRoot->child(0));
+    refreshGitState();
 }
 
 void MainWindow::scanCurrentProject() {
@@ -234,6 +248,9 @@ void MainWindow::scanCurrentProject() {
 
     m_statusLabel->setText("正在扫描项目文件...");
     m_files = HWFileScanner::scanDirectory(m_projectDir);
+    m_projectManager.data().assignmentText = m_taskEdit->toPlainText().trimmed();
+    QString errorMessage;
+    m_projectManager.save(&errorMessage);
     populateFileList();
     refreshOverview();
     refreshChangeSummary();
@@ -266,36 +283,92 @@ void MainWindow::refreshOverview() {
     html += QString("<p><b>项目路径：</b>%1</p>").arg(htmlEscape(m_projectDir.isEmpty() ? "尚未选择" : m_projectDir));
     html += QString("<p><b>当前版本：</b>%1</p>").arg(htmlEscape(versionName));
     html += QString("<p><b>已扫描文件：</b>%1 个</p>").arg(m_files.size());
+    html += QString("<p><b>Git 仓库：</b>%1</p>").arg(m_gitService.isGitRepo() ? "已连接" : "未初始化");
+    const QString status = m_gitService.statusPorcelain().trimmed();
+    html += QString("<p><b>工作区状态：</b>%1</p>").arg(status.isEmpty() ? "干净" : "有未提交修改");
     html += "<hr>";
-    html += "<p>建议工作流：打开项目 -> 扫描文件 -> 勾选参与分析的文件 -> AI 分析 -> 修改代码 -> 提交新版本。</p>";
-    html += "<p>左侧版本树用于承载你队友的版本控制功能；右侧 AI 反馈可以保存到当前版本节点。</p>";
+    html += "<p>建议工作流：打开项目 -> 扫描文件 -> 查看 Git 变更 -> AI 分析 -> 保存反馈 -> 提交真实版本。</p>";
+    html += "<p>AI 反馈会保存到项目的 .hwpilot/project.json，并按当前 Git 版本关联。</p>";
     m_overview->setHtml(html);
 }
 
 void MainWindow::refreshChangeSummary() {
     QString html = "<h2>变更视图</h2>";
-    html += "<p>这里预留给版本控制模块展示当前版本与上一版本的差异。</p>";
-    html += "<ul>";
-    for (const CodeFile& file : m_files) {
-        html += QString("<li><b>%1</b> - 已纳入项目文件视图</li>").arg(htmlEscape(file.relativePath));
+    if (m_projectDir.isEmpty()) {
+        html += "<p>尚未打开项目。</p>";
+        m_changeSummary->setHtml(html);
+        return;
     }
-    html += "</ul>";
+
+    const QString status = m_gitService.statusPorcelain().trimmed();
+    const QString diffStat = m_gitService.diffStat().trimmed();
+    const QString diff = m_gitService.diff().trimmed();
+
+    html += "<h3>Git Status</h3>";
+    html += QString("<pre>%1</pre>").arg(htmlEscape(status.isEmpty() ? "工作区干净，没有未提交修改。" : status));
+    html += "<h3>Diff Stat</h3>";
+    html += QString("<pre>%1</pre>").arg(htmlEscape(diffStat.isEmpty() ? "暂无已跟踪文件变更统计。" : diffStat));
+    html += "<h3>Diff</h3>";
+    html += QString("<pre>%1</pre>").arg(htmlEscape(diff.isEmpty() ? "暂无已跟踪文件内容变更。" : diff));
     m_changeSummary->setHtml(html);
 }
 
 void MainWindow::refreshVersionHistory() {
-    QString html = "<h2>提交记录</h2><ul>";
-    for (int i = 0; i < m_versionRoot->childCount(); ++i) {
-        QTreeWidgetItem* item = m_versionRoot->child(i);
-        html += QString("<li><b>%1</b><br>%2</li>").arg(htmlEscape(item->text(0))).arg(htmlEscape(item->data(0, NoteRole).toString()));
+    QString html = "<h2>Git 提交记录</h2>";
+    if (m_commits.isEmpty()) {
+        html += "<p>当前项目还没有提交。请修改文件后点击“提交版本”。</p>";
+        m_history->setHtml(html);
+        return;
+    }
+
+    html += "<ul>";
+    for (const GitCommit& commit : m_commits) {
+        const int feedbackCount = m_projectManager.data().feedbacksForCommit(commit.hash).size();
+        html += QString("<li><b>%1</b> %2<br>%3<br>AI 反馈：%4 条</li>")
+                    .arg(htmlEscape(commit.shortHash))
+                    .arg(htmlEscape(commit.subject))
+                    .arg(htmlEscape(commit.date))
+                    .arg(feedbackCount);
     }
     html += "</ul>";
     m_history->setHtml(html);
 }
 
-void MainWindow::appendVersionNode(const QString& title, const QString& note) {
+void MainWindow::refreshGitState() {
+    m_commits = m_gitService.log();
+    rebuildVersionTree();
+    refreshOverview();
+    refreshChangeSummary();
+    refreshVersionHistory();
+}
+
+void MainWindow::rebuildVersionTree() {
+    m_versionRoot->takeChildren();
+    if (m_projectDir.isEmpty()) {
+        appendVersionNode("尚未打开项目", "请选择一个作业项目文件夹。");
+    } else if (m_commits.isEmpty()) {
+        appendVersionNode("尚无提交", "当前项目已经连接 Git，但还没有真实提交。");
+    } else {
+        for (const GitCommit& commit : m_commits) {
+            const int feedbackCount = m_projectManager.data().feedbacksForCommit(commit.hash).size();
+            const QString title = QString("%1  %2%3")
+                                      .arg(commit.shortHash)
+                                      .arg(commit.subject)
+                                      .arg(feedbackCount > 0 ? QString(" [AI:%1]").arg(feedbackCount) : QString());
+            const QString note = QString("%1\n%2").arg(commit.date, commit.hash);
+            appendVersionNode(title, note, commit.hash);
+        }
+    }
+
+    m_versionTree->expandAll();
+    if (m_versionRoot->childCount() > 0)
+        m_versionTree->setCurrentItem(m_versionRoot->child(0));
+}
+
+void MainWindow::appendVersionNode(const QString& title, const QString& note, const QString& commitHash) {
     auto* item = new QTreeWidgetItem(QStringList() << title);
     item->setData(0, NoteRole, note);
+    item->setData(0, CommitHashRole, commitHash);
     m_versionRoot->addChild(item);
 }
 
@@ -305,15 +378,47 @@ void MainWindow::submitVersion() {
         return;
     }
 
-    const int next = m_versionRoot->childCount() + 1;
-    const QString title = QString("v%1 %2").arg(next).arg(QDateTime::currentDateTime().toString("MM-dd HH:mm"));
-    const QString note = QString("手动提交，当前扫描文件 %1 个。").arg(m_files.size());
-    appendVersionNode(title, note);
-    m_versionTree->expandAll();
-    m_versionTree->setCurrentItem(m_versionRoot->child(m_versionRoot->childCount() - 1));
-    refreshOverview();
-    refreshVersionHistory();
-    m_statusLabel->setText("已在版本树中新增一个版本节点");
+    const QString status = m_gitService.statusPorcelain().trimmed();
+    if (status.isEmpty()) {
+        QMessageBox::information(this, "没有可提交的修改", "当前 Git 工作区是干净的，不需要提交新版本。");
+        return;
+    }
+
+    bool ok = false;
+    const QString defaultMessage = QString("HWpilot checkpoint %1").arg(QDateTime::currentDateTime().toString("MM-dd HH:mm"));
+    const QString message = QInputDialog::getText(this, "提交版本", "提交说明：", QLineEdit::Normal, defaultMessage, &ok).trimmed();
+    if (!ok || message.isEmpty())
+        return;
+
+    m_projectManager.data().assignmentText = m_taskEdit->toPlainText().trimmed();
+    QString errorMessage;
+    m_projectManager.save(&errorMessage);
+
+    const GitCommandResult addResult = m_gitService.addAll();
+    if (!addResult.success) {
+        QMessageBox::warning(this, "Git add 失败", addResult.stderrText.trimmed());
+        return;
+    }
+
+    const GitCommandResult commitResult = m_gitService.commit(message);
+    if (!commitResult.success) {
+        const QString detail = commitResult.stderrText.trimmed().isEmpty() ? commitResult.stdoutText.trimmed() : commitResult.stderrText.trimmed();
+        QMessageBox::warning(this, "Git commit 失败", detail);
+        return;
+    }
+
+    const QString newHead = m_gitService.currentHead();
+    if (!newHead.isEmpty()) {
+        for (FeedbackRecord& record : m_projectManager.data().feedbacks) {
+            if (record.commitHash == "working-tree")
+                record.commitHash = newHead;
+        }
+        m_projectManager.save(&errorMessage);
+    }
+
+    scanCurrentProject();
+    refreshGitState();
+    m_statusLabel->setText("已提交一个真实 Git 版本");
 }
 
 QList<CodeFile> MainWindow::selectedFiles() const {
@@ -332,6 +437,35 @@ QList<CodeFile> MainWindow::selectedFiles() const {
         }
     }
     return files;
+}
+
+QString MainWindow::selectedCommitHash() const {
+    QTreeWidgetItem* item = m_versionTree->currentItem();
+    if (!item || item == m_versionRoot)
+        return m_gitService.currentHead().isEmpty() ? "working-tree" : m_gitService.currentHead();
+
+    const QString selectedHash = item->data(0, CommitHashRole).toString();
+    const QString head = m_gitService.currentHead();
+    if (!selectedHash.isEmpty())
+        return selectedHash;
+    return head.isEmpty() ? "working-tree" : head;
+}
+
+QString MainWindow::currentWorkContextHash() const {
+    const QString head = m_gitService.currentHead();
+    if (head.isEmpty() || !m_gitService.statusPorcelain().trimmed().isEmpty())
+        return "working-tree";
+    return head;
+}
+
+QString MainWindow::currentFeedbackHistory() const {
+    QString history;
+    const QString commitHash = currentWorkContextHash();
+    const QList<FeedbackRecord> records = m_projectManager.data().feedbacksForCommit(commitHash);
+    for (const FeedbackRecord& record : records) {
+        history += QString("### %1 %2\n%3\n\n").arg(record.createdAt, record.mode, record.content);
+    }
+    return history.trimmed();
 }
 
 QString MainWindow::currentModePrompt() const {
@@ -375,11 +509,27 @@ void MainWindow::startAiAnalysis() {
         userContent += "【用户问题】\n" + question + "\n\n";
     }
 
-    if (m_includeHistoryCheck->isChecked() && m_versionTree->currentItem()) {
-        const QString feedback = m_versionTree->currentItem()->data(0, FeedbackRole).toString();
+    m_projectManager.data().assignmentText = task;
+    QString errorMessage;
+    m_projectManager.save(&errorMessage);
+
+    if (m_includeHistoryCheck->isChecked()) {
+        const QString feedback = currentFeedbackHistory();
         if (!feedback.isEmpty()) {
             userContent += "【当前版本历史 AI 反馈】\n" + feedback + "\n\n";
         }
+    }
+
+    const QString gitDiff = m_gitService.diff().trimmed();
+    if (!gitDiff.isEmpty()) {
+        userContent += "【当前 Git 变更 diff】\n";
+        userContent += gitDiff + "\n\n";
+    }
+
+    const QString gitStatus = m_gitService.statusPorcelain().trimmed();
+    if (!gitStatus.isEmpty()) {
+        userContent += "【当前 Git status】\n";
+        userContent += gitStatus + "\n\n";
     }
 
     if (m_includeCodeCheck->isChecked()) {
@@ -437,10 +587,23 @@ void MainWindow::saveFeedbackToVersion() {
         return;
     }
 
+    FeedbackRecord record;
+    record.id = QString::number(QDateTime::currentMSecsSinceEpoch());
+    record.commitHash = currentWorkContextHash();
+    record.mode = currentModeName();
+    record.createdAt = QDateTime::currentDateTime().toString(Qt::ISODate);
+    record.content = feedback;
+
+    QString errorMessage;
+    if (!m_projectManager.addFeedback(record, &errorMessage)) {
+        QMessageBox::warning(this, "保存失败", errorMessage);
+        return;
+    }
+
     item->setData(0, FeedbackRole, feedback);
-    item->setText(0, item->text(0).contains("[AI]") ? item->text(0) : item->text(0) + " [AI]");
+    refreshGitState();
     updateCurrentVersionPanel();
-    m_statusLabel->setText("已将 AI 反馈保存到当前版本节点");
+    m_statusLabel->setText("已将 AI 反馈保存到 .hwpilot/project.json");
 }
 
 void MainWindow::updateCurrentVersionPanel() {
@@ -448,16 +611,20 @@ void MainWindow::updateCurrentVersionPanel() {
     if (!item)
         return;
 
-    const QString feedback = item->data(0, FeedbackRole).toString();
+    const QString commitHash = item->data(0, CommitHashRole).toString().isEmpty() ? "working-tree" : item->data(0, CommitHashRole).toString();
+    const QList<FeedbackRecord> feedbacks = m_projectManager.data().feedbacksForCommit(commitHash);
     QString html;
     html += QString("<h2>%1</h2>").arg(htmlEscape(item->text(0)));
     html += QString("<p>%1</p>").arg(htmlEscape(item->data(0, NoteRole).toString()));
     html += "<hr>";
-    if (feedback.isEmpty()) {
+    if (feedbacks.isEmpty()) {
         html += "<p>当前版本还没有保存 AI 反馈。</p>";
     } else {
         html += "<h3>已保存的 AI 反馈</h3>";
-        html += QString("<p>%1</p>").arg(htmlEscape(feedback));
+        for (const FeedbackRecord& feedback : feedbacks) {
+            html += QString("<h4>%1 - %2</h4>").arg(htmlEscape(feedback.createdAt), htmlEscape(feedback.mode));
+            html += QString("<p>%1</p>").arg(htmlEscape(feedback.content));
+        }
     }
     m_reviewReport->setHtml(html);
     refreshOverview();
