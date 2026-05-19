@@ -16,6 +16,8 @@ qt_add_executable(HWpilot
     ProjectData.h
     ProjectManager/ProjectManager.cpp
     ProjectManager/ProjectManager.h
+    FeedbackStore/FeedbackStore.cpp
+    FeedbackStore/FeedbackStore.h
     GitService/GitService.cpp
     GitService/GitService.h
     HWFileScanner/HWFileScanner.cpp

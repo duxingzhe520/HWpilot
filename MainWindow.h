@@ -5,14 +5,13 @@
 #include <QMainWindow>
 #include <QPointer>
 
+#include "FeedbackStore/FeedbackStore.h"
 #include "GitService/GitService.h"
 #include "HWFileScanner/HWFileScanner.h"
 #include "ProjectManager/ProjectManager.h"
 
 class QCheckBox;
-class QComboBox;
 class QLabel;
-class QListWidget;
 class QPushButton;
 class QTabWidget;
 class QTextEdit;
@@ -29,32 +28,39 @@ public:
 
 private slots:
     void openProjectFolder();
-    void scanCurrentProject();
-    void submitVersion();
     void startAiAnalysis();
     void saveFeedbackToVersion();
     void updateCurrentVersionPanel();
+    void selectAllFiles();
+    void handleFileItemChanged(QTreeWidgetItem* item, int column);
+    void handleFeedbackTreeSelection(QTreeWidgetItem* current, QTreeWidgetItem* previous);
 
 private:
     void buildUi();
-    void buildToolBar();
     void buildLeftPanel();
     void buildCenterPanel();
     void buildAiPanel();
     void applyStyle();
 
     void setProjectFolder(const QString& folderPath);
-    void populateFileList();
-    void refreshOverview();
+    void scanCurrentProject();
+    void refreshProjectPanel();
+    void populateFileTree();
+    void populateFileTreeForPaths(const QStringList& paths);
+    void setTreeChildrenCheckState(QTreeWidgetItem* item, Qt::CheckState state);
+    void updateParentCheckState(QTreeWidgetItem* item);
     void refreshChangeSummary();
-    void refreshVersionHistory();
     void refreshGitState();
     void rebuildVersionTree();
     void appendVersionNode(const QString& title, const QString& note, const QString& commitHash = QString());
     QList<CodeFile> selectedFiles() const;
+    QStringList checkedFilePaths() const;
     QString selectedCommitHash() const;
+    QString feedbackContextHash() const;
     QString currentWorkContextHash() const;
     QString currentFeedbackHistory() const;
+    FeedbackRecord buildFeedbackRecord(const QString& replyText) const;
+    void populateFeedbackPanel(const QList<FeedbackRecord>& feedbacks);
     QString currentModePrompt() const;
     QString currentModeName() const;
     double currentTemperature() const;
@@ -64,32 +70,35 @@ private:
     QList<CodeFile> m_files;
     QList<GitCommit> m_commits;
     ProjectManager m_projectManager;
+    FeedbackStore m_feedbackStore;
     GitService m_gitService;
     QPointer<HWpilotLLM> m_llm;
 
-    QTreeWidget* m_projectTree = nullptr;
     QTreeWidget* m_versionTree = nullptr;
-    QTreeWidgetItem* m_projectRoot = nullptr;
     QTreeWidgetItem* m_versionRoot = nullptr;
+    QLabel* m_projectNameLabel = nullptr;
+    QLabel* m_projectPathLabel = nullptr;
+    QLabel* m_fileCountLabel = nullptr;
+    QLabel* m_feedbackCountLabel = nullptr;
+    QPushButton* m_openProjectButton = nullptr;
 
     QTabWidget* m_tabs = nullptr;
-    QTextBrowser* m_overview = nullptr;
-    QListWidget* m_fileList = nullptr;
+    QTreeWidget* m_fileTree = nullptr;
+    QPushButton* m_selectAllFilesButton = nullptr;
     QTextBrowser* m_changeSummary = nullptr;
-    QTextBrowser* m_history = nullptr;
     QTextBrowser* m_reviewReport = nullptr;
+    QTreeWidget* m_feedbackTree = nullptr;
 
-    QComboBox* m_modeCombo = nullptr;
     QTextEdit* m_taskEdit = nullptr;
     QTextEdit* m_questionEdit = nullptr;
     QTextEdit* m_responseView = nullptr;
+    QLabel* m_aiTitleLabel = nullptr;
     QCheckBox* m_includeCodeCheck = nullptr;
     QCheckBox* m_includeHistoryCheck = nullptr;
-    QPushButton* m_scanButton = nullptr;
-    QPushButton* m_submitButton = nullptr;
     QPushButton* m_analyzeButton = nullptr;
     QPushButton* m_saveFeedbackButton = nullptr;
     QLabel* m_statusLabel = nullptr;
+    bool m_updatingFileTree = false;
 };
 
 #endif  // MAINWINDOW_H

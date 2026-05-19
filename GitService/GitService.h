@@ -29,8 +29,13 @@ public:
     QString statusPorcelain() const;
     QString diff() const;
     QString diffStat() const;
+    QString diffForCommit(const QString& commitHash) const;
+    QString diffStatForCommit(const QString& commitHash) const;
+    QStringList filesAtCommit(const QString& commitHash) const;
+    QString fileContentAtCommit(const QString& commitHash, const QString& filePath) const;
     QString currentHead() const;
-    QList<GitCommit> log(int limit = 30) const;
+    QList<GitCommit> log(int limit = 200) const;
+    QStringList branchesContainingCommit(const QString& commitHash) const;
     GitCommandResult addAll() const;
     GitCommandResult commit(const QString& message) const;
 
