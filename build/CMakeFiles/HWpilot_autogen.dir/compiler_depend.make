@@ -727,6 +727,8 @@ HWpilot_autogen/timestamp: /Applications/Xcode.app/Contents/Developer/Platforms/
   /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include/ptrcheck.h \
   /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include/stdarg.h \
   /Users/duxingzhe520/Desktop/Project/HWpilot/CMakeLists.txt \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/FeedbackStore/FeedbackStore.cpp \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/FeedbackStore/FeedbackStore.h \
   /Users/duxingzhe520/Desktop/Project/HWpilot/GitService/GitService.cpp \
   /Users/duxingzhe520/Desktop/Project/HWpilot/GitService/GitService.h \
   /Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner/HWFileScanner.cpp \
@@ -1454,10 +1456,6 @@ HWpilot_autogen/timestamp: /Applications/Xcode.app/Contents/Developer/Platforms/
 
 /Users/duxingzhe520/Qt/6.11.0/macos/lib/cmake/Qt6Core/Qt6QDarwinCameraPermissionPluginConfig.cmake:
 
-/Users/duxingzhe520/Qt/6.11.0/macos/lib/cmake/Qt6Gui/Qt6QMinimalIntegrationPluginTargetsPrecheck.cmake:
-
-/Users/duxingzhe520/Qt/6.11.0/macos/lib/cmake/Qt6Core/Qt6QDarwinCameraPermissionPluginAdditionalTargetInfo.cmake:
-
 /Users/duxingzhe520/Qt/6.11.0/macos/lib/cmake/Qt6Core/Qt6QDarwinCalendarPermissionPluginTargetsPrecheck.cmake:
 
 /Users/duxingzhe520/Qt/6.11.0/macos/lib/cmake/Qt6Core/Qt6QDarwinCalendarPermissionPluginTargets.cmake:
@@ -1758,10 +1756,6 @@ HWpilot_autogen/timestamp: /Applications/Xcode.app/Contents/Developer/Platforms/
 
 /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qcryptographichash.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__type_traits/has_unique_object_representation.h:
-
-/Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qcontiguouscache.h:
-
 /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qconstructormacros.h:
 
 /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qcompilerdetection.h:
@@ -1889,6 +1883,16 @@ CMakeFiles/4.3.1/CMakeCXXCompiler.cmake:
 /Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner/HWFileScanner.cpp:
 
 /Users/duxingzhe520/Desktop/Project/HWpilot/GitService/GitService.cpp:
+
+/Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qalgorithms.h:
+
+/Users/duxingzhe520/Desktop/Project/HWpilot/FeedbackStore/FeedbackStore.h:
+
+/Users/duxingzhe520/Qt/6.11.0/macos/lib/cmake/Qt6Gui/Qt6QMinimalIntegrationPluginTargetsPrecheck.cmake:
+
+/Users/duxingzhe520/Qt/6.11.0/macos/lib/cmake/Qt6Core/Qt6QDarwinCameraPermissionPluginAdditionalTargetInfo.cmake:
+
+/Users/duxingzhe520/Desktop/Project/HWpilot/FeedbackStore/FeedbackStore.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/functional:
 
@@ -2461,6 +2465,10 @@ CMakeFiles/4.3.1/CMakeCXXCompiler.cmake:
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__type_traits/is_allocator.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__type_traits/is_abstract.h:
+
+/Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qcontiguouscache.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__type_traits/has_unique_object_representation.h:
 
 /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qstringmatcher.h:
 
@@ -3483,8 +3491,6 @@ CMakeFiles/4.3.1/CMakeSystem.cmake:
 /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qmalloc.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__algorithm/make_heap.h:
-
-/Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qalgorithms.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__type_traits/can_extract_key.h:
 

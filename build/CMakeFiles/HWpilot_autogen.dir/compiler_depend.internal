@@ -728,6 +728,8 @@
  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include/ptrcheck.h
  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include/stdarg.h
  /Users/duxingzhe520/Desktop/Project/HWpilot/CMakeLists.txt
+ /Users/duxingzhe520/Desktop/Project/HWpilot/FeedbackStore/FeedbackStore.cpp
+ /Users/duxingzhe520/Desktop/Project/HWpilot/FeedbackStore/FeedbackStore.h
  /Users/duxingzhe520/Desktop/Project/HWpilot/GitService/GitService.cpp
  /Users/duxingzhe520/Desktop/Project/HWpilot/GitService/GitService.h
  /Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner/HWFileScanner.cpp

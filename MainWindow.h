@@ -28,6 +28,7 @@ public:
 
 private slots:
     void openProjectFolder();
+    void commitCurrentSnapshot();
     void startAiAnalysis();
     void saveFeedbackToVersion();
     void updateCurrentVersionPanel();
@@ -81,6 +82,7 @@ private:
     QLabel* m_fileCountLabel = nullptr;
     QLabel* m_feedbackCountLabel = nullptr;
     QPushButton* m_openProjectButton = nullptr;
+    QPushButton* m_commitButton = nullptr;
 
     QTabWidget* m_tabs = nullptr;
     QTreeWidget* m_fileTree = nullptr;

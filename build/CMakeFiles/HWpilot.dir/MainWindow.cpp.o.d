@@ -971,12 +971,9 @@ CMakeFiles/HWpilot.dir/MainWindow.cpp.o: \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qtabwidget.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QPointer \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qpointer.h \
-  /Users/duxingzhe520/Desktop/Project/HWpilot/GitService/GitService.h \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/FeedbackStore/FeedbackStore.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QString \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QStringList \
-  /Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner/HWFileScanner.h \
-  /Users/duxingzhe520/Desktop/Project/HWpilot/ProjectManager/ProjectManager.h \
-  /Users/duxingzhe520/Desktop/Project/HWpilot/ProjectManager/../ProjectData.h \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/FeedbackStore/../ProjectData.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QJsonObject \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qjsonobject.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qjsonvalue.h \
@@ -990,6 +987,11 @@ CMakeFiles/HWpilot.dir/MainWindow.cpp.o: \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/quuid.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qjsondocument.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qjsonparseerror.h \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/GitService/GitService.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QStringList \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner/HWFileScanner.h \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/ProjectManager/ProjectManager.h \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/ProjectManager/../ProjectData.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QApplication \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qapplication.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qcoreapplication.h \
@@ -1006,19 +1008,6 @@ CMakeFiles/HWpilot.dir/MainWindow.cpp.o: \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QCheckBox \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qcheckbox.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qabstractbutton.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QComboBox \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qcombobox.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qabstractitemdelegate.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qstyleoption.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qabstractspinbox.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers/qvalidator.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qslider.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qabstractslider.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qstyle.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qtabbar.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qrubberband.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qframe.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qabstractitemmodel.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QDateTime \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QDir \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qdir.h \
@@ -1074,12 +1063,23 @@ CMakeFiles/HWpilot.dir/MainWindow.cpp.o: \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qgridlayout.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QGroupBox \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qgroupbox.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qframe.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QHBoxLayout \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QHeaderView \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qheaderview.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qabstractitemview.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qabstractscrollarea.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qabstractitemmodel.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qitemselectionmodel.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qabstractitemdelegate.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qstyleoption.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qabstractspinbox.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers/qvalidator.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qslider.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qabstractslider.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qstyle.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qtabbar.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qrubberband.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QInputDialog \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qinputdialog.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qlineedit.h \
@@ -1090,13 +1090,13 @@ CMakeFiles/HWpilot.dir/MainWindow.cpp.o: \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers/qtextoption.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QJsonArray \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qjsonarray.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QJsonDocument \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QJsonParseError \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QLabel \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qlabel.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers/qpicture.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QLineEdit \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QListWidget \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qlistwidget.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qlistview.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QMap \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QMessageBox \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qmessagebox.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qdialogbuttonbox.h \
@@ -1111,15 +1111,12 @@ CMakeFiles/HWpilot.dir/MainWindow.cpp.o: \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qtextbrowser.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qtextedit.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QTextEdit \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QToolBar \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qtoolbar.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QTreeWidget \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qtreewidget.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qtreeview.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qtreewidgetitemiterator.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QVBoxLayout \
   /Users/duxingzhe520/Desktop/Project/HWpilot/HWpilotLLM/HWpilotLLM.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QJsonDocument \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/QNetworkAccessManager \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/qnetworkaccessmanager.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/qtnetworkglobal.h \
@@ -1150,5 +1147,4 @@ CMakeFiles/HWpilot.dir/MainWindow.cpp.o: \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/QNetworkReply \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/qnetworkreply.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QIODevice \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/QNetworkRequest \
-  /Users/duxingzhe520/Desktop/Project/HWpilot/HWpilotLLM/Prompts.h
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/QNetworkRequest

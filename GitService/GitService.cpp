@@ -121,6 +121,44 @@ QStringList GitService::branchesContainingCommit(const QString& commitHash) cons
     return branches;
 }
 
+QStringList GitService::changedPaths() const {
+    const GitCommandResult result = runGit({"status", "--porcelain=v1", "-z", "--untracked-files=all"});
+    if (!result.success)
+        return {};
+
+    QStringList paths;
+    const QStringList records = result.stdoutText.split(QChar('\0'), Qt::SkipEmptyParts);
+    for (int i = 0; i < records.size(); ++i) {
+        const QString& record = records.at(i);
+        if (record.size() < 4)
+            continue;
+
+        const QString status = record.left(2);
+        const QString path = record.mid(3);
+        if (!path.isEmpty())
+            paths.append(path);
+
+        if (status.contains('R') || status.contains('C'))
+            ++i;
+    }
+
+    paths.removeDuplicates();
+    return paths;
+}
+
+GitCommandResult GitService::addPaths(const QStringList& paths) const {
+    GitCommandResult result;
+    if (paths.isEmpty()) {
+        result.success = true;
+        result.exitCode = 0;
+        return result;
+    }
+
+    QStringList arguments = {"add", "--"};
+    arguments.append(paths);
+    return runGit(arguments);
+}
+
 GitCommandResult GitService::addAll() const {
     return runGit({"add", "-A"});
 }

@@ -10,11 +10,13 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QInputDialog>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
 #include <QLabel>
+#include <QLineEdit>
 #include <QMap>
 #include <QMessageBox>
 #include <QPushButton>
@@ -327,7 +329,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
 }
 
 void MainWindow::buildUi() {
-    setWindowTitle("HWpilot - 单作业 AI 代码分析工具");
+    setWindowTitle("HWpilot - proj finished by YANG R.C. and SONG R.Y.");
     resize(1280, 820);
 
     auto* root = new QWidget(this);
@@ -346,7 +348,12 @@ void MainWindow::buildUi() {
     leftLayout->addWidget(m_projectPathLabel);
     leftLayout->addWidget(m_fileCountLabel);
     leftLayout->addWidget(m_feedbackCountLabel);
-    leftLayout->addWidget(m_openProjectButton);
+    auto* projectActionsLayout = new QHBoxLayout();
+    projectActionsLayout->setContentsMargins(0, 0, 0, 0);
+    projectActionsLayout->setSpacing(8);
+    projectActionsLayout->addWidget(m_openProjectButton);
+    projectActionsLayout->addWidget(m_commitButton);
+    leftLayout->addLayout(projectActionsLayout);
     leftLayout->addWidget(m_versionTree, 1);
 
     buildAiPanel();
@@ -366,7 +373,7 @@ void MainWindow::buildUi() {
     rootLayout->addWidget(splitter);
     setCentralWidget(root);
 
-    m_statusLabel = new QLabel("请选择一个作业项目文件夹", this);
+    m_statusLabel = new QLabel("Please select a project folder", this);
     statusBar()->addWidget(m_statusLabel, 1);
     refreshProjectPanel();
 }
@@ -382,14 +389,17 @@ void MainWindow::buildLeftPanel() {
     m_feedbackCountLabel = new QLabel(this);
     m_feedbackCountLabel->setObjectName("MetaLabel");
 
-    m_openProjectButton = new QPushButton("打开项目并扫描", this);
+    m_openProjectButton = new QPushButton("Open Folder", this);
     connect(m_openProjectButton, &QPushButton::clicked, this, &MainWindow::openProjectFolder);
 
+    m_commitButton = new QPushButton("commit", this);
+    connect(m_commitButton, &QPushButton::clicked, this, &MainWindow::commitCurrentSnapshot);
+
     m_versionTree = new QTreeWidget(this);
-    m_versionTree->setHeaderLabel("提交存档（所有分支）");
+    m_versionTree->setHeaderLabel("Commits");
     m_versionTree->setAlternatingRowColors(true);
     m_versionRoot = m_versionTree->invisibleRootItem();
-    appendVersionNode("尚未打开项目", "请选择一个作业项目文件夹。");
+    appendVersionNode("No folder opened.", "Please select a project folder.");
     m_versionTree->expandAll();
     m_versionTree->setCurrentItem(m_versionRoot->child(0));
     connect(m_versionTree, &QTreeWidget::currentItemChanged, this, &MainWindow::updateCurrentVersionPanel);
@@ -398,7 +408,7 @@ void MainWindow::buildLeftPanel() {
 void MainWindow::buildCenterPanel() {
     m_tabs = new QTabWidget(this);
 
-    m_selectAllFilesButton = new QPushButton("全选文件", this);
+    m_selectAllFilesButton = new QPushButton("Select All", this);
     connect(m_selectAllFilesButton, &QPushButton::clicked, this, &MainWindow::selectAllFiles);
 
     m_fileTree = new QTreeWidget(this);
@@ -410,7 +420,7 @@ void MainWindow::buildCenterPanel() {
     m_changeSummary = new QTextBrowser(this);
     m_reviewReport = new QTextBrowser(this);
     m_feedbackTree = new QTreeWidget(this);
-    m_feedbackTree->setHeaderLabels({"反馈记录 / 问题", "严重度", "位置", "状态"});
+    m_feedbackTree->setHeaderLabels({"反馈问题", "严重程度", "位置", "状态"});
     m_feedbackTree->setSelectionMode(QAbstractItemView::SingleSelection);
     m_feedbackTree->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_feedbackTree->setAlternatingRowColors(true);
@@ -472,11 +482,11 @@ void MainWindow::buildAiPanel() {
     m_aiTitleLabel->setObjectName("PanelTitle");
 
     m_taskEdit = new QTextEdit(this);
-    m_taskEdit->setPlaceholderText("作业要求 / 评分标准 / 希望 AI 关注的点");
+    m_taskEdit->setPlaceholderText("Please enter assignment requirements or tick the requirement document on the left...");
     m_taskEdit->setFixedHeight(118);
 
     m_questionEdit = new QTextEdit(this);
-    m_questionEdit->setPlaceholderText("补充问题，可留空");
+    m_questionEdit->setPlaceholderText("Additional remarks on the assignment...");
     m_questionEdit->setFixedHeight(86);
 
     m_includeCodeCheck = new QCheckBox("包含勾选的代码文件", this);
@@ -542,6 +552,55 @@ void MainWindow::openProjectFolder() {
 
     setProjectFolder(folder);
     scanCurrentProject();
+}
+
+void MainWindow::commitCurrentSnapshot() {
+    if (m_projectDir.isEmpty()) {
+        QMessageBox::information(this, "尚未打开项目", "请先打开一个作业项目文件夹。");
+        return;
+    }
+
+    const QStringList paths = m_gitService.changedPaths();
+    if (paths.isEmpty()) {
+        QMessageBox::information(this, "没有可提交的变更", "当前工作区没有 Git 可提交的变更。");
+        return;
+    }
+
+    bool ok = false;
+    const QString defaultMessage = QString("保存作业进度：%1").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm"));
+    const QString message = QInputDialog::getText(this, "Commit message", "请输入 commit message：", QLineEdit::Normal, defaultMessage, &ok).trimmed();
+    if (!ok)
+        return;
+    if (message.isEmpty()) {
+        QMessageBox::information(this, "Commit message 为空", "请输入 commit message 后再提交。");
+        return;
+    }
+
+    m_statusLabel->setText("正在提交当前快照...");
+    const GitCommandResult addResult = m_gitService.addPaths(paths);
+    if (!addResult.success) {
+        QMessageBox::warning(this, "Git add 失败", addResult.stderrText.trimmed().isEmpty() ? addResult.stdoutText.trimmed() : addResult.stderrText.trimmed());
+        m_statusLabel->setText("提交失败");
+        return;
+    }
+
+    const GitCommandResult commitResult = m_gitService.commit(message);
+    if (!commitResult.success) {
+        QMessageBox::warning(this, "Git commit 失败", commitResult.stderrText.trimmed().isEmpty() ? commitResult.stdoutText.trimmed() : commitResult.stderrText.trimmed());
+        m_statusLabel->setText("提交失败");
+        return;
+    }
+
+    const QString newHead = m_gitService.currentHead();
+    refreshGitState();
+    for (int i = 0; i < m_versionRoot->childCount(); ++i) {
+        QTreeWidgetItem* item = m_versionRoot->child(i);
+        if (item->data(0, CommitHashRole).toString() == newHead) {
+            m_versionTree->setCurrentItem(item);
+            break;
+        }
+    }
+    m_statusLabel->setText("已提交当前快照");
 }
 
 void MainWindow::setProjectFolder(const QString& folderPath) {
@@ -1142,5 +1201,6 @@ void MainWindow::updateCurrentVersionPanel() {
 void MainWindow::setBusy(bool busy) {
     m_analyzeButton->setDisabled(busy);
     m_saveFeedbackButton->setDisabled(busy);
+    m_commitButton->setDisabled(busy);
     m_statusLabel->setText(busy ? "正在进行文件分析..." : "就绪");
 }

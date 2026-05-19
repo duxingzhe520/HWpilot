@@ -155,6 +155,30 @@ HWpilot_autogen/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot_autogen.dir/build.make CMakeFiles/HWpilot_autogen.dir/build
 .PHONY : HWpilot_autogen/fast
 
+FeedbackStore/FeedbackStore.o: FeedbackStore/FeedbackStore.cpp.o
+.PHONY : FeedbackStore/FeedbackStore.o
+
+# target to build an object file
+FeedbackStore/FeedbackStore.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.o
+.PHONY : FeedbackStore/FeedbackStore.cpp.o
+
+FeedbackStore/FeedbackStore.i: FeedbackStore/FeedbackStore.cpp.i
+.PHONY : FeedbackStore/FeedbackStore.i
+
+# target to preprocess a source file
+FeedbackStore/FeedbackStore.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.i
+.PHONY : FeedbackStore/FeedbackStore.cpp.i
+
+FeedbackStore/FeedbackStore.s: FeedbackStore/FeedbackStore.cpp.s
+.PHONY : FeedbackStore/FeedbackStore.s
+
+# target to generate assembly for a file
+FeedbackStore/FeedbackStore.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.s
+.PHONY : FeedbackStore/FeedbackStore.cpp.s
+
 GitService/GitService.o: GitService/GitService.cpp.o
 .PHONY : GitService/GitService.o
 
@@ -358,6 +382,9 @@ help:
 	@echo "... HWpilot_autogen"
 	@echo "... HWpilot_autogen_timestamp_deps"
 	@echo "... HWpilot"
+	@echo "... FeedbackStore/FeedbackStore.o"
+	@echo "... FeedbackStore/FeedbackStore.i"
+	@echo "... FeedbackStore/FeedbackStore.s"
 	@echo "... GitService/GitService.o"
 	@echo "... GitService/GitService.i"
 	@echo "... GitService/GitService.s"

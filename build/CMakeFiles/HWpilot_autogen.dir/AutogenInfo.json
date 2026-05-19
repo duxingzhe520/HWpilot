@@ -367,6 +367,12 @@
 	"HEADERS" : 
 	[
 		[
+			"/Users/duxingzhe520/Desktop/Project/HWpilot/FeedbackStore/FeedbackStore.h",
+			"Mu",
+			"7PB6RWK7TI/moc_FeedbackStore.cpp",
+			null
+		],
+		[
 			"/Users/duxingzhe520/Desktop/Project/HWpilot/GitService/GitService.h",
 			"Mu",
 			"ADUEYMQT3T/moc_GitService.cpp",
@@ -471,6 +477,11 @@
 	"SETTINGS_FILE" : "/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles/HWpilot_autogen.dir/AutogenUsed.txt",
 	"SOURCES" : 
 	[
+		[
+			"/Users/duxingzhe520/Desktop/Project/HWpilot/FeedbackStore/FeedbackStore.cpp",
+			"Mu",
+			null
+		],
 		[
 			"/Users/duxingzhe520/Desktop/Project/HWpilot/GitService/GitService.cpp",
 			"Mu",

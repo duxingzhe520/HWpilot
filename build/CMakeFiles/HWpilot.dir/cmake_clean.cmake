@@ -2,6 +2,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/HWpilot_autogen.dir/AutogenUsed.txt"
   "CMakeFiles/HWpilot_autogen.dir/ParseCache.txt"
   "HWpilot_autogen"
+  "CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.o"
+  "CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.o.d"
   "CMakeFiles/HWpilot.dir/GitService/GitService.cpp.o"
   "CMakeFiles/HWpilot.dir/GitService/GitService.cpp.o.d"
   "CMakeFiles/HWpilot.dir/HWFileScanner/HWFileScanner.cpp.o"

@@ -36,6 +36,8 @@ public:
     QString currentHead() const;
     QList<GitCommit> log(int limit = 200) const;
     QStringList branchesContainingCommit(const QString& commitHash) const;
+    QStringList changedPaths() const;
+    GitCommandResult addPaths(const QStringList& paths) const;
     GitCommandResult addAll() const;
     GitCommandResult commit(const QString& message) const;
 
