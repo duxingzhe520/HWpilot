@@ -971,9 +971,25 @@ CMakeFiles/HWpilot.dir/MainWindow.cpp.o: \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qtabwidget.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QPointer \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qpointer.h \
-  /Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner/HWFileScanner.h \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/GitService/GitService.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QString \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QStringList \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner/HWFileScanner.h \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/ProjectManager/ProjectManager.h \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/ProjectManager/../ProjectData.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QJsonObject \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qjsonobject.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qjsonvalue.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qcborvalue.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qcborcommon.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qdatetime.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qcalendar.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qlocale.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qregularexpression.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qurl.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/quuid.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qjsondocument.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qjsonparseerror.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QApplication \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qapplication.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qcoreapplication.h \
@@ -986,7 +1002,6 @@ CMakeFiles/HWpilot.dir/MainWindow.cpp.o: \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qcoreapplication_platform.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers/qguiapplication.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers/qinputmethod.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qlocale.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers/qguiapplication_platform.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QCheckBox \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qcheckbox.h \
@@ -997,7 +1012,6 @@ CMakeFiles/HWpilot.dir/MainWindow.cpp.o: \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qstyleoption.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qabstractspinbox.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers/qvalidator.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qregularexpression.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qslider.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qabstractslider.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qstyle.h \
@@ -1006,8 +1020,6 @@ CMakeFiles/HWpilot.dir/MainWindow.cpp.o: \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qframe.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qabstractitemmodel.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QDateTime \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qdatetime.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qcalendar.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QDir \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qdir.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qdirlisting.h \
@@ -1051,7 +1063,6 @@ CMakeFiles/HWpilot.dir/MainWindow.cpp.o: \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qtimezone.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QFileDialog \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qfiledialog.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qurl.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qdialog.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QFileInfo \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QFormLayout \
@@ -1069,26 +1080,20 @@ CMakeFiles/HWpilot.dir/MainWindow.cpp.o: \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qabstractitemview.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qabstractscrollarea.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qitemselectionmodel.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QJsonArray \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qjsonarray.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qjsonvalue.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qcborvalue.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qcborcommon.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/quuid.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qjsondocument.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qjsonparseerror.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QJsonObject \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qjsonobject.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QLabel \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qlabel.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers/qpicture.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers/qtextdocument.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QLineEdit \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QInputDialog \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qinputdialog.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qlineedit.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers/qtextcursor.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers/qtextdocument.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers/qtextformat.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers/qpen.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers/qtextoption.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QJsonArray \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qjsonarray.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QLabel \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qlabel.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers/qpicture.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QLineEdit \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/QListWidget \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qlistwidget.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qlistview.h \

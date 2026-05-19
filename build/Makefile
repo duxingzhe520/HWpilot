@@ -155,6 +155,30 @@ HWpilot_autogen/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot_autogen.dir/build.make CMakeFiles/HWpilot_autogen.dir/build
 .PHONY : HWpilot_autogen/fast
 
+GitService/GitService.o: GitService/GitService.cpp.o
+.PHONY : GitService/GitService.o
+
+# target to build an object file
+GitService/GitService.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/GitService/GitService.cpp.o
+.PHONY : GitService/GitService.cpp.o
+
+GitService/GitService.i: GitService/GitService.cpp.i
+.PHONY : GitService/GitService.i
+
+# target to preprocess a source file
+GitService/GitService.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/GitService/GitService.cpp.i
+.PHONY : GitService/GitService.cpp.i
+
+GitService/GitService.s: GitService/GitService.cpp.s
+.PHONY : GitService/GitService.s
+
+# target to generate assembly for a file
+GitService/GitService.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/GitService/GitService.cpp.s
+.PHONY : GitService/GitService.cpp.s
+
 HWFileScanner/HWFileScanner.o: HWFileScanner/HWFileScanner.cpp.o
 .PHONY : HWFileScanner/HWFileScanner.o
 
@@ -251,6 +275,54 @@ MainWindow.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow.cpp.s
 .PHONY : MainWindow.cpp.s
 
+ProjectData.o: ProjectData.cpp.o
+.PHONY : ProjectData.o
+
+# target to build an object file
+ProjectData.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/ProjectData.cpp.o
+.PHONY : ProjectData.cpp.o
+
+ProjectData.i: ProjectData.cpp.i
+.PHONY : ProjectData.i
+
+# target to preprocess a source file
+ProjectData.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/ProjectData.cpp.i
+.PHONY : ProjectData.cpp.i
+
+ProjectData.s: ProjectData.cpp.s
+.PHONY : ProjectData.s
+
+# target to generate assembly for a file
+ProjectData.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/ProjectData.cpp.s
+.PHONY : ProjectData.cpp.s
+
+ProjectManager/ProjectManager.o: ProjectManager/ProjectManager.cpp.o
+.PHONY : ProjectManager/ProjectManager.o
+
+# target to build an object file
+ProjectManager/ProjectManager.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/ProjectManager/ProjectManager.cpp.o
+.PHONY : ProjectManager/ProjectManager.cpp.o
+
+ProjectManager/ProjectManager.i: ProjectManager/ProjectManager.cpp.i
+.PHONY : ProjectManager/ProjectManager.i
+
+# target to preprocess a source file
+ProjectManager/ProjectManager.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/ProjectManager/ProjectManager.cpp.i
+.PHONY : ProjectManager/ProjectManager.cpp.i
+
+ProjectManager/ProjectManager.s: ProjectManager/ProjectManager.cpp.s
+.PHONY : ProjectManager/ProjectManager.s
+
+# target to generate assembly for a file
+ProjectManager/ProjectManager.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/ProjectManager/ProjectManager.cpp.s
+.PHONY : ProjectManager/ProjectManager.cpp.s
+
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -286,6 +358,9 @@ help:
 	@echo "... HWpilot_autogen"
 	@echo "... HWpilot_autogen_timestamp_deps"
 	@echo "... HWpilot"
+	@echo "... GitService/GitService.o"
+	@echo "... GitService/GitService.i"
+	@echo "... GitService/GitService.s"
 	@echo "... HWFileScanner/HWFileScanner.o"
 	@echo "... HWFileScanner/HWFileScanner.i"
 	@echo "... HWFileScanner/HWFileScanner.s"
@@ -298,6 +373,12 @@ help:
 	@echo "... MainWindow.o"
 	@echo "... MainWindow.i"
 	@echo "... MainWindow.s"
+	@echo "... ProjectData.o"
+	@echo "... ProjectData.i"
+	@echo "... ProjectData.s"
+	@echo "... ProjectManager/ProjectManager.o"
+	@echo "... ProjectManager/ProjectManager.i"
+	@echo "... ProjectManager/ProjectManager.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

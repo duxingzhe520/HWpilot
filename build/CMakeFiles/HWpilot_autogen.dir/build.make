@@ -69,10 +69,9 @@ include CMakeFiles/HWpilot_autogen.dir/progress.make
 CMakeFiles/HWpilot_autogen: HWpilot_autogen/timestamp
 
 HWpilot_autogen/timestamp: /Users/duxingzhe520/Qt/6.11.0/macos/libexec/moc
-HWpilot_autogen/timestamp: /Users/duxingzhe520/Qt/6.11.0/macos/libexec/uic
 HWpilot_autogen/timestamp: CMakeFiles/HWpilot_autogen.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Automatic MOC and UIC for target HWpilot"
-	/opt/homebrew/bin/cmake -E cmake_autogen /Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles/HWpilot_autogen.dir/AutogenInfo.json ""
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Automatic MOC for target HWpilot"
+	/opt/homebrew/bin/cmake -E cmake_autogen /Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles/HWpilot_autogen.dir/AutogenInfo.json Debug
 	/opt/homebrew/bin/cmake -E touch /Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/timestamp
 
 CMakeFiles/HWpilot_autogen.dir/codegen:

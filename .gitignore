@@ -1,0 +1,89 @@
+build/
+build-*/
+out/
+cmake-build-*/
+
+# CMake 自动生成的文件/目录
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+CTestTestfile.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+Testing/
+
+# Qt MOC/UIC/RCC 生成的代码
+moc_*.cpp
+moc_*.h
+ui_*.h
+qrc_*.cpp
+
+# Qt 编译输出目录
+debug/
+release/
+
+# Qt Creator 编辑器配置
+*.pro.user
+*.pro.user.*
+*.qmake.stash
+.qt/
+
+# 目标文件
+*.o
+*.obj
+*.lo
+
+# 静态/动态库
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.dll.a
+
+# 可执行文件
+*.exe
+*.out
+*.app
+
+# test 目录下的 CMake 生成文件
+test/
+
+# CLion / JetBrains
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Visual Studio
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# 其他编辑器
+*.sublime-*
+*.swp
+*.bak
+
+# macOS
+.DS_Store
+._*
+.Spotlight-V100
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# 通用临时文件
+*.log
+*.tmp
+core
+core.*
+
+api-key.txt
