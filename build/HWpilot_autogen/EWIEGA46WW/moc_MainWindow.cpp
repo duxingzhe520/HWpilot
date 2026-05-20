@@ -41,6 +41,7 @@ template <> constexpr inline auto MainWindow::qt_create_metaobjectdata<qt_meta_t
         "MainWindow",
         "openProjectFolder",
         "",
+        "refreshCurrentProject",
         "commitCurrentSnapshot",
         "startAiAnalysis",
         "saveFeedbackToVersion",
@@ -58,23 +59,25 @@ template <> constexpr inline auto MainWindow::qt_create_metaobjectdata<qt_meta_t
     QtMocHelpers::UintData qt_methods {
         // Slot 'openProjectFolder'
         QtMocHelpers::SlotData<void()>(1, 2, QMC::AccessPrivate, QMetaType::Void),
-        // Slot 'commitCurrentSnapshot'
+        // Slot 'refreshCurrentProject'
         QtMocHelpers::SlotData<void()>(3, 2, QMC::AccessPrivate, QMetaType::Void),
-        // Slot 'startAiAnalysis'
+        // Slot 'commitCurrentSnapshot'
         QtMocHelpers::SlotData<void()>(4, 2, QMC::AccessPrivate, QMetaType::Void),
-        // Slot 'saveFeedbackToVersion'
+        // Slot 'startAiAnalysis'
         QtMocHelpers::SlotData<void()>(5, 2, QMC::AccessPrivate, QMetaType::Void),
-        // Slot 'updateCurrentVersionPanel'
+        // Slot 'saveFeedbackToVersion'
         QtMocHelpers::SlotData<void()>(6, 2, QMC::AccessPrivate, QMetaType::Void),
-        // Slot 'selectAllFiles'
+        // Slot 'updateCurrentVersionPanel'
         QtMocHelpers::SlotData<void()>(7, 2, QMC::AccessPrivate, QMetaType::Void),
+        // Slot 'selectAllFiles'
+        QtMocHelpers::SlotData<void()>(8, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'handleFileItemChanged'
-        QtMocHelpers::SlotData<void(QTreeWidgetItem *, int)>(8, 2, QMC::AccessPrivate, QMetaType::Void, {{
-            { 0x80000000 | 9, 10 }, { QMetaType::Int, 11 },
+        QtMocHelpers::SlotData<void(QTreeWidgetItem *, int)>(9, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { 0x80000000 | 10, 11 }, { QMetaType::Int, 12 },
         }}),
         // Slot 'handleFeedbackTreeSelection'
-        QtMocHelpers::SlotData<void(QTreeWidgetItem *, QTreeWidgetItem *)>(12, 2, QMC::AccessPrivate, QMetaType::Void, {{
-            { 0x80000000 | 9, 13 }, { 0x80000000 | 9, 14 },
+        QtMocHelpers::SlotData<void(QTreeWidgetItem *, QTreeWidgetItem *)>(13, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { 0x80000000 | 10, 14 }, { 0x80000000 | 10, 15 },
         }}),
     };
     QtMocHelpers::UintData qt_properties {
@@ -100,13 +103,14 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
         case 0: _t->openProjectFolder(); break;
-        case 1: _t->commitCurrentSnapshot(); break;
-        case 2: _t->startAiAnalysis(); break;
-        case 3: _t->saveFeedbackToVersion(); break;
-        case 4: _t->updateCurrentVersionPanel(); break;
-        case 5: _t->selectAllFiles(); break;
-        case 6: _t->handleFileItemChanged((*reinterpret_cast<std::add_pointer_t<QTreeWidgetItem*>>(_a[1])),(*reinterpret_cast<std::add_pointer_t<int>>(_a[2]))); break;
-        case 7: _t->handleFeedbackTreeSelection((*reinterpret_cast<std::add_pointer_t<QTreeWidgetItem*>>(_a[1])),(*reinterpret_cast<std::add_pointer_t<QTreeWidgetItem*>>(_a[2]))); break;
+        case 1: _t->refreshCurrentProject(); break;
+        case 2: _t->commitCurrentSnapshot(); break;
+        case 3: _t->startAiAnalysis(); break;
+        case 4: _t->saveFeedbackToVersion(); break;
+        case 5: _t->updateCurrentVersionPanel(); break;
+        case 6: _t->selectAllFiles(); break;
+        case 7: _t->handleFileItemChanged((*reinterpret_cast<std::add_pointer_t<QTreeWidgetItem*>>(_a[1])),(*reinterpret_cast<std::add_pointer_t<int>>(_a[2]))); break;
+        case 8: _t->handleFeedbackTreeSelection((*reinterpret_cast<std::add_pointer_t<QTreeWidgetItem*>>(_a[1])),(*reinterpret_cast<std::add_pointer_t<QTreeWidgetItem*>>(_a[2]))); break;
         default: ;
         }
     }
@@ -131,14 +135,14 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 8)
+        if (_id < 9)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 8;
+        _id -= 9;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 8)
+        if (_id < 9)
             *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
-        _id -= 8;
+        _id -= 9;
     }
     return _id;
 }

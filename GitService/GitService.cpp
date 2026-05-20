@@ -24,25 +24,25 @@ QString GitService::statusPorcelain() const {
 }
 
 QString GitService::diff() const {
-    return runGit({"diff", "--", "."}).stdoutText;
+    return runGit({"diff", "--", ".", ":(exclude).hwpilot/**"}).stdoutText;
 }
 
 QString GitService::diffStat() const {
-    return runGit({"diff", "--stat", "--", "."}).stdoutText;
+    return runGit({"diff", "--stat", "--", ".", ":(exclude).hwpilot/**"}).stdoutText;
 }
 
 QString GitService::diffForCommit(const QString& commitHash) const {
     if (commitHash.isEmpty())
         return diff();
 
-    return runGit({"show", "--format=", "--patch", commitHash, "--", "."}).stdoutText;
+    return runGit({"show", "--format=", "--patch", commitHash, "--", ".", ":(exclude).hwpilot/**"}).stdoutText;
 }
 
 QString GitService::diffStatForCommit(const QString& commitHash) const {
     if (commitHash.isEmpty())
         return diffStat();
 
-    return runGit({"show", "--format=", "--stat", commitHash, "--", "."}).stdoutText;
+    return runGit({"show", "--format=", "--stat", commitHash, "--", ".", ":(exclude).hwpilot/**"}).stdoutText;
 }
 
 QStringList GitService::filesAtCommit(const QString& commitHash) const {

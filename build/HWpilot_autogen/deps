@@ -733,9 +733,15 @@ HWpilot_autogen/timestamp: \
 	/Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner/HWFileScanner.h \
 	/Users/duxingzhe520/Desktop/Project/HWpilot/HWpilotLLM/HWpilotLLM.cpp \
 	/Users/duxingzhe520/Desktop/Project/HWpilot/HWpilotLLM/HWpilotLLM.h \
-	/Users/duxingzhe520/Desktop/Project/HWpilot/HWpilotLLM/Prompts.h \
 	/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow.cpp \
 	/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow.h \
+	/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Ai.cpp \
+	/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Feedback.cpp \
+	/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Project.cpp \
+	/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Render.cpp \
+	/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Render.h \
+	/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Ui.cpp \
+	/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Version.cpp \
 	/Users/duxingzhe520/Desktop/Project/HWpilot/ProjectData.cpp \
 	/Users/duxingzhe520/Desktop/Project/HWpilot/ProjectData.h \
 	/Users/duxingzhe520/Desktop/Project/HWpilot/ProjectManager/ProjectManager.cpp \

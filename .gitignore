@@ -2,6 +2,9 @@ build/
 build-*/
 out/
 cmake-build-*/
+11.txt
+ai_function.txt
+todo
 
 # CMake 自动生成的文件/目录
 CMakeCache.txt

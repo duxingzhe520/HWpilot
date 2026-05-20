@@ -299,6 +299,150 @@ MainWindow.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow.cpp.s
 .PHONY : MainWindow.cpp.s
 
+MainWindow/Ai.o: MainWindow/Ai.cpp.o
+.PHONY : MainWindow/Ai.o
+
+# target to build an object file
+MainWindow/Ai.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.o
+.PHONY : MainWindow/Ai.cpp.o
+
+MainWindow/Ai.i: MainWindow/Ai.cpp.i
+.PHONY : MainWindow/Ai.i
+
+# target to preprocess a source file
+MainWindow/Ai.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.i
+.PHONY : MainWindow/Ai.cpp.i
+
+MainWindow/Ai.s: MainWindow/Ai.cpp.s
+.PHONY : MainWindow/Ai.s
+
+# target to generate assembly for a file
+MainWindow/Ai.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.s
+.PHONY : MainWindow/Ai.cpp.s
+
+MainWindow/Feedback.o: MainWindow/Feedback.cpp.o
+.PHONY : MainWindow/Feedback.o
+
+# target to build an object file
+MainWindow/Feedback.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.o
+.PHONY : MainWindow/Feedback.cpp.o
+
+MainWindow/Feedback.i: MainWindow/Feedback.cpp.i
+.PHONY : MainWindow/Feedback.i
+
+# target to preprocess a source file
+MainWindow/Feedback.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.i
+.PHONY : MainWindow/Feedback.cpp.i
+
+MainWindow/Feedback.s: MainWindow/Feedback.cpp.s
+.PHONY : MainWindow/Feedback.s
+
+# target to generate assembly for a file
+MainWindow/Feedback.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.s
+.PHONY : MainWindow/Feedback.cpp.s
+
+MainWindow/Project.o: MainWindow/Project.cpp.o
+.PHONY : MainWindow/Project.o
+
+# target to build an object file
+MainWindow/Project.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow/Project.cpp.o
+.PHONY : MainWindow/Project.cpp.o
+
+MainWindow/Project.i: MainWindow/Project.cpp.i
+.PHONY : MainWindow/Project.i
+
+# target to preprocess a source file
+MainWindow/Project.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow/Project.cpp.i
+.PHONY : MainWindow/Project.cpp.i
+
+MainWindow/Project.s: MainWindow/Project.cpp.s
+.PHONY : MainWindow/Project.s
+
+# target to generate assembly for a file
+MainWindow/Project.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow/Project.cpp.s
+.PHONY : MainWindow/Project.cpp.s
+
+MainWindow/Render.o: MainWindow/Render.cpp.o
+.PHONY : MainWindow/Render.o
+
+# target to build an object file
+MainWindow/Render.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow/Render.cpp.o
+.PHONY : MainWindow/Render.cpp.o
+
+MainWindow/Render.i: MainWindow/Render.cpp.i
+.PHONY : MainWindow/Render.i
+
+# target to preprocess a source file
+MainWindow/Render.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow/Render.cpp.i
+.PHONY : MainWindow/Render.cpp.i
+
+MainWindow/Render.s: MainWindow/Render.cpp.s
+.PHONY : MainWindow/Render.s
+
+# target to generate assembly for a file
+MainWindow/Render.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow/Render.cpp.s
+.PHONY : MainWindow/Render.cpp.s
+
+MainWindow/Ui.o: MainWindow/Ui.cpp.o
+.PHONY : MainWindow/Ui.o
+
+# target to build an object file
+MainWindow/Ui.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow/Ui.cpp.o
+.PHONY : MainWindow/Ui.cpp.o
+
+MainWindow/Ui.i: MainWindow/Ui.cpp.i
+.PHONY : MainWindow/Ui.i
+
+# target to preprocess a source file
+MainWindow/Ui.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow/Ui.cpp.i
+.PHONY : MainWindow/Ui.cpp.i
+
+MainWindow/Ui.s: MainWindow/Ui.cpp.s
+.PHONY : MainWindow/Ui.s
+
+# target to generate assembly for a file
+MainWindow/Ui.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow/Ui.cpp.s
+.PHONY : MainWindow/Ui.cpp.s
+
+MainWindow/Version.o: MainWindow/Version.cpp.o
+.PHONY : MainWindow/Version.o
+
+# target to build an object file
+MainWindow/Version.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow/Version.cpp.o
+.PHONY : MainWindow/Version.cpp.o
+
+MainWindow/Version.i: MainWindow/Version.cpp.i
+.PHONY : MainWindow/Version.i
+
+# target to preprocess a source file
+MainWindow/Version.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow/Version.cpp.i
+.PHONY : MainWindow/Version.cpp.i
+
+MainWindow/Version.s: MainWindow/Version.cpp.s
+.PHONY : MainWindow/Version.s
+
+# target to generate assembly for a file
+MainWindow/Version.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/MainWindow/Version.cpp.s
+.PHONY : MainWindow/Version.cpp.s
+
 ProjectData.o: ProjectData.cpp.o
 .PHONY : ProjectData.o
 
@@ -400,6 +544,24 @@ help:
 	@echo "... MainWindow.o"
 	@echo "... MainWindow.i"
 	@echo "... MainWindow.s"
+	@echo "... MainWindow/Ai.o"
+	@echo "... MainWindow/Ai.i"
+	@echo "... MainWindow/Ai.s"
+	@echo "... MainWindow/Feedback.o"
+	@echo "... MainWindow/Feedback.i"
+	@echo "... MainWindow/Feedback.s"
+	@echo "... MainWindow/Project.o"
+	@echo "... MainWindow/Project.i"
+	@echo "... MainWindow/Project.s"
+	@echo "... MainWindow/Render.o"
+	@echo "... MainWindow/Render.i"
+	@echo "... MainWindow/Render.s"
+	@echo "... MainWindow/Ui.o"
+	@echo "... MainWindow/Ui.i"
+	@echo "... MainWindow/Ui.s"
+	@echo "... MainWindow/Version.o"
+	@echo "... MainWindow/Version.i"
+	@echo "... MainWindow/Version.s"
 	@echo "... ProjectData.o"
 	@echo "... ProjectData.i"
 	@echo "... ProjectData.s"

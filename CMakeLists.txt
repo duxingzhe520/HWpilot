@@ -12,6 +12,13 @@ qt_add_executable(HWpilot
     main.cpp
     MainWindow.cpp
     MainWindow.h
+    MainWindow/Ai.cpp
+    MainWindow/Feedback.cpp
+    MainWindow/Project.cpp
+    MainWindow/Render.cpp
+    MainWindow/Render.h
+    MainWindow/Ui.cpp
+    MainWindow/Version.cpp
     ProjectData.cpp
     ProjectData.h
     ProjectManager/ProjectManager.cpp
@@ -24,7 +31,6 @@ qt_add_executable(HWpilot
     HWFileScanner/HWFileScanner.h
     HWpilotLLM/HWpilotLLM.cpp
     HWpilotLLM/HWpilotLLM.h
-    HWpilotLLM/Prompts.h
 )
 
 target_link_libraries(HWpilot PRIVATE Qt6::Widgets Qt6::Network)

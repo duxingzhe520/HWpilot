@@ -28,6 +28,7 @@ public:
 
 private slots:
     void openProjectFolder();
+    void refreshCurrentProject();
     void commitCurrentSnapshot();
     void startAiAnalysis();
     void saveFeedbackToVersion();
@@ -37,6 +38,12 @@ private slots:
     void handleFeedbackTreeSelection(QTreeWidgetItem* current, QTreeWidgetItem* previous);
 
 private:
+    static constexpr int NoteRole = Qt::UserRole + 2;
+    static constexpr int CommitHashRole = Qt::UserRole + 3;
+    static constexpr int FilePathRole = Qt::UserRole + 4;
+    static constexpr int IsDirectoryRole = Qt::UserRole + 5;
+    static constexpr int DetailHtmlRole = Qt::UserRole + 6;
+
     void buildUi();
     void buildLeftPanel();
     void buildCenterPanel();
@@ -44,7 +51,7 @@ private:
     void applyStyle();
 
     void setProjectFolder(const QString& folderPath);
-    void scanCurrentProject();
+    void scanCurrentProject(bool showWarnings = true);
     void refreshProjectPanel();
     void populateFileTree();
     void populateFileTreeForPaths(const QStringList& paths);
@@ -52,7 +59,7 @@ private:
     void updateParentCheckState(QTreeWidgetItem* item);
     void refreshChangeSummary();
     void refreshGitState();
-    void rebuildVersionTree();
+    void rebuildVersionTree(const QString& preferredCommitHash = QString());
     void appendVersionNode(const QString& title, const QString& note, const QString& commitHash = QString());
     QList<CodeFile> selectedFiles() const;
     QStringList checkedFilePaths() const;
@@ -82,6 +89,7 @@ private:
     QLabel* m_fileCountLabel = nullptr;
     QLabel* m_feedbackCountLabel = nullptr;
     QPushButton* m_openProjectButton = nullptr;
+    QPushButton* m_refreshProjectButton = nullptr;
     QPushButton* m_commitButton = nullptr;
 
     QTabWidget* m_tabs = nullptr;
