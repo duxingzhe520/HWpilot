@@ -1,5 +1,7 @@
 #include "FeedbackStore.h"
 
+#include "../AppText.h"
+
 #include <QDir>
 #include <QFile>
 #include <QJsonArray>
@@ -11,13 +13,13 @@ bool FeedbackStore::openProject(const QString& projectPath, QString* errorMessag
     QDir projectDir(m_projectPath);
     if (!projectDir.exists()) {
         if (errorMessage)
-            *errorMessage = "项目目录不存在，无法打开反馈仓库。";
+            *errorMessage = AppText::get("error.projectDirMissingFeedback");
         return false;
     }
 
     if (!projectDir.exists(".hwpilot") && !projectDir.mkpath(".hwpilot")) {
         if (errorMessage)
-            *errorMessage = "无法创建 .hwpilot 目录。";
+            *errorMessage = AppText::get("error.feedbackDirCreate");
         return false;
     }
 
@@ -33,14 +35,14 @@ bool FeedbackStore::load(QString* errorMessage) {
 
     if (!file.open(QIODevice::ReadOnly)) {
         if (errorMessage)
-            *errorMessage = "无法读取反馈数据。";
+            *errorMessage = AppText::get("error.feedbackRead");
         return false;
     }
 
     const QJsonDocument document = QJsonDocument::fromJson(file.readAll());
     if (!document.isObject()) {
         if (errorMessage)
-            *errorMessage = "反馈数据不是有效 JSON。";
+            *errorMessage = AppText::get("error.feedbackInvalid");
         return false;
     }
 
@@ -57,7 +59,7 @@ bool FeedbackStore::save(QString* errorMessage) const {
     QDir projectDir(m_projectPath);
     if (!projectDir.exists(".hwpilot") && !projectDir.mkpath(".hwpilot")) {
         if (errorMessage)
-            *errorMessage = "无法创建 .hwpilot 目录。";
+            *errorMessage = AppText::get("error.feedbackDirCreate");
         return false;
     }
 
@@ -71,7 +73,7 @@ bool FeedbackStore::save(QString* errorMessage) const {
     QFile file(feedbackFilePath());
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         if (errorMessage)
-            *errorMessage = "无法写入反馈数据。";
+            *errorMessage = AppText::get("error.feedbackWrite");
         return false;
     }
 
@@ -95,7 +97,7 @@ bool FeedbackStore::updateItemStatus(const QString& itemId, const QString& statu
     }
 
     if (errorMessage)
-        *errorMessage = "没有找到对应的问题条目。";
+        *errorMessage = AppText::get("error.feedbackItemMissing");
     return false;
 }
 

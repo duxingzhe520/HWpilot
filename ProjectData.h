@@ -13,7 +13,7 @@ struct FeedbackItem {
     QString category;
     QString title;
     QString suggestion;
-    QString status = "open";
+    QString status = "unresolved";
 
     QJsonObject toJson() const;
     static FeedbackItem fromJson(const QJsonObject& object);

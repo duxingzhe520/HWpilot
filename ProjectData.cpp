@@ -24,7 +24,7 @@ FeedbackItem FeedbackItem::fromJson(const QJsonObject& object) {
     item.category = object["category"].toString();
     item.title = object["title"].toString();
     item.suggestion = object["suggestion"].toString();
-    item.status = object["status"].toString("open");
+    item.status = object["status"].toString("unresolved");
     return item;
 }
 

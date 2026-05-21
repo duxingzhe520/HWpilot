@@ -726,6 +726,8 @@ HWpilot_autogen/timestamp: /Applications/Xcode.app/Contents/Developer/Platforms/
   /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include/limits.h \
   /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include/ptrcheck.h \
   /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include/stdarg.h \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/AppText.cpp \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/AppText.h \
   /Users/duxingzhe520/Desktop/Project/HWpilot/CMakeLists.txt \
   /Users/duxingzhe520/Desktop/Project/HWpilot/FeedbackStore/FeedbackStore.cpp \
   /Users/duxingzhe520/Desktop/Project/HWpilot/FeedbackStore/FeedbackStore.h \
@@ -1775,6 +1777,12 @@ HWpilot_autogen/timestamp: /Applications/Xcode.app/Contents/Developer/Platforms/
 /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qcomparehelpers.h:
 
 /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qcompare_impl.h:
+
+/Users/duxingzhe520/Qt/6.11.0/macos/lib/cmake/Qt6Gui/Qt6QGifPluginTargetsPrecheck.cmake:
+
+/Users/duxingzhe520/Qt/6.11.0/macos/lib/cmake/Qt6/QtPublicFinalizerHelpers.cmake:
+
+/Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qcompare.h:
 
 /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qcheckedint_impl.h:
 
@@ -3450,12 +3458,6 @@ CMakeFiles/4.3.1/CMakeSystem.cmake:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__numeric/gcd_lcm.h:
 
-/Users/duxingzhe520/Qt/6.11.0/macos/lib/cmake/Qt6Gui/Qt6QGifPluginTargetsPrecheck.cmake:
-
-/Users/duxingzhe520/Qt/6.11.0/macos/lib/cmake/Qt6/QtPublicFinalizerHelpers.cmake:
-
-/Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qcompare.h:
-
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__algorithm/comp.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__algorithm/ranges_copy_n.h:
@@ -3578,6 +3580,8 @@ CMakeFiles/4.3.1/CMakeSystem.cmake:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/arm/types.h:
 
+/Users/duxingzhe520/Desktop/Project/HWpilot/AppText.cpp:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__atomic/support.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/new:
@@ -3587,6 +3591,8 @@ CMakeFiles/4.3.1/CMakeSystem.cmake:
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__type_traits/is_core_convertible.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/__xlocale.h:
+
+/Users/duxingzhe520/Desktop/Project/HWpilot/AppText.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sys/_types/_suseconds_t.h:
 

@@ -1,10 +1,14 @@
 #include "../MainWindow.h"
 
+#include "../AppText.h"
+
 #include <QDateTime>
+#include <QDialog>
 #include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
+#include <QStackedWidget>
 #include <QTextBrowser>
 #include <QTreeWidget>
 
@@ -14,38 +18,50 @@ using namespace MainWindowRender;
 
 void MainWindow::commitCurrentSnapshot() {
     if (m_projectDir.isEmpty()) {
-        QMessageBox::information(this, "尚未打开项目", "请先打开一个作业项目文件夹。");
+        QMessageBox::information(this, AppText::get("dialog.noProject.title"), AppText::get("dialog.noProject.body"));
         return;
     }
 
     const QStringList paths = m_gitService.changedPaths();
     if (paths.isEmpty()) {
-        QMessageBox::information(this, "没有可提交的变更", "当前工作区没有 Git 可提交的变更。");
+        QMessageBox::information(this, AppText::get("dialog.noChanges.title"), AppText::get("dialog.noChanges.body"));
         return;
     }
 
-    bool ok = false;
-    const QString defaultMessage = QString("保存作业进度：%1").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm"));
-    const QString message = QInputDialog::getText(this, "Commit message", "请输入 commit message：", QLineEdit::Normal, defaultMessage, &ok).trimmed();
-    if (!ok)
+    const QString defaultMessage = QString("Save progress: %1").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm"));
+    QInputDialog dialog(this);
+    dialog.setWindowTitle(AppText::get("dialog.commitMessage.title"));
+    dialog.setLabelText(AppText::get("dialog.commitMessage.label"));
+    dialog.setTextValue(defaultMessage);
+    dialog.setTextEchoMode(QLineEdit::Normal);
+    dialog.setMinimumSize(520, 180);
+    dialog.setStyleSheet(
+        "QInputDialog { background: #f8fafc; color: #1f2937; }"
+        "QLabel { background: transparent; color: #1f2937; font-size: 14px; }"
+        "QLineEdit { background: #ffffff; color: #111827; border: 1px solid #cbd5e1; padding: 8px; selection-background-color: #dbeafe; }"
+        "QPushButton { background: #ffffff; color: #243244; border: 1px solid #d9dee7; padding: 7px 14px; }"
+        "QPushButton:hover { background: #eef6ff; }");
+
+    if (dialog.exec() != QDialog::Accepted)
         return;
+    const QString message = dialog.textValue().trimmed();
     if (message.isEmpty()) {
-        QMessageBox::information(this, "Commit message 为空", "请输入 commit message 后再提交。");
+        QMessageBox::information(this, AppText::get("dialog.emptyCommit.title"), AppText::get("dialog.emptyCommit.body"));
         return;
     }
 
-    m_statusLabel->setText("正在提交当前快照...");
+    m_statusLabel->setText(AppText::get("status.committing"));
     const GitCommandResult addResult = m_gitService.addPaths(paths);
     if (!addResult.success) {
-        QMessageBox::warning(this, "Git add 失败", addResult.stderrText.trimmed().isEmpty() ? addResult.stdoutText.trimmed() : addResult.stderrText.trimmed());
-        m_statusLabel->setText("提交失败");
+        QMessageBox::warning(this, AppText::get("dialog.gitAddFailed"), addResult.stderrText.trimmed().isEmpty() ? addResult.stdoutText.trimmed() : addResult.stderrText.trimmed());
+        m_statusLabel->setText(AppText::get("status.commitFailed"));
         return;
     }
 
     const GitCommandResult commitResult = m_gitService.commit(message);
     if (!commitResult.success) {
-        QMessageBox::warning(this, "Git commit 失败", commitResult.stderrText.trimmed().isEmpty() ? commitResult.stdoutText.trimmed() : commitResult.stderrText.trimmed());
-        m_statusLabel->setText("提交失败");
+        QMessageBox::warning(this, AppText::get("dialog.gitCommitFailed"), commitResult.stderrText.trimmed().isEmpty() ? commitResult.stdoutText.trimmed() : commitResult.stderrText.trimmed());
+        m_statusLabel->setText(AppText::get("status.commitFailed"));
         return;
     }
 
@@ -58,37 +74,37 @@ void MainWindow::commitCurrentSnapshot() {
             break;
         }
     }
-    m_statusLabel->setText("已提交当前快照");
+    m_statusLabel->setText(AppText::get("status.commitDone"));
 }
 
 void MainWindow::refreshChangeSummary() {
-    QString html = "<h2>版本概览</h2>";
+    QString html = QString("<h2>%1</h2>").arg(htmlEscape(AppText::get("label.versionOverview")));
     if (m_projectDir.isEmpty()) {
-        html += "<p>尚未打开项目。</p>";
+        html += QString("<p>%1</p>").arg(htmlEscape(AppText::get("label.noProject")));
         m_changeSummary->setHtml(html);
         return;
     }
 
     const QString commitHash = selectedCommitHash();
-    const QString versionTitle = m_versionTree->currentItem() ? m_versionTree->currentItem()->text(0) : QString("当前工作区");
+    const QString versionTitle = m_versionTree->currentItem() ? m_versionTree->currentItem()->text(0) : AppText::get("version.currentWorkspace");
     const QList<FeedbackRecord> feedbacks = m_feedbackStore.feedbacksForCommit(feedbackContextHash());
     const int fileCount = commitHash.isEmpty() ? m_files.size() : m_gitService.filesAtCommit(commitHash).size();
 
-    html += "<h3>信息概览</h3>";
+    html += QString("<h3>%1</h3>").arg(htmlEscape(AppText::get("version.info")));
     html += "<table cellspacing=\"0\" cellpadding=\"6\" style=\"border-collapse:collapse; width:100%;\">";
-    html += QString("<tr><td style=\"color:#64748b; width:110px;\">版本</td><td><b>%1</b></td></tr>").arg(htmlEscape(versionTitle));
-    html += QString("<tr><td style=\"color:#64748b;\">文件数量</td><td>%1</td></tr>").arg(fileCount);
-    html += QString("<tr><td style=\"color:#64748b;\">反馈记录</td><td>%1 条</td></tr>").arg(feedbacks.size());
+    html += QString("<tr><td style=\"color:#64748b; width:110px;\">%1</td><td><b>%2</b></td></tr>").arg(htmlEscape(AppText::get("version.version")), htmlEscape(versionTitle));
+    html += QString("<tr><td style=\"color:#64748b;\">%1</td><td>%2</td></tr>").arg(htmlEscape(AppText::get("version.fileCount"))).arg(fileCount);
+    html += QString("<tr><td style=\"color:#64748b;\">%1</td><td>%2</td></tr>").arg(htmlEscape(AppText::get("version.feedbackCount")), htmlEscape(AppText::get("version.recordsUnit").arg(feedbacks.size())));
 
     if (commitHash.isEmpty()) {
         const QString diffStat = m_gitService.diffStat().trimmed();
         const QString diff = m_gitService.diff().trimmed();
 
-        html += QString("<tr><td style=\"color:#64748b;\">类型</td><td>当前工作区</td></tr>");
-        html += QString("<tr><td style=\"color:#64748b; vertical-align:top;\">变更统计</td><td>%1</td></tr>")
+        html += QString("<tr><td style=\"color:#64748b;\">%1</td><td>%2</td></tr>").arg(htmlEscape(AppText::get("version.type")), htmlEscape(AppText::get("version.currentWorkspace")));
+        html += QString("<tr><td style=\"color:#64748b; vertical-align:top;\">%1</td><td>%2</td></tr>").arg(htmlEscape(AppText::get("version.changeStat")))
                     .arg(renderDiffStat(diffStat));
         html += "</table>";
-        html += "<h3>相对上一版本的变更</h3>";
+        html += QString("<h3>%1</h3>").arg(htmlEscape(AppText::get("version.diffTitle")));
         html += renderReadableDiff(diff);
     } else {
         GitCommit selectedCommit;
@@ -101,17 +117,17 @@ void MainWindow::refreshChangeSummary() {
         const QString diffStat = m_gitService.diffStatForCommit(commitHash).trimmed();
         const QString diff = m_gitService.diffForCommit(commitHash).trimmed();
 
-        html += QString("<tr><td style=\"color:#64748b;\">类型</td><td>历史提交</td></tr>");
-        html += QString("<tr><td style=\"color:#64748b;\">提交信息</td><td>%1</td></tr>").arg(htmlEscape(selectedCommit.subject));
-        html += QString("<tr><td style=\"color:#64748b;\">提交日期</td><td>%1</td></tr>").arg(htmlEscape(selectedCommit.date));
+        html += QString("<tr><td style=\"color:#64748b;\">%1</td><td>%2</td></tr>").arg(htmlEscape(AppText::get("version.type")), htmlEscape(AppText::get("version.historyCommit")));
+        html += QString("<tr><td style=\"color:#64748b;\">%1</td><td>%2</td></tr>").arg(htmlEscape(AppText::get("version.commitMessage")), htmlEscape(selectedCommit.subject));
+        html += QString("<tr><td style=\"color:#64748b;\">%1</td><td>%2</td></tr>").arg(htmlEscape(AppText::get("version.commitDate")), htmlEscape(selectedCommit.date));
         const QStringList branches = m_gitService.branchesContainingCommit(commitHash);
-        html += QString("<tr><td style=\"color:#64748b;\">所在分支</td><td>%1</td></tr>")
-                    .arg(htmlEscape(branches.isEmpty() ? "未找到本地分支引用" : branches.join(", ")));
+        html += QString("<tr><td style=\"color:#64748b;\">%1</td><td>%2</td></tr>")
+                    .arg(htmlEscape(AppText::get("version.branch")), htmlEscape(branches.isEmpty() ? AppText::get("version.noBranch") : branches.join(", ")));
         html += QString("<tr><td style=\"color:#64748b;\">Commit Hash</td><td><code>%1</code></td></tr>").arg(htmlEscape(commitHash));
-        html += QString("<tr><td style=\"color:#64748b; vertical-align:top;\">变更统计</td><td>%1</td></tr>")
+        html += QString("<tr><td style=\"color:#64748b; vertical-align:top;\">%1</td><td>%2</td></tr>").arg(htmlEscape(AppText::get("version.changeStat")))
                     .arg(renderDiffStat(diffStat));
         html += "</table>";
-        html += "<h3>相对上一版本的变更</h3>";
+        html += QString("<h3>%1</h3>").arg(htmlEscape(AppText::get("version.diffTitle")));
         html += renderReadableDiff(diff);
     }
     m_changeSummary->setHtml(html);
@@ -128,20 +144,14 @@ void MainWindow::refreshGitState() {
 void MainWindow::rebuildVersionTree(const QString& preferredCommitHash) {
     m_versionRoot->takeChildren();
     if (m_projectDir.isEmpty()) {
-        appendVersionNode("尚未打开项目", "请选择一个作业项目文件夹。");
+        appendVersionNode(AppText::get("version.noProjectNode"), AppText::get("version.noProjectNote"));
     } else {
-        appendVersionNode("当前工作区", "当前磁盘上的项目文件和未提交变更。");
+        appendVersionNode(AppText::get("version.currentWorkspace"), AppText::get("version.currentWorkspaceNote"));
 
         for (const GitCommit& commit : m_commits) {
-            const QString baseTitle = commit.subject.trimmed().isEmpty() ? "未命名提交" : commit.subject.trimmed();
-            const QStringList branches = m_gitService.branchesContainingCommit(commit.hash);
-            const QString branchHint = branches.isEmpty() ? "无分支引用" : branches.first();
-            const QString title = QString("%1  |  %2  |  %3").arg(baseTitle, commit.date, branchHint);
-
-            QString note = QString("日期：%1\nCommit：%2").arg(commit.date, commit.hash);
-            if (!branches.isEmpty())
-                note += QString("\n所在分支：%1").arg(branches.join(", "));
-            appendVersionNode(title, note, commit.hash);
+            const QString baseTitle = commit.subject.trimmed().isEmpty() ? AppText::get("feedback.untitledCommit") : commit.subject.trimmed();
+            QString note = AppText::get("version.dateCommit").arg(commit.date, commit.hash);
+            appendVersionNode(baseTitle, note, commit.hash);
         }
     }
 
@@ -166,6 +176,7 @@ void MainWindow::appendVersionNode(const QString& title, const QString& note, co
     auto* item = new QTreeWidgetItem(QStringList() << title);
     item->setData(0, NoteRole, note);
     item->setData(0, CommitHashRole, commitHash);
+    item->setToolTip(0, commitHash.isEmpty() ? note : note.section('\n', 0, 0));
     m_versionRoot->addChild(item);
 }
 
@@ -185,5 +196,6 @@ void MainWindow::updateCurrentVersionPanel() {
     html += "<hr>";
     m_reviewReport->setHtml(html);
     populateFeedbackPanel(feedbacks);
+    if (m_aiPickerStack && m_aiPickerStack->currentIndex() == 1)
+        populateAiFeedbackPicker();
 }
-

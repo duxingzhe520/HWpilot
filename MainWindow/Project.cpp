@@ -1,11 +1,14 @@
 #include "../MainWindow.h"
 
+#include "../AppText.h"
+
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QSettings>
 #include <QStringList>
 #include <QTextEdit>
 #include <QTreeWidget>
@@ -15,7 +18,7 @@
 using namespace MainWindowRender;
 
 void MainWindow::openProjectFolder() {
-    const QString folder = QFileDialog::getExistingDirectory(this, "选择作业项目文件夹", m_projectDir);
+    const QString folder = QFileDialog::getExistingDirectory(this, AppText::get("menu.openProject"), m_projectDir);
     if (folder.isEmpty())
         return;
 
@@ -25,24 +28,24 @@ void MainWindow::openProjectFolder() {
 
 void MainWindow::refreshCurrentProject() {
     if (m_projectDir.isEmpty()) {
-        QMessageBox::information(this, "尚未打开项目", "请先打开一个作业项目文件夹。");
+        QMessageBox::information(this, AppText::get("dialog.noProject.title"), AppText::get("dialog.noProject.body"));
         return;
     }
 
     scanCurrentProject();
     refreshGitState();
-    m_statusLabel->setText(QString("已刷新，当前扫描到 %1 个代码/文本文件").arg(m_files.size()));
+    m_statusLabel->setText(AppText::get("status.refreshDone").arg(m_files.size()));
 }
 
 void MainWindow::setProjectFolder(const QString& folderPath) {
     m_projectDir = QDir(folderPath).absolutePath();
     QString errorMessage;
     if (!m_projectManager.openProject(m_projectDir, &errorMessage)) {
-        QMessageBox::warning(this, "项目初始化失败", errorMessage);
+        QMessageBox::warning(this, AppText::get("dialog.projectInitFailed"), errorMessage);
         return;
     }
     if (!m_feedbackStore.openProject(m_projectDir, &errorMessage)) {
-        QMessageBox::warning(this, "反馈仓库初始化失败", errorMessage);
+        QMessageBox::warning(this, AppText::get("dialog.feedbackStoreInitFailed"), errorMessage);
         return;
     }
     if (m_feedbackStore.isEmpty() && !m_projectManager.data().feedbacks.isEmpty()) {
@@ -54,13 +57,26 @@ void MainWindow::setProjectFolder(const QString& folderPath) {
     if (!m_gitService.isGitRepo()) {
         const GitCommandResult initResult = m_gitService.initRepo();
         if (!initResult.success) {
-            QMessageBox::warning(this, "Git 初始化失败", initResult.stderrText.trimmed());
+            QMessageBox::warning(this, AppText::get("dialog.gitInitFailed"), initResult.stderrText.trimmed());
         }
     }
 
     m_taskEdit->setPlainText(m_projectManager.data().assignmentText);
+    rememberRecentProject(m_projectDir);
     refreshProjectPanel();
     refreshGitState();
+}
+
+void MainWindow::rememberRecentProject(const QString& folderPath) {
+    QStringList projects = QSettings("HWpilot", "HWpilot").value("recentProjects").toStringList();
+    const QString absolutePath = QDir(folderPath).absolutePath();
+    projects.removeAll(absolutePath);
+    projects.prepend(absolutePath);
+    while (projects.size() > 6)
+        projects.removeLast();
+
+    QSettings("HWpilot", "HWpilot").setValue("recentProjects", projects);
+    updateRecentProjectsMenu();
 }
 
 void MainWindow::scanCurrentProject(bool showWarnings) {
@@ -71,7 +87,7 @@ void MainWindow::scanCurrentProject(bool showWarnings) {
     }
 
     if (showWarnings)
-        m_statusLabel->setText("正在扫描项目文件...");
+        m_statusLabel->setText(AppText::get("status.scanning"));
     m_files = HWFileScanner::scanDirectory(m_projectDir);
     m_projectManager.data().assignmentText = m_taskEdit->toPlainText().trimmed();
     QString errorMessage;
@@ -80,19 +96,19 @@ void MainWindow::scanCurrentProject(bool showWarnings) {
     refreshProjectPanel();
     refreshChangeSummary();
     if (showWarnings)
-        m_statusLabel->setText(QString("已扫描 %1 个代码/文本文件").arg(m_files.size()));
+        m_statusLabel->setText(AppText::get("status.scanDone").arg(m_files.size()));
 
     if (showWarnings && m_files.isEmpty()) {
-        QMessageBox::warning(this, "未找到文件", "没有扫描到支持的代码文件，请检查项目目录。");
+        QMessageBox::warning(this, AppText::get("dialog.noFilesFound.title"), AppText::get("dialog.noFilesFound.body"));
     }
 }
 
 void MainWindow::refreshProjectPanel() {
-    const QString name = m_projectDir.isEmpty() ? "尚未打开项目" : QFileInfo(m_projectDir).fileName();
+    const QString name = m_projectDir.isEmpty() ? AppText::get("label.noProject") : QFileInfo(m_projectDir).fileName();
     m_projectNameLabel->setText(name);
-    m_projectPathLabel->setText(m_projectDir.isEmpty() ? "请选择一个作业文件夹开始分析" : m_projectDir);
-    m_fileCountLabel->setText(QString("文件：%1").arg(m_files.size()));
-    m_feedbackCountLabel->setText(QString("反馈记录：%1").arg(m_feedbackStore.allFeedbacks().size()));
+    m_projectPathLabel->setText(m_projectDir.isEmpty() ? AppText::get("label.chooseProjectStart") : m_projectDir);
+    m_fileCountLabel->setText(AppText::get("label.filesCount").arg(m_files.size()));
+    m_feedbackCountLabel->setText(AppText::get("label.feedbackCount").arg(m_feedbackStore.allFeedbacks().size()));
 }
 
 void MainWindow::populateFileTree() {
@@ -240,6 +256,10 @@ QString MainWindow::selectedCommitHash() const {
 QString MainWindow::feedbackContextHash() const {
     const QString commitHash = selectedCommitHash();
     return commitHash.isEmpty() ? currentWorkContextHash() : commitHash;
+}
+
+QString MainWindow::feedbackSaveContextHash() const {
+    return currentWorkContextHash();
 }
 
 void MainWindow::selectAllFiles() {

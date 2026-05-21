@@ -10,9 +10,10 @@
 #include "HWFileScanner/HWFileScanner.h"
 #include "ProjectManager/ProjectManager.h"
 
-class QCheckBox;
 class QLabel;
+class QMenu;
 class QPushButton;
+class QStackedWidget;
 class QTabWidget;
 class QTextEdit;
 class QTextBrowser;
@@ -34,6 +35,10 @@ private slots:
     void saveFeedbackToVersion();
     void updateCurrentVersionPanel();
     void selectAllFiles();
+    void selectAllAiFeedbackRecords();
+    void showAiCodeFilePicker();
+    void showAiFeedbackRecordPicker();
+    void handleAiFeedbackItemChanged(QTreeWidgetItem* item, int column);
     void handleFileItemChanged(QTreeWidgetItem* item, int column);
     void handleFeedbackTreeSelection(QTreeWidgetItem* current, QTreeWidgetItem* previous);
 
@@ -48,9 +53,13 @@ private:
     void buildLeftPanel();
     void buildCenterPanel();
     void buildAiPanel();
+    void buildMenuBar();
+    void applyLanguage();
     void applyStyle();
 
     void setProjectFolder(const QString& folderPath);
+    void rememberRecentProject(const QString& folderPath);
+    void updateRecentProjectsMenu();
     void scanCurrentProject(bool showWarnings = true);
     void refreshProjectPanel();
     void populateFileTree();
@@ -65,10 +74,13 @@ private:
     QStringList checkedFilePaths() const;
     QString selectedCommitHash() const;
     QString feedbackContextHash() const;
+    QString feedbackSaveContextHash() const;
     QString currentWorkContextHash() const;
     QString currentFeedbackHistory() const;
+    QString selectedFeedbackHistory() const;
     FeedbackRecord buildFeedbackRecord(const QString& replyText) const;
     void populateFeedbackPanel(const QList<FeedbackRecord>& feedbacks);
+    void populateAiFeedbackPicker();
     QString currentModePrompt() const;
     QString currentModeName() const;
     double currentTemperature() const;
@@ -93,8 +105,11 @@ private:
     QPushButton* m_commitButton = nullptr;
 
     QTabWidget* m_tabs = nullptr;
+    QStackedWidget* m_aiPickerStack = nullptr;
     QTreeWidget* m_fileTree = nullptr;
+    QTreeWidget* m_aiFeedbackTree = nullptr;
     QPushButton* m_selectAllFilesButton = nullptr;
+    QPushButton* m_selectAllFeedbackRecordsButton = nullptr;
     QTextBrowser* m_changeSummary = nullptr;
     QTextBrowser* m_reviewReport = nullptr;
     QTreeWidget* m_feedbackTree = nullptr;
@@ -103,12 +118,17 @@ private:
     QTextEdit* m_questionEdit = nullptr;
     QTextEdit* m_responseView = nullptr;
     QLabel* m_aiTitleLabel = nullptr;
-    QCheckBox* m_includeCodeCheck = nullptr;
-    QCheckBox* m_includeHistoryCheck = nullptr;
+    QPushButton* m_chooseCodeFilesButton = nullptr;
+    QPushButton* m_chooseFeedbackRecordsButton = nullptr;
     QPushButton* m_analyzeButton = nullptr;
     QPushButton* m_saveFeedbackButton = nullptr;
+    QPushButton* m_cancelFeedbackButton = nullptr;
     QLabel* m_statusLabel = nullptr;
+    QMenu* m_recentProjectsMenu = nullptr;
+    QString m_lastAiReply;
+    double m_temperature = 0.3;
     bool m_updatingFileTree = false;
+    bool m_updatingAiFeedbackTree = false;
 };
 
 #endif  // MAINWINDOW_H

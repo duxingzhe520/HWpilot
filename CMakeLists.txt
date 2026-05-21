@@ -10,6 +10,8 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets Network)
 
 qt_add_executable(HWpilot
     main.cpp
+    AppText.cpp
+    AppText.h
     MainWindow.cpp
     MainWindow.h
     MainWindow/Ai.cpp

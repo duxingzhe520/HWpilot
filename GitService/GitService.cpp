@@ -1,5 +1,7 @@
 #include "GitService.h"
 
+#include "../AppText.h"
+
 #include <QProcess>
 
 void GitService::setWorkingDirectory(const QString& directory) {
@@ -170,7 +172,7 @@ GitCommandResult GitService::commit(const QString& message) const {
 GitCommandResult GitService::runGit(const QStringList& arguments) const {
     GitCommandResult result;
     if (m_workingDirectory.isEmpty()) {
-        result.stderrText = "Git 工作目录为空。";
+        result.stderrText = AppText::get("error.gitNoWorkdir");
         return result;
     }
 
@@ -180,7 +182,7 @@ GitCommandResult GitService::runGit(const QStringList& arguments) const {
     if (!process.waitForFinished(30000)) {
         process.kill();
         process.waitForFinished();
-        result.stderrText = "Git 命令执行超时。";
+        result.stderrText = AppText::get("error.gitTimeout");
         return result;
     }
 

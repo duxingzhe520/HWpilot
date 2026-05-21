@@ -1,5 +1,7 @@
 #include "Render.h"
 
+#include "../AppText.h"
+
 #include <QFileInfo>
 #include <QList>
 
@@ -49,23 +51,7 @@ QString extractJsonObjectText(const QString& text) {
 }
 
 QString structuredFeedbackInstruction() {
-    return
-        "请严格输出一个 JSON 对象，不要在 JSON 外添加解释文字。JSON 结构如下：\n"
-        "{\n"
-        "  \"summary\": \"一句话总结本次反馈\",\n"
-        "  \"items\": [\n"
-        "    {\n"
-        "      \"severity\": \"high|medium|low\",\n"
-        "      \"filePath\": \"相关文件路径，无法判断则留空\",\n"
-        "      \"line\": 具体行号，无法判断则为 -1,\n"
-        "      \"category\": \"bug|boundary|memory|style|design|test|learning|other\",\n"
-        "      \"title\": \"问题标题\",\n"
-        "      \"suggestion\": \"具体修改或学习建议\"\n"
-        "    }\n"
-        "  ],\n"
-        "  \"rawReport\": \"完整自然语言反馈报告\"\n"
-        "}\n"
-        "如果没有发现具体问题，items 输出空数组，并在 summary 与 rawReport 中说明。";
+    return AppText::get("prompt.structuredFeedback");
 }
 
 bool isSupportedFilePath(const QString& path) {
@@ -87,7 +73,7 @@ QString extensionForPath(const QString& path) {
 QString folderForPath(const QString& path) {
     const int slash = path.lastIndexOf('/');
     if (slash <= 0)
-        return "根目录";
+        return AppText::get("diff.rootFolder");
     return path.left(slash);
 }
 
@@ -159,9 +145,8 @@ QString renderReadableLineGroup(const QString& title, const QStringList& lines, 
     const QString border = added ? "#bbf7d0" : "#fecaca";
     const QString prefix = added ? "+" : "-";
 
-    QString html = QString("<div style=\"margin-top:8px;\"><div style=\"font-weight:600; color:%1; margin-bottom:4px;\">%2（%3 行）</div>")
-                       .arg(color, htmlEscape(title))
-                       .arg(lines.size());
+    QString html = QString("<div style=\"margin-top:8px;\"><div style=\"font-weight:600; color:%1; margin-bottom:4px;\">%2</div>")
+                       .arg(color, htmlEscape(AppText::get("diff.lines").arg(title).arg(lines.size())));
     for (const QString& line : lines)
         html += readableCodeLineHtml(line, color, background, border, prefix);
     html += "</div>";
@@ -181,16 +166,16 @@ QString renderReadableFileBlock(const DiffFileBlock& block) {
                 .arg(deletions);
 
     if (block.changeType == "added") {
-        html += renderReadableLineGroup("新增内容", block.addedLines, true);
+        html += renderReadableLineGroup(AppText::get("diff.addedContent"), block.addedLines, true);
     } else if (block.changeType == "deleted") {
-        html += renderReadableLineGroup("删除内容", block.removedLines, false);
+        html += renderReadableLineGroup(AppText::get("diff.deletedContent"), block.removedLines, false);
     } else {
-        html += renderReadableLineGroup("新增内容", block.addedLines, true);
-        html += renderReadableLineGroup("删除内容", block.removedLines, false);
+        html += renderReadableLineGroup(AppText::get("diff.addedContent"), block.addedLines, true);
+        html += renderReadableLineGroup(AppText::get("diff.deletedContent"), block.removedLines, false);
     }
 
     if (additions == 0 && deletions == 0)
-        html += "<p style=\"margin:0; color:#64748b;\">这个文件有元数据或二进制变化，没有可展示的文本行。</p>";
+        html += QString("<p style=\"margin:0; color:#64748b;\">%1</p>").arg(htmlEscape(AppText::get("diff.binaryChange")));
 
     html += "</div></div>";
     return html;
@@ -198,7 +183,7 @@ QString renderReadableFileBlock(const DiffFileBlock& block) {
 
 QString renderReadableDiff(const QString& diff) {
     if (diff.trimmed().isEmpty())
-        return "<p>没有可显示的内容变更。</p>";
+        return QString("<p>%1</p>").arg(htmlEscape(AppText::get("diff.noContent")));
 
     QList<DiffFileBlock> blocks;
     DiffFileBlock current;
@@ -211,7 +196,7 @@ QString renderReadableDiff(const QString& diff) {
             current = DiffFileBlock();
             current.path = pathFromDiffHeader(line);
             if (current.path.isEmpty())
-                current.path = "未知文件";
+                current.path = AppText::get("diff.unknownFile");
             continue;
         }
 
@@ -260,21 +245,20 @@ QString renderReadableDiff(const QString& diff) {
         if (categoryBlocks.isEmpty())
             return QString();
 
-        QString html = QString("<h4 style=\"margin:18px 0 8px 0; color:#0f172a;\">%1（%2 个文件）</h4>")
-                           .arg(htmlEscape(title))
-                           .arg(categoryBlocks.size());
+        QString html = QString("<h4 style=\"margin:18px 0 8px 0; color:#0f172a;\">%1</h4>")
+                           .arg(htmlEscape(AppText::get("diff.filesTitle").arg(title).arg(categoryBlocks.size())));
         for (const DiffFileBlock& block : categoryBlocks)
             html += renderReadableFileBlock(block);
         return html;
     };
 
     QString html;
-    html += renderCategory("新增文件", addedBlocks);
-    html += renderCategory("删除文件", deletedBlocks);
-    html += renderCategory("修改文件", modifiedBlocks);
+    html += renderCategory(AppText::get("diff.addedFiles"), addedBlocks);
+    html += renderCategory(AppText::get("diff.deletedFiles"), deletedBlocks);
+    html += renderCategory(AppText::get("diff.modifiedFiles"), modifiedBlocks);
 
     if (html.isEmpty()) {
-        html += "<p style=\"color:#64748b;\">检测到了 diff，但没有解析出可展示的文本变更。</p>";
+        html += QString("<p style=\"color:#64748b;\">%1</p>").arg(htmlEscape(AppText::get("diff.unparsed")));
     }
 
     return html;
@@ -282,7 +266,7 @@ QString renderReadableDiff(const QString& diff) {
 
 QString renderDiffStat(const QString& diffStat) {
     if (diffStat.trimmed().isEmpty())
-        return "<p style=\"margin:0; color:#64748b;\">暂无文件变更统计。</p>";
+        return QString("<p style=\"margin:0; color:#64748b;\">%1</p>").arg(htmlEscape(AppText::get("diff.noStat")));
 
     QList<DiffStatEntry> entries;
     QString summary;
@@ -319,7 +303,7 @@ QString renderDiffStat(const QString& diffStat) {
 
     QString html;
     html += "<div style=\"display:flex; gap:8px; margin:2px 0 10px 0; flex-wrap:wrap;\">";
-    html += QString("<span style=\"background:#f1f5f9; border:1px solid #d9dee7; border-radius: 0px; padding:5px 11px; color:#334155;\">%1 个文件</span>").arg(entries.size());
+    html += QString("<span style=\"background:#f1f5f9; border:1px solid #d9dee7; border-radius: 0px; padding:5px 11px; color:#334155;\">%1</span>").arg(htmlEscape(AppText::get("diff.fileCount").arg(entries.size())));
     html += "&nbsp;&nbsp;";
     html += QString("<span style=\"background:#ecfdf3; border:1px solid #bbf7d0; border-radius: 0px; padding:5px 11px; color:#166534;\">+%1</span>").arg(totalAdditions);
     html += "&nbsp;&nbsp;";
@@ -330,7 +314,8 @@ QString renderDiffStat(const QString& diffStat) {
     html += "</div>";
 
     html += "<table cellspacing=\"0\" cellpadding=\"6\" style=\"border-collapse:collapse; width:100%; border:1px solid #e2e8f0; border-radius: 0px; overflow:hidden;\">";
-    html += "<tr style=\"background:#f8fafc;\"><th align=\"left\" style=\"color:#475569; font-weight:600;\">文件</th><th align=\"right\" style=\"color:#166534; font-weight:600; width:70px;\">新增</th><th align=\"right\" style=\"color:#991b1b; font-weight:600; width:70px;\">删除</th><th align=\"left\" style=\"color:#64748b; font-weight:600; width:160px;\">变化</th></tr>";
+    html += QString("<tr style=\"background:#f8fafc;\"><th align=\"left\" style=\"color:#475569; font-weight:600;\">%1</th><th align=\"right\" style=\"color:#166534; font-weight:600; width:70px;\">%2</th><th align=\"right\" style=\"color:#991b1b; font-weight:600; width:70px;\">%3</th><th align=\"left\" style=\"color:#64748b; font-weight:600; width:160px;\">%4</th></tr>")
+                .arg(htmlEscape(AppText::get("diff.file")), htmlEscape(AppText::get("diff.added")), htmlEscape(AppText::get("diff.deleted")), htmlEscape(AppText::get("diff.change")));
     for (const DiffStatEntry& entry : entries) {
         const int totalChanges = entry.additions + entry.deletions;
         html += QString("<tr style=\"border-top:1px solid #e2e8f0;\"><td>%1</td><td align=\"right\" style=\"color:#166534;\">+%2</td><td align=\"right\" style=\"color:#991b1b;\">-%3</td><td style=\"font-family:Menlo, Consolas, monospace; color:#64748b;\">%4</td></tr>")
@@ -356,39 +341,48 @@ QString severityPill(const QString& severity) {
     return pillHtml(severity.isEmpty() ? "medium" : severity, "#92400e", "#fffbeb", "#fde68a");
 }
 
+QString feedbackStatusPill(const QString& status) {
+    if (status == "resolved" || status == "已解决")
+        return pillHtml(AppText::get("feedback.resolved"), "#166534", "#ecfdf3", "#bbf7d0");
+    if (status == "ignored" || status == "ignore" || status == "忽略")
+        return pillHtml(AppText::get("feedback.ignored"), "#64748b", "#f8fafc", "#d9dee7");
+    return pillHtml(AppText::get("feedback.unresolved"), "#1d4ed8", "#eff6ff", "#bfdbfe");
+}
+
 QString renderFeedbackRecordDetail(const FeedbackRecord& feedback) {
     QString html;
-    html += QString("<h2 style=\"margin:0 0 6px 0; color:#111827;\">%1</h2>").arg(htmlEscape(feedback.summary.isEmpty() ? "反馈记录" : feedback.summary));
+    html += QString("<h2 style=\"margin:0 0 6px 0; color:#111827;\">%1</h2>").arg(htmlEscape(feedback.summary.isEmpty() ? AppText::get("feedback.record") : feedback.summary));
     html += "<table cellspacing=\"0\" cellpadding=\"6\" style=\"border-collapse:collapse; width:100%; margin-bottom:10px;\">";
-    html += QString("<tr><td style=\"width:82px; color:#64748b;\">时间</td><td>%1</td></tr>").arg(htmlEscape(feedback.createdAt));
-    html += QString("<tr><td style=\"color:#64748b;\">类型</td><td>%1&nbsp;&nbsp;%2&nbsp;&nbsp;%3</td></tr>")
-                .arg(pillHtml(feedback.mode.isEmpty() ? "文件分析" : feedback.mode, "#1d4ed8", "#eff6ff", "#bfdbfe"),
+    html += QString("<tr><td style=\"width:82px; color:#64748b;\">%1</td><td>%2</td></tr>").arg(htmlEscape(AppText::get("version.commitDate")), htmlEscape(feedback.createdAt));
+    html += QString("<tr><td style=\"color:#64748b;\">%1</td><td>%2&nbsp;&nbsp;%3&nbsp;&nbsp;%4</td></tr>")
+                .arg(htmlEscape(AppText::get("version.type")),
+                     pillHtml(feedback.mode.isEmpty() ? AppText::get("label.fileAnalysis") : feedback.mode, "#1d4ed8", "#eff6ff", "#bfdbfe"),
                      pillHtml(feedback.parseStatus.isEmpty() ? "unknown" : feedback.parseStatus, "#475569", "#f8fafc", "#d9dee7"),
-                     pillHtml(QString("%1 个问题").arg(feedback.items.size()), "#334155", "#f1f5f9", "#d9dee7"));
-    html += QString("<tr><td style=\"color:#64748b;\">摘要</td><td>%1</td></tr>").arg(htmlEscape(feedback.summary.isEmpty() ? "无摘要" : feedback.summary));
+                     pillHtml(AppText::get("feedback.issueCount").arg(feedback.items.size()), "#334155", "#f1f5f9", "#d9dee7"));
+    html += QString("<tr><td style=\"color:#64748b;\">%1</td><td>%2</td></tr>").arg(htmlEscape(AppText::get("label.summary")), htmlEscape(feedback.summary.isEmpty() ? "-" : feedback.summary));
     html += "</table>";
-    html += "<h3 style=\"margin:10px 0 6px 0; color:#0f172a;\">完整反馈</h3>";
+    html += QString("<h3 style=\"margin:10px 0 6px 0; color:#0f172a;\">%1</h3>").arg(htmlEscape(AppText::get("label.fullFeedback")));
     html += QString("<div style=\"border:1px solid #d9dee7; background:#ffffff; padding:10px; line-height:1.55; color:#1f2937;\">%1</div>")
-                .arg(htmlEscape(feedback.rawContent.isEmpty() ? "这次反馈没有保存正文。" : feedback.rawContent));
+                .arg(htmlEscape(feedback.rawContent.isEmpty() ? "-" : feedback.rawContent));
     return html;
 }
 
 QString renderFeedbackItemDetail(const FeedbackItem& item) {
     QString html;
-    html += QString("<h2 style=\"margin:0 0 6px 0; color:#111827;\">%1</h2>").arg(htmlEscape(item.title.isEmpty() ? "问题详情" : item.title));
+    html += QString("<h2 style=\"margin:0 0 6px 0; color:#111827;\">%1</h2>").arg(htmlEscape(item.title.isEmpty() ? AppText::get("feedback.unnamedIssue") : item.title));
     const QString location = item.filePath.isEmpty()
-                                 ? "未定位到具体文件"
+                                 ? AppText::get("feedback.noLocation")
                                  : QString("%1%2").arg(item.filePath, item.line >= 0 ? QString(":%1").arg(item.line) : QString());
     html += "<table cellspacing=\"0\" cellpadding=\"6\" style=\"border-collapse:collapse; width:100%; margin-bottom:10px;\">";
-    html += QString("<tr><td style=\"width:82px; color:#64748b;\">属性</td><td>%1&nbsp;&nbsp;%2&nbsp;&nbsp;%3</td></tr>")
+    html += QString("<tr><td style=\"width:82px; color:#64748b;\">%1</td><td>%2&nbsp;&nbsp;%3&nbsp;&nbsp;%4</td></tr>").arg(htmlEscape(AppText::get("label.attributes")))
                 .arg(severityPill(item.severity),
                      pillHtml(item.category.isEmpty() ? "other" : item.category, "#475569", "#f8fafc", "#d9dee7"),
-                     pillHtml(item.status.isEmpty() ? "open" : item.status, "#1d4ed8", "#eff6ff", "#bfdbfe"));
-    html += QString("<tr><td style=\"color:#64748b;\">位置</td><td>%1</td></tr>").arg(htmlEscape(location));
+                     feedbackStatusPill(item.status));
+    html += QString("<tr><td style=\"color:#64748b;\">%1</td><td>%2</td></tr>").arg(htmlEscape(AppText::get("label.location")), htmlEscape(location));
     html += "</table>";
-    html += "<h3 style=\"margin:10px 0 6px 0; color:#0f172a;\">完整建议</h3>";
+    html += QString("<h3 style=\"margin:10px 0 6px 0; color:#0f172a;\">%1</h3>").arg(htmlEscape(AppText::get("label.fullSuggestion")));
     html += QString("<div style=\"border:1px solid #d9dee7; background:#ffffff; padding:10px; line-height:1.55; color:#1f2937;\">%1</div>")
-                .arg(htmlEscape(item.suggestion.isEmpty() ? "这条问题没有保存建议。" : item.suggestion));
+                .arg(htmlEscape(item.suggestion.isEmpty() ? AppText::get("feedback.noSuggestion") : item.suggestion));
     return html;
 }
 

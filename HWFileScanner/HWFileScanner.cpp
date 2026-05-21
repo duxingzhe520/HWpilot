@@ -1,5 +1,7 @@
 #include "HWFileScanner.h"
 
+#include "../AppText.h"
+
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
@@ -35,7 +37,7 @@ QList<CodeFile> HWFileScanner::scanDirectory(const QString& dirPath, const QStri
     QDir baseDir(dirPath);
 
     if (!baseDir.exists()) {
-        qWarning() << "[HWFileScanner] 目录不存在：" << dirPath;
+        qWarning() << "[HWFileScanner] Directory does not exist:" << dirPath;
         return result;
     }
 
@@ -64,14 +66,14 @@ QList<CodeFile> HWFileScanner::scanDirectory(const QString& dirPath, const QStri
         // 检查文件大小
         qint64 fileSizeKB = fileInfo.size() / 1024;
         if (fileSizeKB > maxFileSizeKB) {
-            qDebug() << "[HWFileScanner] 跳过超大文件（" << fileSizeKB << "KB）：" << fileInfo.fileName();
+            qDebug() << "[HWFileScanner] Skipping oversized file (" << fileSizeKB << "KB):" << fileInfo.fileName();
             continue;
         }
 
         // 读取文件内容（UTF-8）
         QFile file(filePath);
         if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            qWarning() << "[HWFileScanner] 无法打开文件：" << filePath;
+            qWarning() << "[HWFileScanner] Could not open file:" << filePath;
             continue;
         }
 
@@ -99,17 +101,17 @@ QString HWFileScanner::formatFilesForLLM(const QList<CodeFile>& files, const QSt
 
     // --- 作业要求（可选）---
     if (!taskDescription.trimmed().isEmpty()) {
-        result += "【作业要求 / 任务描述】\n";
+        result += AppText::get("prompt.assignment");
         result += taskDescription.trimmed();
         result += "\n\n";
     }
 
     // --- 文件列表 ---
-    result += QString("【学生提交的代码，共 %1 个文件】\n\n").arg(files.size());
+    result += AppText::get("prompt.submittedCode").arg(files.size());
 
     for (const CodeFile& f : files) {
         // 用 Markdown 代码块包裹，并标注语言便于 LLM 理解语法
-        result += QString("### 文件：`%1`\n").arg(f.relativePath);
+        result += AppText::get("prompt.fileHeader").arg(f.relativePath);
         result += QString("```%1\n").arg(f.extension);
         result += f.content;
         // 确保代码块结束前有换行
@@ -123,8 +125,8 @@ QString HWFileScanner::formatFilesForLLM(const QList<CodeFile>& files, const QSt
 
 void HWFileScanner::printScanSummary(const QList<CodeFile>& files, const QString& dirPath) {
     qDebug() << "\n========================================";
-    qDebug() << " 扫描目录：" << dirPath;
-    qDebug() << QString(" 共找到 %1 个代码文件：").arg(files.size());
+    qDebug() << "Scanning directory:" << dirPath;
+    qDebug() << QString("Found %1 code files:").arg(files.size());
     for (int i = 0; i < files.size(); ++i) {
         const CodeFile& f = files[i];
         qint64 sizeKB = f.content.size() / 1024;

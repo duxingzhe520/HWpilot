@@ -367,6 +367,12 @@
 	"HEADERS" : 
 	[
 		[
+			"/Users/duxingzhe520/Desktop/Project/HWpilot/AppText.h",
+			"Mu",
+			"EWIEGA46WW/moc_AppText.cpp",
+			null
+		],
+		[
 			"/Users/duxingzhe520/Desktop/Project/HWpilot/FeedbackStore/FeedbackStore.h",
 			"Mu",
 			"7PB6RWK7TI/moc_FeedbackStore.cpp",
@@ -477,6 +483,7 @@
 	"SETTINGS_FILE" : "/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles/HWpilot_autogen.dir/AutogenUsed.txt",
 	"SOURCES" : 
 	[
+		[ "/Users/duxingzhe520/Desktop/Project/HWpilot/AppText.cpp", "Mu", null ],
 		[
 			"/Users/duxingzhe520/Desktop/Project/HWpilot/FeedbackStore/FeedbackStore.cpp",
 			"Mu",

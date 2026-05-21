@@ -887,6 +887,7 @@ CMakeFiles/HWpilot.dir/HWFileScanner/HWFileScanner.cpp.o: \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/q20bit.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qstringmatcher.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QList \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner/../AppText.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QDir \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qdir.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qdirlisting.h \

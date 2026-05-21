@@ -100,10 +100,24 @@ CMakeFiles/HWpilot.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/HWpilot.dir/main.cpp.s"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/duxingzhe520/Desktop/Project/HWpilot/main.cpp -o CMakeFiles/HWpilot.dir/main.cpp.s
 
+CMakeFiles/HWpilot.dir/AppText.cpp.o: CMakeFiles/HWpilot.dir/flags.make
+CMakeFiles/HWpilot.dir/AppText.cpp.o: /Users/duxingzhe520/Desktop/Project/HWpilot/AppText.cpp
+CMakeFiles/HWpilot.dir/AppText.cpp.o: CMakeFiles/HWpilot.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/HWpilot.dir/AppText.cpp.o"
+	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/HWpilot.dir/AppText.cpp.o -MF CMakeFiles/HWpilot.dir/AppText.cpp.o.d -o CMakeFiles/HWpilot.dir/AppText.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/AppText.cpp
+
+CMakeFiles/HWpilot.dir/AppText.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/HWpilot.dir/AppText.cpp.i"
+	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/duxingzhe520/Desktop/Project/HWpilot/AppText.cpp > CMakeFiles/HWpilot.dir/AppText.cpp.i
+
+CMakeFiles/HWpilot.dir/AppText.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/HWpilot.dir/AppText.cpp.s"
+	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/duxingzhe520/Desktop/Project/HWpilot/AppText.cpp -o CMakeFiles/HWpilot.dir/AppText.cpp.s
+
 CMakeFiles/HWpilot.dir/MainWindow.cpp.o: CMakeFiles/HWpilot.dir/flags.make
 CMakeFiles/HWpilot.dir/MainWindow.cpp.o: /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow.cpp
 CMakeFiles/HWpilot.dir/MainWindow.cpp.o: CMakeFiles/HWpilot.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/HWpilot.dir/MainWindow.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/HWpilot.dir/MainWindow.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/HWpilot.dir/MainWindow.cpp.o -MF CMakeFiles/HWpilot.dir/MainWindow.cpp.o.d -o CMakeFiles/HWpilot.dir/MainWindow.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow.cpp
 
 CMakeFiles/HWpilot.dir/MainWindow.cpp.i: cmake_force
@@ -117,7 +131,7 @@ CMakeFiles/HWpilot.dir/MainWindow.cpp.s: cmake_force
 CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.o: CMakeFiles/HWpilot.dir/flags.make
 CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.o: /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Ai.cpp
 CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.o: CMakeFiles/HWpilot.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.o -MF CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.o.d -o CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Ai.cpp
 
 CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.i: cmake_force
@@ -131,7 +145,7 @@ CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.s: cmake_force
 CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.o: CMakeFiles/HWpilot.dir/flags.make
 CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.o: /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Feedback.cpp
 CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.o: CMakeFiles/HWpilot.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.o -MF CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.o.d -o CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Feedback.cpp
 
 CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.i: cmake_force
@@ -145,7 +159,7 @@ CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.s: cmake_force
 CMakeFiles/HWpilot.dir/MainWindow/Project.cpp.o: CMakeFiles/HWpilot.dir/flags.make
 CMakeFiles/HWpilot.dir/MainWindow/Project.cpp.o: /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Project.cpp
 CMakeFiles/HWpilot.dir/MainWindow/Project.cpp.o: CMakeFiles/HWpilot.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/HWpilot.dir/MainWindow/Project.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/HWpilot.dir/MainWindow/Project.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/HWpilot.dir/MainWindow/Project.cpp.o -MF CMakeFiles/HWpilot.dir/MainWindow/Project.cpp.o.d -o CMakeFiles/HWpilot.dir/MainWindow/Project.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Project.cpp
 
 CMakeFiles/HWpilot.dir/MainWindow/Project.cpp.i: cmake_force
@@ -159,7 +173,7 @@ CMakeFiles/HWpilot.dir/MainWindow/Project.cpp.s: cmake_force
 CMakeFiles/HWpilot.dir/MainWindow/Render.cpp.o: CMakeFiles/HWpilot.dir/flags.make
 CMakeFiles/HWpilot.dir/MainWindow/Render.cpp.o: /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Render.cpp
 CMakeFiles/HWpilot.dir/MainWindow/Render.cpp.o: CMakeFiles/HWpilot.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/HWpilot.dir/MainWindow/Render.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/HWpilot.dir/MainWindow/Render.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/HWpilot.dir/MainWindow/Render.cpp.o -MF CMakeFiles/HWpilot.dir/MainWindow/Render.cpp.o.d -o CMakeFiles/HWpilot.dir/MainWindow/Render.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Render.cpp
 
 CMakeFiles/HWpilot.dir/MainWindow/Render.cpp.i: cmake_force
@@ -173,7 +187,7 @@ CMakeFiles/HWpilot.dir/MainWindow/Render.cpp.s: cmake_force
 CMakeFiles/HWpilot.dir/MainWindow/Ui.cpp.o: CMakeFiles/HWpilot.dir/flags.make
 CMakeFiles/HWpilot.dir/MainWindow/Ui.cpp.o: /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Ui.cpp
 CMakeFiles/HWpilot.dir/MainWindow/Ui.cpp.o: CMakeFiles/HWpilot.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/HWpilot.dir/MainWindow/Ui.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/HWpilot.dir/MainWindow/Ui.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/HWpilot.dir/MainWindow/Ui.cpp.o -MF CMakeFiles/HWpilot.dir/MainWindow/Ui.cpp.o.d -o CMakeFiles/HWpilot.dir/MainWindow/Ui.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Ui.cpp
 
 CMakeFiles/HWpilot.dir/MainWindow/Ui.cpp.i: cmake_force
@@ -187,7 +201,7 @@ CMakeFiles/HWpilot.dir/MainWindow/Ui.cpp.s: cmake_force
 CMakeFiles/HWpilot.dir/MainWindow/Version.cpp.o: CMakeFiles/HWpilot.dir/flags.make
 CMakeFiles/HWpilot.dir/MainWindow/Version.cpp.o: /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Version.cpp
 CMakeFiles/HWpilot.dir/MainWindow/Version.cpp.o: CMakeFiles/HWpilot.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/HWpilot.dir/MainWindow/Version.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/HWpilot.dir/MainWindow/Version.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/HWpilot.dir/MainWindow/Version.cpp.o -MF CMakeFiles/HWpilot.dir/MainWindow/Version.cpp.o.d -o CMakeFiles/HWpilot.dir/MainWindow/Version.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Version.cpp
 
 CMakeFiles/HWpilot.dir/MainWindow/Version.cpp.i: cmake_force
@@ -201,7 +215,7 @@ CMakeFiles/HWpilot.dir/MainWindow/Version.cpp.s: cmake_force
 CMakeFiles/HWpilot.dir/ProjectData.cpp.o: CMakeFiles/HWpilot.dir/flags.make
 CMakeFiles/HWpilot.dir/ProjectData.cpp.o: /Users/duxingzhe520/Desktop/Project/HWpilot/ProjectData.cpp
 CMakeFiles/HWpilot.dir/ProjectData.cpp.o: CMakeFiles/HWpilot.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/HWpilot.dir/ProjectData.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/HWpilot.dir/ProjectData.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/HWpilot.dir/ProjectData.cpp.o -MF CMakeFiles/HWpilot.dir/ProjectData.cpp.o.d -o CMakeFiles/HWpilot.dir/ProjectData.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/ProjectData.cpp
 
 CMakeFiles/HWpilot.dir/ProjectData.cpp.i: cmake_force
@@ -215,7 +229,7 @@ CMakeFiles/HWpilot.dir/ProjectData.cpp.s: cmake_force
 CMakeFiles/HWpilot.dir/ProjectManager/ProjectManager.cpp.o: CMakeFiles/HWpilot.dir/flags.make
 CMakeFiles/HWpilot.dir/ProjectManager/ProjectManager.cpp.o: /Users/duxingzhe520/Desktop/Project/HWpilot/ProjectManager/ProjectManager.cpp
 CMakeFiles/HWpilot.dir/ProjectManager/ProjectManager.cpp.o: CMakeFiles/HWpilot.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/HWpilot.dir/ProjectManager/ProjectManager.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/HWpilot.dir/ProjectManager/ProjectManager.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/HWpilot.dir/ProjectManager/ProjectManager.cpp.o -MF CMakeFiles/HWpilot.dir/ProjectManager/ProjectManager.cpp.o.d -o CMakeFiles/HWpilot.dir/ProjectManager/ProjectManager.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/ProjectManager/ProjectManager.cpp
 
 CMakeFiles/HWpilot.dir/ProjectManager/ProjectManager.cpp.i: cmake_force
@@ -229,7 +243,7 @@ CMakeFiles/HWpilot.dir/ProjectManager/ProjectManager.cpp.s: cmake_force
 CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.o: CMakeFiles/HWpilot.dir/flags.make
 CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.o: /Users/duxingzhe520/Desktop/Project/HWpilot/FeedbackStore/FeedbackStore.cpp
 CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.o: CMakeFiles/HWpilot.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.o -MF CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.o.d -o CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/FeedbackStore/FeedbackStore.cpp
 
 CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.i: cmake_force
@@ -243,7 +257,7 @@ CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.s: cmake_force
 CMakeFiles/HWpilot.dir/GitService/GitService.cpp.o: CMakeFiles/HWpilot.dir/flags.make
 CMakeFiles/HWpilot.dir/GitService/GitService.cpp.o: /Users/duxingzhe520/Desktop/Project/HWpilot/GitService/GitService.cpp
 CMakeFiles/HWpilot.dir/GitService/GitService.cpp.o: CMakeFiles/HWpilot.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/HWpilot.dir/GitService/GitService.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/HWpilot.dir/GitService/GitService.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/HWpilot.dir/GitService/GitService.cpp.o -MF CMakeFiles/HWpilot.dir/GitService/GitService.cpp.o.d -o CMakeFiles/HWpilot.dir/GitService/GitService.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/GitService/GitService.cpp
 
 CMakeFiles/HWpilot.dir/GitService/GitService.cpp.i: cmake_force
@@ -257,7 +271,7 @@ CMakeFiles/HWpilot.dir/GitService/GitService.cpp.s: cmake_force
 CMakeFiles/HWpilot.dir/HWFileScanner/HWFileScanner.cpp.o: CMakeFiles/HWpilot.dir/flags.make
 CMakeFiles/HWpilot.dir/HWFileScanner/HWFileScanner.cpp.o: /Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner/HWFileScanner.cpp
 CMakeFiles/HWpilot.dir/HWFileScanner/HWFileScanner.cpp.o: CMakeFiles/HWpilot.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/HWpilot.dir/HWFileScanner/HWFileScanner.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/HWpilot.dir/HWFileScanner/HWFileScanner.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/HWpilot.dir/HWFileScanner/HWFileScanner.cpp.o -MF CMakeFiles/HWpilot.dir/HWFileScanner/HWFileScanner.cpp.o.d -o CMakeFiles/HWpilot.dir/HWFileScanner/HWFileScanner.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner/HWFileScanner.cpp
 
 CMakeFiles/HWpilot.dir/HWFileScanner/HWFileScanner.cpp.i: cmake_force
@@ -271,7 +285,7 @@ CMakeFiles/HWpilot.dir/HWFileScanner/HWFileScanner.cpp.s: cmake_force
 CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.o: CMakeFiles/HWpilot.dir/flags.make
 CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.o: /Users/duxingzhe520/Desktop/Project/HWpilot/HWpilotLLM/HWpilotLLM.cpp
 CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.o: CMakeFiles/HWpilot.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.o"
 	/usr/bin/clang++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.o -MF CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.o.d -o CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.o -c /Users/duxingzhe520/Desktop/Project/HWpilot/HWpilotLLM/HWpilotLLM.cpp
 
 CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.i: cmake_force
@@ -286,6 +300,7 @@ CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.s: cmake_force
 HWpilot_OBJECTS = \
 "CMakeFiles/HWpilot.dir/HWpilot_autogen/mocs_compilation.cpp.o" \
 "CMakeFiles/HWpilot.dir/main.cpp.o" \
+"CMakeFiles/HWpilot.dir/AppText.cpp.o" \
 "CMakeFiles/HWpilot.dir/MainWindow.cpp.o" \
 "CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.o" \
 "CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.o" \
@@ -305,6 +320,7 @@ HWpilot_EXTERNAL_OBJECTS =
 
 HWpilot: CMakeFiles/HWpilot.dir/HWpilot_autogen/mocs_compilation.cpp.o
 HWpilot: CMakeFiles/HWpilot.dir/main.cpp.o
+HWpilot: CMakeFiles/HWpilot.dir/AppText.cpp.o
 HWpilot: CMakeFiles/HWpilot.dir/MainWindow.cpp.o
 HWpilot: CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.o
 HWpilot: CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.o
@@ -324,7 +340,7 @@ HWpilot: /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Versions/A/
 HWpilot: /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Versions/A/QtGui
 HWpilot: /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/QtCore
 HWpilot: CMakeFiles/HWpilot.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Linking CXX executable HWpilot"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Linking CXX executable HWpilot"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/HWpilot.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

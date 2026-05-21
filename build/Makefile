@@ -155,6 +155,30 @@ HWpilot_autogen/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot_autogen.dir/build.make CMakeFiles/HWpilot_autogen.dir/build
 .PHONY : HWpilot_autogen/fast
 
+AppText.o: AppText.cpp.o
+.PHONY : AppText.o
+
+# target to build an object file
+AppText.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/AppText.cpp.o
+.PHONY : AppText.cpp.o
+
+AppText.i: AppText.cpp.i
+.PHONY : AppText.i
+
+# target to preprocess a source file
+AppText.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/AppText.cpp.i
+.PHONY : AppText.cpp.i
+
+AppText.s: AppText.cpp.s
+.PHONY : AppText.s
+
+# target to generate assembly for a file
+AppText.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/HWpilot.dir/build.make CMakeFiles/HWpilot.dir/AppText.cpp.s
+.PHONY : AppText.cpp.s
+
 FeedbackStore/FeedbackStore.o: FeedbackStore/FeedbackStore.cpp.o
 .PHONY : FeedbackStore/FeedbackStore.o
 
@@ -526,6 +550,9 @@ help:
 	@echo "... HWpilot_autogen"
 	@echo "... HWpilot_autogen_timestamp_deps"
 	@echo "... HWpilot"
+	@echo "... AppText.o"
+	@echo "... AppText.i"
+	@echo "... AppText.s"
 	@echo "... FeedbackStore/FeedbackStore.o"
 	@echo "... FeedbackStore/FeedbackStore.i"
 	@echo "... FeedbackStore/FeedbackStore.s"

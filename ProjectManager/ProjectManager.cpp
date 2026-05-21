@@ -1,5 +1,7 @@
 #include "ProjectManager.h"
 
+#include "../AppText.h"
+
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
@@ -10,7 +12,7 @@ bool ProjectManager::openProject(const QString& projectPath, QString* errorMessa
     QDir projectDir(projectPath);
     if (!projectDir.exists()) {
         if (errorMessage)
-            *errorMessage = "项目目录不存在。";
+            *errorMessage = AppText::get("error.projectDirMissing");
         return false;
     }
 
@@ -22,7 +24,7 @@ bool ProjectManager::openProject(const QString& projectPath, QString* errorMessa
     QDir metadataDir(metadataDirectory());
     if (!metadataDir.exists() && !projectDir.mkpath(".hwpilot")) {
         if (errorMessage)
-            *errorMessage = "无法创建 .hwpilot 元数据目录。";
+            *errorMessage = AppText::get("error.metadataDirCreate");
         return false;
     }
 
@@ -44,14 +46,14 @@ bool ProjectManager::load(QString* errorMessage) {
 
     if (!file.open(QIODevice::ReadOnly)) {
         if (errorMessage)
-            *errorMessage = "无法读取项目元数据。";
+            *errorMessage = AppText::get("error.metadataRead");
         return false;
     }
 
     const QJsonDocument document = QJsonDocument::fromJson(file.readAll());
     if (!document.isObject()) {
         if (errorMessage)
-            *errorMessage = "项目元数据不是有效 JSON。";
+            *errorMessage = AppText::get("error.metadataInvalid");
         return false;
     }
 
@@ -67,20 +69,20 @@ bool ProjectManager::save(QString* errorMessage) const {
     QDir projectDir(m_data.projectPath);
     if (!projectDir.exists()) {
         if (errorMessage)
-            *errorMessage = "项目目录不存在，无法保存元数据。";
+            *errorMessage = AppText::get("error.metadataSaveNoDir");
         return false;
     }
 
     if (!projectDir.exists(".hwpilot") && !projectDir.mkpath(".hwpilot")) {
         if (errorMessage)
-            *errorMessage = "无法创建 .hwpilot 元数据目录。";
+            *errorMessage = AppText::get("error.metadataDirCreate");
         return false;
     }
 
     QFile file(projectFilePath());
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         if (errorMessage)
-            *errorMessage = "无法写入项目元数据。";
+            *errorMessage = AppText::get("error.metadataWrite");
         return false;
     }
 
