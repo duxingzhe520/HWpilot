@@ -11,7 +11,7 @@ struct Entry {
 };
 
 const Entry kEntries[] = {
-    {"app.title", "代码作业助手", "HWpilot"},
+    {"app.title", "HWpilot", "HWpilot"},
     {"menu.file", "文件", "File"},
     {"menu.openProject", "打开项目文件夹...", "Open Folder..."},
     {"menu.recentProjects", "最近打开", "Recent Projects"},
@@ -29,6 +29,7 @@ const Entry kEntries[] = {
     {"menu.temperature.creative", "发散 0.7", "Creative 0.7"},
     {"menu.about", "关于", "About"},
     {"menu.aboutHwPilot", "关于 HWpilot", "About HWpilot"},
+    {"menu.rename", "重命名", "Rename"},
 
     {"button.openFolder", "打开文件夹", "Open Folder"},
     {"button.refresh", "刷新", "Refresh"},
@@ -37,6 +38,9 @@ const Entry kEntries[] = {
     {"button.chooseCodeFiles", "勾选代码文件", "Choose Code Files"},
     {"button.chooseFeedbackRecords", "勾选反馈记录", "Choose Feedback Records"},
     {"button.aiAssistant", "生成 AI 反馈", "Generate AI Feedback"},
+    {"button.reviewSelectedFeedback", "复查已选反馈", "Review Selected Feedback"},
+    {"button.openReviewRecord", "查看复查记录", "Open Review Record"},
+    {"button.generateHeuristic", "生成引导问题", "Generate Guiding Questions"},
     {"button.saveFeedback", "保存为反馈记录", "Save as Feedback"},
     {"button.cancel", "取消", "Cancel"},
 
@@ -58,10 +62,13 @@ const Entry kEntries[] = {
     {"label.versionOverview", "版本概览", "Overview"},
     {"label.fileAnalysis", "文件分析", "AI Helper"},
     {"label.aiAnalysis", "问题描述", "Problem Description"},
+    {"label.feedbackReview", "反馈复查", "Feedback Review"},
+    {"label.heuristicQuestions", "启发式问题", "Guiding Questions"},
 
     {"placeholder.task", "请输入作业要求，或在左侧勾选说明文档...", "Enter assignment requirements, or select the requirement document on the left..."},
     {"placeholder.question", "补充说明的问题...", "Additional questions for AI..."},
     {"placeholder.aiReply", "AI 回复会显示在这里...", "AI replies will appear here..."},
+    {"placeholder.heuristicReply", "启发式问题会显示在这里...", "Guiding questions will appear here..."},
     {"placeholder.cancelledReply", "已取消保存本次 AI 反馈记录。新的文件分析回复会显示在这里。", "This AI reply was cancelled. New analysis replies will appear here."},
     {"placeholder.savedFeedback", "已保存为反馈记录。新的文件分析回复会显示在这里。", "Saved as feedback. New analysis replies will appear here."},
 
@@ -86,6 +93,10 @@ const Entry kEntries[] = {
     {"dialog.saveFailed", "保存失败", "Save Failed"},
     {"dialog.noFeedback.title", "没有反馈", "No Feedback"},
     {"dialog.noFeedback.body", "当前没有可保存的 AI 回复。", "There is no AI reply to save."},
+    {"dialog.renameFeedback.title", "重命名反馈记录", "Rename Feedback Record"},
+    {"dialog.renameFeedback.label", "请输入新的记录名称：", "Enter a new record name:"},
+    {"dialog.markReviewedResolved.title", "更新原反馈状态？", "Update Original Feedback Status?"},
+    {"dialog.markReviewedResolved.body", "是否将本次复查的所有原反馈条目标记为“已解决”？", "Mark all original feedback items reviewed this time as Resolved?"},
     {"dialog.gitInitFailed", "Git 初始化失败", "Git Initialization Failed"},
     {"dialog.projectInitFailed", "项目初始化失败", "Project Initialization Failed"},
     {"dialog.feedbackStoreInitFailed", "反馈仓库初始化失败", "Feedback Store Initialization Failed"},
@@ -103,6 +114,7 @@ const Entry kEntries[] = {
     {"error.feedbackInvalid", "反馈数据不是有效 JSON。", "Feedback data is not valid JSON."},
     {"error.feedbackWrite", "无法写入反馈数据。", "Could not write feedback data."},
     {"error.feedbackItemMissing", "没有找到对应的问题条目。", "Could not find the matching issue item."},
+    {"error.feedbackRecordMissing", "没有找到对应的反馈记录。", "Could not find the matching feedback record."},
     {"error.gitNoWorkdir", "Git 工作目录为空。", "Git working directory is empty."},
     {"error.gitTimeout", "Git 命令执行超时。", "Git command timed out."},
 
@@ -128,7 +140,11 @@ const Entry kEntries[] = {
     {"feedback.unnamedIssue", "未命名问题", "Untitled Issue"},
     {"feedback.unresolved", "未解决", "Unresolved"},
     {"feedback.resolved", "已解决", "Resolved"},
+    {"feedback.uncertain", "无法确定", "Uncertain"},
     {"feedback.ignored", "忽略", "Ignored"},
+    {"feedback.reviewState", "复查状态", "Review State"},
+    {"feedback.reviewed", "已复查", "Reviewed"},
+    {"feedback.notReviewed", "未复查", "Not Reviewed"},
     {"feedback.statusUpdateFailed", "状态更新失败", "Status Update Failed"},
     {"feedback.currentWorkspace", "当前工作区", "Current Working Directory"},
     {"feedback.untitledCommit", "未命名提交", "Untitled Commit"},
@@ -140,6 +156,9 @@ const Entry kEntries[] = {
     {"feedback.issueTemplate", "问题：%1\n严重程度：%2\n类别：%3\n位置：%4\n建议：%5", "Issue: %1\nSeverity: %2\nCategory: %3\nLocation: %4\nSuggestion: %5"},
     {"feedback.parseFailed", "未能解析结构化 JSON，已保存原始回复。", "Could not parse structured JSON. Saved the raw reply."},
     {"feedback.defaultSummary", "AI反馈", "AI Feedback"},
+    {"feedback.viewIssues", "反馈问题", "Feedback Issues"},
+    {"feedback.viewReviews", "反馈复查", "Feedback Reviews"},
+    {"feedback.viewHeuristic", "启发式问题", "Guiding Questions"},
 
     {"version.currentWorkspace", "当前工作区", "Current Workspace"},
     {"version.currentWorkspaceNote", "当前磁盘上的项目文件和未提交变更。", "Project files and uncommitted changes on disk."},
@@ -179,12 +198,16 @@ const Entry kEntries[] = {
     {"diff.change", "变化", "Change"},
 
     {"prompt.system", "你是一位严谨、耐心的程序设计课助教。用户会提供作业要求、代码文件和补充问题。请聚焦于这次作业代码本身，分析可能的 Bug、边界条件、代码质量和实现建议。如果信息不足，请明确说明需要补充什么。", "You are a careful and patient programming-course teaching assistant. The user will provide assignment requirements, code files, and additional questions. Focus on the assignment code itself, and analyze possible bugs, edge cases, code quality, and implementation suggestions. If information is insufficient, clearly say what else is needed."},
+    {"prompt.feedbackReviewSystem", "你是一位严谨、耐心的程序设计课助教。用户会提供当前代码和一组已选历史反馈。你的首要任务不是重新全面批改代码，而是逐条判断这些历史反馈指出的问题在当前代码中是否已经真的解决。判断必须基于当前代码证据；如果信息不足，请标记为无法确定。对于未解决的问题，只围绕对应历史反馈给出进一步反馈和下一步建议。", "You are a careful and patient programming-course teaching assistant. The user will provide current code and selected historical feedback items. Your primary task is not to do a broad new review, but to judge item by item whether the problem described by each selected historical feedback item has truly been fixed in the current code. Base the judgment on current-code evidence. If the evidence is insufficient, mark it as uncertain. For unresolved items, give follow-up feedback and next-step suggestions only for that selected historical feedback item."},
+    {"prompt.heuristicSystem", "你是一位温和、耐心、擅长启发式教学的程序设计课助教。请根据作业要求和用户提供的材料，生成能引导学生独立思考的问题。语气要友善、克制、鼓励式，避免批评、命令或下结论；不要直接给完整答案。问题应覆盖需求理解、边界情况、数据结构、算法设计、测试策略和代码组织。", "You are a gentle, patient programming-course teaching assistant skilled in heuristic teaching. Based on the assignment requirements and provided materials, generate questions that guide students to think independently. Keep the tone friendly, restrained, and encouraging. Avoid criticism, commands, or definitive judgments, and do not give complete answers directly. Cover requirement understanding, edge cases, data structures, algorithm design, testing strategy, and code organization."},
     {"prompt.userQuestion", "【用户问题】\n", "[User Question]\n"},
     {"prompt.selectedFeedback", "【反馈记录】\n", "[Selected Feedback Records]\n"},
     {"prompt.assignment", "【作业要求】\n", "[Assignment Requirements / Task Description]\n"},
     {"prompt.submittedCode", "【学生提交的代码，共 %1 个文件】\n\n", "[Student Submitted Code, %1 files]\n\n"},
     {"prompt.fileHeader", "### 文件：`%1`\n", "### File: `%1`\n"},
     {"prompt.structuredFeedback", "请严格输出一个 JSON 对象，不要在 JSON 外添加解释文字。JSON 结构如下：\n{\n  \"summary\": \"反馈记录标题，4-10 个汉字或中文短语，最多 12 个中文字符，例如：编译阻塞、空实现过多、接口缺失。不要写完整句子，不要包含逗号、分号或多项展开\",\n  \"items\": [\n    {\n      \"severity\": \"high|medium|low\",\n      \"filePath\": \"相关文件路径，无法判断则留空\",\n      \"line\": 具体行号，无法判断则为 -1,\n      \"category\": \"bug|boundary|memory|style|design|test|learning|other\",\n      \"title\": \"问题标题，尽量控制在 6-16 个汉字\",\n      \"suggestion\": \"具体修改或学习建议\"\n    }\n  ],\n  \"rawReport\": \"完整自然语言反馈报告\"\n}\nsummary 只用于反馈记录列表展示，必须短；详细原因、多个问题和完整说明都写入 rawReport 或 items。如果没有发现具体问题，items 输出空数组，并在 summary 中使用类似“暂无问题”的短标题，在 rawReport 中说明。", "Strictly output one JSON object. Do not add explanatory text outside JSON. Use this structure:\n{\n  \"summary\": \"A short feedback-record title, 3-8 English words, no full sentence, no comma/semicolon/list expansion, e.g. Build Blocked, Missing Interfaces, Empty Implementation\",\n  \"items\": [\n    {\n      \"severity\": \"high|medium|low\",\n      \"filePath\": \"Related file path, or empty if unknown\",\n      \"line\": line number, or -1 if unknown,\n      \"category\": \"bug|boundary|memory|style|design|test|learning|other\",\n      \"title\": \"Issue title, preferably 3-10 words\",\n      \"suggestion\": \"Concrete fix or learning suggestion\"\n    }\n  ],\n  \"rawReport\": \"Complete natural-language feedback report\"\n}\nsummary is only for list display and must be short. Put detailed reasoning, multiple issues, and complete explanations in rawReport or items. If no concrete issue is found, output an empty items array, use a short summary such as No Issues, and explain in rawReport."},
+    {"prompt.feedbackReviewStructured", "请严格输出一个 JSON 对象，不要在 JSON 外添加解释文字。JSON 结构如下：\n{\n  \"summary\": \"复查记录标题，4-10 个汉字或中文短语，最多 12 个中文字符，例如：复查未完成、反馈已解决、部分待处理。不要写完整句子，不要包含逗号、分号或多项展开\",\n  \"items\": [\n    {\n      \"sourceFeedbackId\": \"被复查的反馈条目ID，必须原样返回用户提供的反馈条目ID\",\n      \"severity\": \"high|medium|low\",\n      \"filePath\": \"判断依据对应的文件路径，无法判断则留空\",\n      \"line\": 具体行号，无法判断则为 -1,\n      \"category\": \"bug|boundary|memory|style|design|test|learning|other\",\n      \"status\": \"resolved|unresolved|uncertain\",\n      \"title\": \"被复查反馈的短标题，尽量控制在 6-16 个汉字\",\n      \"suggestion\": \"先写判断结论：已解决/未解决/无法确定；再说明当前代码证据。如果未解决，继续针对这条原反馈给出进一步修改建议；如果已解决，简要说明依据；如果无法确定，说明缺少什么信息。\"\n    }\n  ],\n  \"rawReport\": \"完整自然语言复查报告\"\n}\n必须逐条覆盖用户勾选的反馈，并原样带回每条反馈的 sourceFeedbackId。不要泛泛批改没有被勾选的新问题；只有当它直接影响所选反馈是否解决时，才可以补充说明。", "Strictly output one JSON object. Do not add explanatory text outside JSON. Use this structure:\n{\n  \"summary\": \"A short review-record title, 3-8 English words, no full sentence, no comma/semicolon/list expansion, e.g. Still Open, Fixed Feedback, Partly Addressed\",\n  \"items\": [\n    {\n      \"sourceFeedbackId\": \"The reviewed feedback item ID. Return the feedback item ID provided by the user exactly as-is\",\n      \"severity\": \"high|medium|low\",\n      \"filePath\": \"Evidence file path, or empty if unknown\",\n      \"line\": line number, or -1 if unknown,\n      \"category\": \"bug|boundary|memory|style|design|test|learning|other\",\n      \"status\": \"resolved|unresolved|uncertain\",\n      \"title\": \"Short title of the reviewed feedback item\",\n      \"suggestion\": \"Start with the judgment: resolved/unresolved/uncertain. Then explain the current-code evidence. If unresolved, provide follow-up advice for this original feedback item. If resolved, briefly explain why. If uncertain, state what evidence is missing.\"\n    }\n  ],\n  \"rawReport\": \"Complete natural-language feedback-review report\"\n}\nYou must cover every selected feedback item and return each sourceFeedbackId exactly. Do not broadly review unrelated new issues unless they directly affect whether the selected feedback has been fixed."},
+    {"prompt.heuristicStructuredFeedback", "请严格输出一个 JSON 对象，不要在 JSON 外添加解释文字。JSON 结构如下：\n{\n  \"summary\": \"启发式问题记录标题，4-10 个汉字或中文短语，最多 12 个中文字符，例如：边界思考、算法选择、测试追问。不要写完整句子，不要包含逗号、分号或多项展开\",\n  \"items\": [\n    {\n      \"severity\": \"low\",\n      \"filePath\": \"相关文件路径，无法判断则留空\",\n      \"line\": 具体行号，无法判断则为 -1,\n      \"category\": \"learning\",\n      \"title\": \"启发式问题标题，尽量控制在 6-16 个汉字\",\n      \"suggestion\": \"完整的启发式问题。请用温和、鼓励、开放式的语气提问，例如：你可以试着想一想……；如果输入变成……会发生什么？避免直接指出错误或给出答案。\"\n    }\n  ],\n  \"rawReport\": \"完整自然语言问题列表\"\n}\n启发式问题只用于引导学生继续思考，不要给完整答案，不要使用批评性语气。每个 item 的 title 用于列表展示，suggestion 必须写成一个可以直接展示给学生的完整问题。", "Strictly output one JSON object. Do not add explanatory text outside JSON. Use this structure:\n{\n  \"summary\": \"A short guiding-question record title, 3-8 English words, no full sentence, no comma/semicolon/list expansion, e.g. Edge Cases, Algorithm Choice, Testing Prompts\",\n  \"items\": [\n    {\n      \"severity\": \"low\",\n      \"filePath\": \"Related file path, or empty if unknown\",\n      \"line\": line number, or -1 if unknown,\n      \"category\": \"learning\",\n      \"title\": \"Short guiding-question title, preferably 3-10 words\",\n      \"suggestion\": \"The complete guiding question. Use a gentle, encouraging, open-ended tone, such as: You might try thinking about...; What would happen if the input became...? Avoid directly pointing out mistakes or giving the answer.\"\n    }\n  ],\n  \"rawReport\": \"Complete natural-language list of guiding questions\"\n}\nGuiding questions are only for helping the student keep thinking. Do not provide full answers or use a critical tone. Each item.title is for the list, and item.suggestion must be a complete question suitable for direct display to the student."},
 };
 }  // namespace
 

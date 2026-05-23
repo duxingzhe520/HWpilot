@@ -1,4 +1,4 @@
-#include "../MainWindow.h"
+#include "MainWindowPrivate.h"
 
 #include "../AppText.h"
 
@@ -24,11 +24,13 @@
 #include <QtGlobal>
 #include <QVBoxLayout>
 
-void MainWindow::buildUi() {
-    setWindowTitle(AppText::get("app.title"));
-    resize(1280, 820);
+MainWindowPrivate::MainWindowPrivate(MainWindow* window) : QObject(window), q(window) {}
 
-    auto* root = new QWidget(this);
+void MainWindowPrivate::buildUi() {
+    q->setWindowTitle(AppText::get("app.title"));
+    q->resize(1280, 820);
+
+    auto* root = new QWidget(q);
     auto* rootLayout = new QHBoxLayout(root);
     rootLayout->setContentsMargins(10, 10, 10, 10);
     rootLayout->setSpacing(8);
@@ -68,84 +70,101 @@ void MainWindow::buildUi() {
     splitter->setSizes({260, 1000});
 
     rootLayout->addWidget(splitter);
-    setCentralWidget(root);
+    q->setCentralWidget(root);
 
-    m_statusLabel = new QLabel(AppText::get("label.chooseProjectStart"), this);
-    statusBar()->addWidget(m_statusLabel, 1);
+    m_statusLabel = new QLabel(AppText::get("label.chooseProjectStart"), q);
+    q->statusBar()->addWidget(m_statusLabel, 1);
     refreshProjectPanel();
 }
 
-void MainWindow::buildLeftPanel() {
-    m_projectNameLabel = new QLabel(this);
+void MainWindowPrivate::buildLeftPanel() {
+    m_projectNameLabel = new QLabel(q);
     m_projectNameLabel->setObjectName("ProjectName");
-    m_projectPathLabel = new QLabel(this);
+    m_projectPathLabel = new QLabel(q);
     m_projectPathLabel->setObjectName("MetaLabel");
     m_projectPathLabel->setWordWrap(true);
-    m_fileCountLabel = new QLabel(this);
+    m_fileCountLabel = new QLabel(q);
     m_fileCountLabel->setObjectName("MetaLabel");
-    m_feedbackCountLabel = new QLabel(this);
+    m_feedbackCountLabel = new QLabel(q);
     m_feedbackCountLabel->setObjectName("MetaLabel");
 
-    m_openProjectButton = new QPushButton(AppText::get("button.openFolder"), this);
-    connect(m_openProjectButton, &QPushButton::clicked, this, &MainWindow::openProjectFolder);
+    m_openProjectButton = new QPushButton(AppText::get("button.openFolder"), q);
+    connect(m_openProjectButton, &QPushButton::clicked, this, &MainWindowPrivate::openProjectFolder);
 
-    m_refreshProjectButton = new QPushButton(AppText::get("button.refresh"), this);
-    connect(m_refreshProjectButton, &QPushButton::clicked, this, &MainWindow::refreshCurrentProject);
+    m_refreshProjectButton = new QPushButton(AppText::get("button.refresh"), q);
+    connect(m_refreshProjectButton, &QPushButton::clicked, this, &MainWindowPrivate::refreshCurrentProject);
 
-    m_commitButton = new QPushButton(AppText::get("button.commit"), this);
-    connect(m_commitButton, &QPushButton::clicked, this, &MainWindow::commitCurrentSnapshot);
+    m_commitButton = new QPushButton(AppText::get("button.commit"), q);
+    connect(m_commitButton, &QPushButton::clicked, this, &MainWindowPrivate::commitCurrentSnapshot);
 
-    m_versionTree = new QTreeWidget(this);
+    m_versionTree = new QTreeWidget(q);
     m_versionTree->setHeaderLabel(AppText::get("label.commits"));
     m_versionTree->setAlternatingRowColors(true);
     m_versionRoot = m_versionTree->invisibleRootItem();
     appendVersionNode(AppText::get("label.noProject"), AppText::get("label.chooseProjectStart"));
     m_versionTree->expandAll();
     m_versionTree->setCurrentItem(m_versionRoot->child(0));
-    connect(m_versionTree, &QTreeWidget::currentItemChanged, this, &MainWindow::updateCurrentVersionPanel);
+    connect(m_versionTree, &QTreeWidget::currentItemChanged, this, &MainWindowPrivate::updateCurrentVersionPanel);
 }
 
-void MainWindow::buildCenterPanel() {
-    m_tabs = new QTabWidget(this);
+void MainWindowPrivate::buildCenterPanel() {
+    m_tabs = new QTabWidget(q);
 
-    m_selectAllFilesButton = new QPushButton(AppText::get("button.selectAll"), this);
-    connect(m_selectAllFilesButton, &QPushButton::clicked, this, &MainWindow::selectAllFiles);
+    m_selectAllFilesButton = new QPushButton(AppText::get("button.selectAll"), q);
+    connect(m_selectAllFilesButton, &QPushButton::clicked, this, &MainWindowPrivate::selectAllFiles);
 
-    m_selectAllFeedbackRecordsButton = new QPushButton(AppText::get("button.selectAll"), this);
-    connect(m_selectAllFeedbackRecordsButton, &QPushButton::clicked, this, &MainWindow::selectAllAiFeedbackRecords);
+    m_selectAllFeedbackRecordsButton = new QPushButton(AppText::get("button.selectAll"), q);
+    connect(m_selectAllFeedbackRecordsButton, &QPushButton::clicked, this, &MainWindowPrivate::selectAllAiFeedbackRecords);
 
-    m_fileTree = new QTreeWidget(this);
+    m_selectAllHeuristicFilesButton = new QPushButton(AppText::get("button.selectAll"), q);
+    connect(m_selectAllHeuristicFilesButton, &QPushButton::clicked, this, &MainWindowPrivate::selectAllHeuristicFiles);
+
+    m_fileTree = new QTreeWidget(q);
     m_fileTree->setHeaderLabel(AppText::get("label.projectFiles"));
     m_fileTree->setSelectionMode(QAbstractItemView::SingleSelection);
     m_fileTree->setAlternatingRowColors(true);
-    connect(m_fileTree, &QTreeWidget::itemChanged, this, &MainWindow::handleFileItemChanged);
+    connect(m_fileTree, &QTreeWidget::itemChanged, this, &MainWindowPrivate::handleFileItemChanged);
 
-    m_aiFeedbackTree = new QTreeWidget(this);
+    m_heuristicFileTree = new QTreeWidget(q);
+    m_heuristicFileTree->setHeaderLabel(AppText::get("label.projectFiles"));
+    m_heuristicFileTree->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_heuristicFileTree->setAlternatingRowColors(true);
+    connect(m_heuristicFileTree, &QTreeWidget::itemChanged, this, &MainWindowPrivate::handleHeuristicFileItemChanged);
+
+    m_aiFeedbackTree = new QTreeWidget(q);
     m_aiFeedbackTree->setHeaderLabel(AppText::get("label.feedbackRecords"));
     m_aiFeedbackTree->setSelectionMode(QAbstractItemView::SingleSelection);
     m_aiFeedbackTree->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_aiFeedbackTree->setAlternatingRowColors(true);
     m_aiFeedbackTree->header()->setStretchLastSection(false);
     m_aiFeedbackTree->header()->setSectionResizeMode(0, QHeaderView::Stretch);
-    connect(m_aiFeedbackTree, &QTreeWidget::itemChanged, this, &MainWindow::handleAiFeedbackItemChanged);
+    connect(m_aiFeedbackTree, &QTreeWidget::itemChanged, this, &MainWindowPrivate::handleAiFeedbackItemChanged);
 
-    m_changeSummary = new QTextBrowser(this);
-    m_reviewReport = new QTextBrowser(this);
-    m_feedbackTree = new QTreeWidget(this);
+    m_changeSummary = new QTextBrowser(q);
+    m_reviewReport = new QTextBrowser(q);
+    m_feedbackTree = new QTreeWidget(q);
     m_feedbackTree->setHeaderLabels({AppText::get("label.feedbackIssue"), AppText::get("label.severity"), AppText::get("label.location"), AppText::get("label.status")});
     m_feedbackTree->setSelectionMode(QAbstractItemView::SingleSelection);
     m_feedbackTree->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_feedbackTree->setContextMenuPolicy(Qt::CustomContextMenu);
     m_feedbackTree->setAlternatingRowColors(true);
     m_feedbackTree->header()->setStretchLastSection(false);
     m_feedbackTree->header()->setSectionResizeMode(0, QHeaderView::Stretch);
-    connect(m_feedbackTree, &QTreeWidget::currentItemChanged, this, &MainWindow::handleFeedbackTreeSelection);
+    m_feedbackTree->header()->setSectionResizeMode(1, QHeaderView::Fixed);
+    m_feedbackTree->header()->setSectionResizeMode(2, QHeaderView::Fixed);
+    m_feedbackTree->header()->setSectionResizeMode(3, QHeaderView::Fixed);
+    m_feedbackTree->setColumnWidth(1, 110);
+    m_feedbackTree->setColumnWidth(2, 240);
+    m_feedbackTree->setColumnWidth(3, 126);
+    connect(m_feedbackTree, &QTreeWidget::currentItemChanged, this, &MainWindowPrivate::handleFeedbackTreeSelection);
+    connect(m_feedbackTree, &QTreeWidget::customContextMenuRequested, this, &MainWindowPrivate::showFeedbackTreeContextMenu);
 
-    auto* versionPanel = new QWidget(this);
+    auto* versionPanel = new QWidget(q);
     auto* versionLayout = new QVBoxLayout(versionPanel);
     versionLayout->setContentsMargins(0, 0, 0, 0);
     versionLayout->addWidget(m_changeSummary, 1);
 
-    auto* fileAnalysisPanel = new QWidget(this);
+    auto* fileAnalysisPanel = new QWidget(q);
     auto* fileAnalysisLayout = new QVBoxLayout(fileAnalysisPanel);
     fileAnalysisLayout->setContentsMargins(0, 0, 0, 0);
 
@@ -199,70 +218,150 @@ void MainWindow::buildCenterPanel() {
     fileAnalysisSplitter->setSizes({360, 540});
     fileAnalysisLayout->addWidget(fileAnalysisSplitter, 1);
 
-    auto* feedbackPanel = new QWidget(this);
+    auto* feedbackPanel = new QWidget(q);
     auto* feedbackLayout = new QVBoxLayout(feedbackPanel);
     feedbackLayout->setContentsMargins(0, 0, 0, 0);
     feedbackLayout->setSpacing(8);
     feedbackLayout->addWidget(m_reviewReport, 1);
+    m_openReviewRecordButton = new QPushButton(AppText::get("button.openReviewRecord"), q);
+    m_openReviewRecordButton->setVisible(false);
+    connect(m_openReviewRecordButton, &QPushButton::clicked, this, [this]() {
+        selectFeedbackRecordById(m_openReviewRecordButton->property("reviewRecordId").toString());
+    });
+    feedbackLayout->addWidget(m_openReviewRecordButton);
+    auto* feedbackFilterLayout = new QHBoxLayout();
+    feedbackFilterLayout->setContentsMargins(0, 0, 0, 0);
+    feedbackFilterLayout->setSpacing(8);
+    m_feedbackIssuesButton = new QPushButton(AppText::get("feedback.viewIssues"), q);
+    m_feedbackIssuesButton->setCheckable(true);
+    m_feedbackIssuesButton->setChecked(true);
+    connect(m_feedbackIssuesButton, &QPushButton::clicked, this, &MainWindowPrivate::showFeedbackIssueRecords);
+    m_feedbackReviewButton = new QPushButton(AppText::get("feedback.viewReviews"), q);
+    m_feedbackReviewButton->setCheckable(true);
+    connect(m_feedbackReviewButton, &QPushButton::clicked, this, &MainWindowPrivate::showFeedbackReviewRecords);
+    m_heuristicQuestionsButton = new QPushButton(AppText::get("feedback.viewHeuristic"), q);
+    m_heuristicQuestionsButton->setCheckable(true);
+    connect(m_heuristicQuestionsButton, &QPushButton::clicked, this, &MainWindowPrivate::showHeuristicQuestionRecords);
+    feedbackFilterLayout->addWidget(m_feedbackIssuesButton);
+    feedbackFilterLayout->addWidget(m_feedbackReviewButton);
+    feedbackFilterLayout->addWidget(m_heuristicQuestionsButton);
+    feedbackLayout->addLayout(feedbackFilterLayout);
     feedbackLayout->addWidget(m_feedbackTree, 1);
+
+    auto* heuristicPanel = new QWidget(q);
+    auto* heuristicLayout = new QVBoxLayout(heuristicPanel);
+    heuristicLayout->setContentsMargins(0, 0, 0, 0);
+    auto* heuristicSplitter = new QSplitter(Qt::Horizontal, heuristicPanel);
+    auto* heuristicPickerPanel = new QWidget(heuristicSplitter);
+    auto* heuristicPickerLayout = new QVBoxLayout(heuristicPickerPanel);
+    heuristicPickerLayout->setContentsMargins(0, 0, 0, 0);
+    heuristicPickerLayout->setSpacing(8);
+    heuristicPickerLayout->addWidget(m_selectAllHeuristicFilesButton);
+    heuristicPickerLayout->addWidget(m_heuristicFileTree, 1);
+    auto* heuristicAiPanel = new QWidget(heuristicSplitter);
+    auto* heuristicAiLayout = new QVBoxLayout(heuristicAiPanel);
+    heuristicAiLayout->setContentsMargins(0, 0, 0, 0);
+    heuristicAiLayout->setSpacing(8);
+    m_heuristicTitleLabel = new QLabel(AppText::get("label.heuristicQuestions"), q);
+    m_heuristicTitleLabel->setObjectName("PanelTitle");
+    m_heuristicTaskEdit = new QTextEdit(q);
+    m_heuristicTaskEdit->setPlaceholderText(AppText::get("placeholder.task"));
+    m_heuristicTaskEdit->setFixedHeight(118);
+    m_heuristicQuestionEdit = new QTextEdit(q);
+    m_heuristicQuestionEdit->setPlaceholderText(AppText::get("placeholder.question"));
+    m_heuristicQuestionEdit->setFixedHeight(86);
+    m_generateHeuristicButton = new QPushButton(AppText::get("button.generateHeuristic"), q);
+    m_generateHeuristicButton->setObjectName("PrimaryButton");
+    connect(m_generateHeuristicButton, &QPushButton::clicked, this, &MainWindowPrivate::startHeuristicQuestions);
+    m_heuristicResponseView = new QTextEdit(q);
+    m_heuristicResponseView->setReadOnly(true);
+    m_heuristicResponseView->setPlaceholderText(AppText::get("placeholder.heuristicReply"));
+    m_saveHeuristicButton = new QPushButton(AppText::get("button.saveFeedback"), q);
+    connect(m_saveHeuristicButton, &QPushButton::clicked, this, &MainWindowPrivate::saveHeuristicToVersion);
+    m_cancelHeuristicButton = new QPushButton(AppText::get("button.cancel"), q);
+    connect(m_cancelHeuristicButton, &QPushButton::clicked, this, [this]() {
+        m_lastHeuristicReply.clear();
+        m_heuristicResponseView->clear();
+        m_heuristicResponseView->setPlaceholderText(AppText::get("placeholder.cancelledReply"));
+        m_statusLabel->setText(AppText::get("status.cancelledFeedback"));
+    });
+    heuristicAiLayout->addWidget(m_heuristicTitleLabel);
+    heuristicAiLayout->addWidget(m_heuristicTaskEdit);
+    heuristicAiLayout->addWidget(m_heuristicQuestionEdit);
+    heuristicAiLayout->addWidget(m_generateHeuristicButton);
+    heuristicAiLayout->addWidget(m_heuristicResponseView, 1);
+    auto* heuristicActionsLayout = new QHBoxLayout();
+    heuristicActionsLayout->setContentsMargins(0, 0, 0, 0);
+    heuristicActionsLayout->setSpacing(8);
+    heuristicActionsLayout->addWidget(m_saveHeuristicButton);
+    heuristicActionsLayout->addWidget(m_cancelHeuristicButton);
+    heuristicAiLayout->addLayout(heuristicActionsLayout);
+    heuristicSplitter->addWidget(heuristicPickerPanel);
+    heuristicSplitter->addWidget(heuristicAiPanel);
+    heuristicSplitter->setStretchFactor(0, 1);
+    heuristicSplitter->setStretchFactor(1, 1);
+    heuristicSplitter->setSizes({360, 540});
+    heuristicLayout->addWidget(heuristicSplitter, 1);
 
     m_tabs->addTab(versionPanel, AppText::get("label.versionOverview"));
     m_tabs->addTab(fileAnalysisPanel, AppText::get("label.fileAnalysis"));
+    m_tabs->addTab(heuristicPanel, AppText::get("label.heuristicQuestions"));
     m_tabs->addTab(feedbackPanel, AppText::get("label.feedbackRecords"));
 }
 
-void MainWindow::buildAiPanel() {
-    m_aiTitleLabel = new QLabel(AppText::get("label.aiAnalysis"), this);
+void MainWindowPrivate::buildAiPanel() {
+    m_aiTitleLabel = new QLabel(AppText::get("label.aiAnalysis"), q);
     m_aiTitleLabel->setObjectName("PanelTitle");
 
-    m_taskEdit = new QTextEdit(this);
+    m_taskEdit = new QTextEdit(q);
     m_taskEdit->setPlaceholderText(AppText::get("placeholder.task"));
     m_taskEdit->setFixedHeight(118);
 
-    m_questionEdit = new QTextEdit(this);
+    m_questionEdit = new QTextEdit(q);
     m_questionEdit->setPlaceholderText(AppText::get("placeholder.question"));
     m_questionEdit->setFixedHeight(86);
 
-    m_chooseCodeFilesButton = new QPushButton(AppText::get("button.chooseCodeFiles"), this);
+    m_chooseCodeFilesButton = new QPushButton(AppText::get("button.chooseCodeFiles"), q);
     m_chooseCodeFilesButton->setCheckable(true);
     m_chooseCodeFilesButton->setChecked(true);
-    connect(m_chooseCodeFilesButton, &QPushButton::clicked, this, &MainWindow::showAiCodeFilePicker);
+    connect(m_chooseCodeFilesButton, &QPushButton::clicked, this, &MainWindowPrivate::showAiCodeFilePicker);
 
-    m_chooseFeedbackRecordsButton = new QPushButton(AppText::get("button.chooseFeedbackRecords"), this);
+    m_chooseFeedbackRecordsButton = new QPushButton(AppText::get("button.chooseFeedbackRecords"), q);
     m_chooseFeedbackRecordsButton->setCheckable(true);
-    connect(m_chooseFeedbackRecordsButton, &QPushButton::clicked, this, &MainWindow::showAiFeedbackRecordPicker);
+    connect(m_chooseFeedbackRecordsButton, &QPushButton::clicked, this, &MainWindowPrivate::showAiFeedbackRecordPicker);
 
-    m_analyzeButton = new QPushButton(AppText::get("button.aiAssistant"), this);
+    m_analyzeButton = new QPushButton(AppText::get("button.aiAssistant"), q);
     m_analyzeButton->setObjectName("PrimaryButton");
-    connect(m_analyzeButton, &QPushButton::clicked, this, &MainWindow::startAiAnalysis);
+    connect(m_analyzeButton, &QPushButton::clicked, this, &MainWindowPrivate::startAiAnalysis);
 
-    m_responseView = new QTextEdit(this);
+    m_responseView = new QTextEdit(q);
     m_responseView->setReadOnly(true);
     m_responseView->setPlaceholderText(AppText::get("placeholder.aiReply"));
 
-    m_saveFeedbackButton = new QPushButton(AppText::get("button.saveFeedback"), this);
-    connect(m_saveFeedbackButton, &QPushButton::clicked, this, &MainWindow::saveFeedbackToVersion);
+    m_saveFeedbackButton = new QPushButton(AppText::get("button.saveFeedback"), q);
+    connect(m_saveFeedbackButton, &QPushButton::clicked, this, &MainWindowPrivate::saveFeedbackToVersion);
 
-    m_cancelFeedbackButton = new QPushButton(AppText::get("button.cancel"), this);
+    m_cancelFeedbackButton = new QPushButton(AppText::get("button.cancel"), q);
     connect(m_cancelFeedbackButton, &QPushButton::clicked, this, [this]() {
         m_lastAiReply.clear();
+        m_lastAiModeName.clear();
         m_responseView->clear();
         m_responseView->setPlaceholderText(AppText::get("placeholder.cancelledReply"));
         m_statusLabel->setText(AppText::get("status.cancelledFeedback"));
     });
 }
 
-void MainWindow::buildMenuBar() {
+void MainWindowPrivate::buildMenuBar() {
     QSettings settings("HWpilot", "HWpilot");
     m_temperature = settings.value("llm/temperature", 0.3).toDouble();
 
-    menuBar()->clear();
-    QMenu* fileMenu = menuBar()->addMenu(AppText::get("menu.file"));
-    fileMenu->addAction(AppText::get("menu.openProject"), this, &MainWindow::openProjectFolder);
+    q->menuBar()->clear();
+    QMenu* fileMenu = q->menuBar()->addMenu(AppText::get("menu.file"));
+    fileMenu->addAction(AppText::get("menu.openProject"), this, &MainWindowPrivate::openProjectFolder);
     m_recentProjectsMenu = fileMenu->addMenu(AppText::get("menu.recentProjects"));
     updateRecentProjectsMenu();
 
-    QMenu* settingsMenu = menuBar()->addMenu(AppText::get("menu.settings"));
+    QMenu* settingsMenu = q->menuBar()->addMenu(AppText::get("menu.settings"));
 
     QMenu* languageMenu = settingsMenu->addMenu(AppText::get("menu.language"));
     auto* languageGroup = new QActionGroup(this);
@@ -329,10 +428,10 @@ void MainWindow::buildMenuBar() {
 
     const QString aboutMenuTitle = AppText::language() == "en" ? QString("About%1").arg(QChar(0x200B)) : AppText::get("menu.about");
     const QString aboutActionTitle = AppText::language() == "en" ? QString("About HWpilot%1").arg(QChar(0x200B)) : AppText::get("menu.aboutHwPilot");
-    QMenu* aboutMenu = menuBar()->addMenu(aboutMenuTitle);
+    QMenu* aboutMenu = q->menuBar()->addMenu(aboutMenuTitle);
     aboutMenu->menuAction()->setMenuRole(QAction::NoRole);
     QAction* aboutAction = aboutMenu->addAction(aboutActionTitle, this, [this]() {
-        QDialog dialog(this);
+        QDialog dialog(q);
         dialog.setWindowTitle(AppText::get("menu.aboutHwPilot"));
         dialog.setMinimumSize(420, 260);
         dialog.setStyleSheet("QDialog { background: #f8fafc; color: #1f2937; }");
@@ -341,8 +440,8 @@ void MainWindow::buildMenuBar() {
     aboutAction->setMenuRole(QAction::NoRole);
 }
 
-void MainWindow::applyLanguage() {
-    setWindowTitle(AppText::get("app.title"));
+void MainWindowPrivate::applyLanguage() {
+    q->setWindowTitle(AppText::get("app.title"));
     if (m_openProjectButton)
         m_openProjectButton->setText(AppText::get("button.openFolder"));
     if (m_refreshProjectButton)
@@ -353,32 +452,57 @@ void MainWindow::applyLanguage() {
         m_selectAllFilesButton->setText(AppText::get("button.selectAll"));
     if (m_selectAllFeedbackRecordsButton)
         m_selectAllFeedbackRecordsButton->setText(AppText::get("button.selectAll"));
+    if (m_selectAllHeuristicFilesButton)
+        m_selectAllHeuristicFilesButton->setText(AppText::get("button.selectAll"));
     if (m_chooseCodeFilesButton)
         m_chooseCodeFilesButton->setText(AppText::get("button.chooseCodeFiles"));
     if (m_chooseFeedbackRecordsButton)
         m_chooseFeedbackRecordsButton->setText(AppText::get("button.chooseFeedbackRecords"));
     if (m_analyzeButton)
-        m_analyzeButton->setText(AppText::get("button.aiAssistant"));
+        updateAiActionText();
     if (m_saveFeedbackButton)
         m_saveFeedbackButton->setText(AppText::get("button.saveFeedback"));
     if (m_cancelFeedbackButton)
         m_cancelFeedbackButton->setText(AppText::get("button.cancel"));
+    if (m_generateHeuristicButton)
+        m_generateHeuristicButton->setText(AppText::get("button.generateHeuristic"));
+    if (m_saveHeuristicButton)
+        m_saveHeuristicButton->setText(AppText::get("button.saveFeedback"));
+    if (m_cancelHeuristicButton)
+        m_cancelHeuristicButton->setText(AppText::get("button.cancel"));
+    if (m_feedbackIssuesButton)
+        m_feedbackIssuesButton->setText(AppText::get("feedback.viewIssues"));
+    if (m_feedbackReviewButton)
+        m_feedbackReviewButton->setText(AppText::get("feedback.viewReviews"));
+    if (m_heuristicQuestionsButton)
+        m_heuristicQuestionsButton->setText(AppText::get("feedback.viewHeuristic"));
+    if (m_openReviewRecordButton)
+        m_openReviewRecordButton->setText(AppText::get("button.openReviewRecord"));
     if (m_aiTitleLabel)
         m_aiTitleLabel->setText(AppText::get("label.aiAnalysis"));
+    if (m_heuristicTitleLabel)
+        m_heuristicTitleLabel->setText(AppText::get("label.heuristicQuestions"));
 
     if (m_versionTree)
         m_versionTree->setHeaderLabel(AppText::get("label.commits"));
     if (m_fileTree)
         m_fileTree->setHeaderLabel(AppText::get("label.projectFiles"));
+    if (m_heuristicFileTree)
+        m_heuristicFileTree->setHeaderLabel(AppText::get("label.projectFiles"));
     if (m_aiFeedbackTree)
         m_aiFeedbackTree->setHeaderLabel(AppText::get("label.feedbackRecords"));
-    if (m_feedbackTree)
-        m_feedbackTree->setHeaderLabels({AppText::get("label.feedbackIssue"), AppText::get("label.severity"), AppText::get("label.location"), AppText::get("label.status")});
+    if (m_feedbackTree) {
+        if (m_showingHeuristicRecords)
+            m_feedbackTree->setHeaderLabels({AppText::get("label.heuristicQuestions")});
+        else
+            m_feedbackTree->setHeaderLabels({AppText::get("label.feedbackIssue"), AppText::get("label.severity"), AppText::get("label.location"), AppText::get("label.status")});
+    }
 
     if (m_tabs) {
         m_tabs->setTabText(0, AppText::get("label.versionOverview"));
         m_tabs->setTabText(1, AppText::get("label.fileAnalysis"));
-        m_tabs->setTabText(2, AppText::get("label.feedbackRecords"));
+        m_tabs->setTabText(2, AppText::get("label.heuristicQuestions"));
+        m_tabs->setTabText(3, AppText::get("label.feedbackRecords"));
     }
 
     if (m_taskEdit)
@@ -387,6 +511,12 @@ void MainWindow::applyLanguage() {
         m_questionEdit->setPlaceholderText(AppText::get("placeholder.question"));
     if (m_responseView && m_responseView->toPlainText().trimmed().isEmpty())
         m_responseView->setPlaceholderText(AppText::get("placeholder.aiReply"));
+    if (m_heuristicTaskEdit)
+        m_heuristicTaskEdit->setPlaceholderText(AppText::get("placeholder.task"));
+    if (m_heuristicQuestionEdit)
+        m_heuristicQuestionEdit->setPlaceholderText(AppText::get("placeholder.question"));
+    if (m_heuristicResponseView && m_heuristicResponseView->toPlainText().trimmed().isEmpty())
+        m_heuristicResponseView->setPlaceholderText(AppText::get("placeholder.heuristicReply"));
 
     refreshProjectPanel();
     refreshChangeSummary();
@@ -394,7 +524,7 @@ void MainWindow::applyLanguage() {
         populateAiFeedbackPicker();
 }
 
-void MainWindow::updateRecentProjectsMenu() {
+void MainWindowPrivate::updateRecentProjectsMenu() {
     if (!m_recentProjectsMenu)
         return;
 
@@ -415,22 +545,24 @@ void MainWindow::updateRecentProjectsMenu() {
     }
 }
 
-void MainWindow::showAiCodeFilePicker() {
+void MainWindowPrivate::showAiCodeFilePicker() {
     if (m_aiPickerStack)
         m_aiPickerStack->setCurrentIndex(0);
     m_chooseCodeFilesButton->setChecked(true);
     m_chooseFeedbackRecordsButton->setChecked(false);
+    updateAiActionText();
 }
 
-void MainWindow::showAiFeedbackRecordPicker() {
+void MainWindowPrivate::showAiFeedbackRecordPicker() {
     populateAiFeedbackPicker();
     if (m_aiPickerStack)
         m_aiPickerStack->setCurrentIndex(1);
     m_chooseCodeFilesButton->setChecked(false);
     m_chooseFeedbackRecordsButton->setChecked(true);
+    updateAiActionText();
 }
 
-void MainWindow::applyStyle() {
+void MainWindowPrivate::applyStyle() {
     qApp->setStyleSheet(
         "QMainWindow, QWidget { background: #eef2f6; color: #1f2937; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Arial, sans-serif; font-size: 14px; line-height: 1.45; }"
         "QSplitter::handle { background: #e4eaf1; }"

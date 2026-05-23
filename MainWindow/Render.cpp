@@ -4,6 +4,7 @@
 
 #include <QFileInfo>
 #include <QList>
+#include <QTextDocument>
 
 #include "../HWFileScanner/HWFileScanner.h"
 
@@ -31,6 +32,20 @@ struct DiffStatEntry {
 QString htmlEscape(const QString& text) {
     QString escaped = text.toHtmlEscaped();
     return escaped.replace('\n', "<br>");
+}
+
+QString markdownToHtmlBlock(const QString& markdown) {
+    QTextDocument document;
+    document.setMarkdown(markdown);
+    QString html = document.toHtml();
+    const int bodyStart = html.indexOf("<body");
+    if (bodyStart >= 0) {
+        const int bodyContentStart = html.indexOf('>', bodyStart);
+        const int bodyEnd = html.lastIndexOf("</body>");
+        if (bodyContentStart >= 0 && bodyEnd > bodyContentStart)
+            html = html.mid(bodyContentStart + 1, bodyEnd - bodyContentStart - 1);
+    }
+    return html.trimmed();
 }
 
 QString extractJsonObjectText(const QString& text) {
@@ -344,6 +359,8 @@ QString severityPill(const QString& severity) {
 QString feedbackStatusPill(const QString& status) {
     if (status == "resolved" || status == "已解决")
         return pillHtml(AppText::get("feedback.resolved"), "#166534", "#ecfdf3", "#bbf7d0");
+    if (status == "uncertain" || status == "无法确定")
+        return pillHtml(AppText::get("feedback.uncertain"), "#92400e", "#fffbeb", "#fde68a");
     if (status == "ignored" || status == "ignore" || status == "忽略")
         return pillHtml(AppText::get("feedback.ignored"), "#64748b", "#f8fafc", "#d9dee7");
     return pillHtml(AppText::get("feedback.unresolved"), "#1d4ed8", "#eff6ff", "#bfdbfe");
@@ -351,9 +368,11 @@ QString feedbackStatusPill(const QString& status) {
 
 QString renderFeedbackRecordDetail(const FeedbackRecord& feedback) {
     QString html;
+    QString displayCreatedAt = feedback.createdAt;
+    displayCreatedAt.replace('T', ' ');
     html += QString("<h2 style=\"margin:0 0 6px 0; color:#111827;\">%1</h2>").arg(htmlEscape(feedback.summary.isEmpty() ? AppText::get("feedback.record") : feedback.summary));
     html += "<table cellspacing=\"0\" cellpadding=\"6\" style=\"border-collapse:collapse; width:100%; margin-bottom:10px;\">";
-    html += QString("<tr><td style=\"width:82px; color:#64748b;\">%1</td><td>%2</td></tr>").arg(htmlEscape(AppText::get("version.commitDate")), htmlEscape(feedback.createdAt));
+    html += QString("<tr><td style=\"width:82px; color:#64748b;\">%1</td><td>%2</td></tr>").arg(htmlEscape(AppText::get("version.commitDate")), htmlEscape(displayCreatedAt));
     html += QString("<tr><td style=\"color:#64748b;\">%1</td><td>%2&nbsp;&nbsp;%3&nbsp;&nbsp;%4</td></tr>")
                 .arg(htmlEscape(AppText::get("version.type")),
                      pillHtml(feedback.mode.isEmpty() ? AppText::get("label.fileAnalysis") : feedback.mode, "#1d4ed8", "#eff6ff", "#bfdbfe"),
@@ -363,7 +382,7 @@ QString renderFeedbackRecordDetail(const FeedbackRecord& feedback) {
     html += "</table>";
     html += QString("<h3 style=\"margin:10px 0 6px 0; color:#0f172a;\">%1</h3>").arg(htmlEscape(AppText::get("label.fullFeedback")));
     html += QString("<div style=\"border:1px solid #d9dee7; background:#ffffff; padding:10px; line-height:1.55; color:#1f2937;\">%1</div>")
-                .arg(htmlEscape(feedback.rawContent.isEmpty() ? "-" : feedback.rawContent));
+                .arg(markdownToHtmlBlock(feedback.rawContent.isEmpty() ? "-" : feedback.rawContent));
     return html;
 }
 
@@ -379,10 +398,21 @@ QString renderFeedbackItemDetail(const FeedbackItem& item) {
                      pillHtml(item.category.isEmpty() ? "other" : item.category, "#475569", "#f8fafc", "#d9dee7"),
                      feedbackStatusPill(item.status));
     html += QString("<tr><td style=\"color:#64748b;\">%1</td><td>%2</td></tr>").arg(htmlEscape(AppText::get("label.location")), htmlEscape(location));
+    html += QString("<tr><td style=\"color:#64748b;\">%1</td><td>%2</td></tr>")
+                .arg(htmlEscape(AppText::get("feedback.reviewState")),
+                     htmlEscape(item.reviewRecordId.isEmpty() ? AppText::get("feedback.notReviewed") : AppText::get("feedback.reviewed")));
     html += "</table>";
     html += QString("<h3 style=\"margin:10px 0 6px 0; color:#0f172a;\">%1</h3>").arg(htmlEscape(AppText::get("label.fullSuggestion")));
     html += QString("<div style=\"border:1px solid #d9dee7; background:#ffffff; padding:10px; line-height:1.55; color:#1f2937;\">%1</div>")
-                .arg(htmlEscape(item.suggestion.isEmpty() ? AppText::get("feedback.noSuggestion") : item.suggestion));
+                .arg(markdownToHtmlBlock(item.suggestion.isEmpty() ? AppText::get("feedback.noSuggestion") : item.suggestion));
+    return html;
+}
+
+QString renderHeuristicItemDetail(const FeedbackItem& item) {
+    QString html;
+    html += QString("<h2 style=\"margin:0 0 8px 0; color:#111827;\">%1</h2>").arg(htmlEscape(item.title.isEmpty() ? AppText::get("feedback.unnamedIssue") : item.title));
+    html += QString("<div style=\"border:1px solid #d9dee7; background:#ffffff; padding:12px; line-height:1.65; color:#1f2937;\">%1</div>")
+                .arg(markdownToHtmlBlock(item.suggestion.isEmpty() ? AppText::get("feedback.noSuggestion") : item.suggestion));
     return html;
 }
 

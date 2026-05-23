@@ -725,16 +725,6 @@
   /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include/limits.h \
   /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include/ptrcheck.h \
   /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include/stdarg.h \
-  /Users/duxingzhe520/Desktop/Project/HWpilot/FeedbackStore/FeedbackStore.h \
-  /Users/duxingzhe520/Desktop/Project/HWpilot/GitService/GitService.h \
-  /Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner/HWFileScanner.h \
-  /Users/duxingzhe520/Desktop/Project/HWpilot/ProjectData.h \
-  /Users/duxingzhe520/Desktop/Project/HWpilot/ProjectManager/ProjectManager.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QJsonObject \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QList \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QPointer \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QString \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QStringList \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/q17memory.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/q20bit.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/q20functional.h \
@@ -759,9 +749,6 @@
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qbytearrayalgorithms.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qbytearraylist.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qbytearrayview.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qcalendar.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qcborcommon.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qcborvalue.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qchar.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qcheckedint_impl.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qcompare.h \
@@ -776,7 +763,6 @@
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qcontiguouscache.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qdarwinhelpers.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qdatastream.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qdatetime.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qdebug.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qendian.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qexceptionhandling.h \
@@ -793,14 +779,9 @@
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qiodevicebase.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qiterable.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qiterator.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qjsondocument.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qjsonobject.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qjsonparseerror.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qjsonvalue.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qlatin1stringview.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qline.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qlist.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qlocale.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qlogging.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qmalloc.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qmap.h \
@@ -818,11 +799,9 @@
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qoverload.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qpair.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qpoint.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qpointer.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qprocessordetection.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qrect.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qrefcount.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qregularexpression.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qscopedpointer.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qscopeguard.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qset.h \
@@ -868,9 +847,7 @@
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qtversionchecks.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qtypeinfo.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qtypes.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qurl.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qutf8stringview.h \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/quuid.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qvariant.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qvarlengtharray.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qversiontagging.h \

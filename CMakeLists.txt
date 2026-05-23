@@ -16,6 +16,7 @@ qt_add_executable(HWpilot
     MainWindow.h
     MainWindow/Ai.cpp
     MainWindow/Feedback.cpp
+    MainWindow/MainWindowPrivate.h
     MainWindow/Project.cpp
     MainWindow/Render.cpp
     MainWindow/Render.h

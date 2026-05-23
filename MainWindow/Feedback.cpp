@@ -1,4 +1,4 @@
-#include "../MainWindow.h"
+#include "MainWindowPrivate.h"
 
 #include "../AppText.h"
 
@@ -12,10 +12,16 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonParseError>
+#include <QHeaderView>
+#include <QInputDialog>
 #include <QLabel>
+#include <QLineEdit>
 #include <QMap>
+#include <QMenu>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QScrollBar>
+#include <QTabWidget>
 #include <QTextBrowser>
 #include <QTextEdit>
 #include <QTreeWidget>
@@ -48,6 +54,8 @@ QString compactFeedbackTitle(QString title) {
 QString normalizedFeedbackStatus(const QString& status) {
     if (status == "resolved" || status == "已解决")
         return "resolved";
+    if (status == "uncertain" || status == "无法确定")
+        return "uncertain";
     if (status == "ignored" || status == "ignore" || status == "忽略")
         return "ignored";
     return "unresolved";
@@ -57,6 +65,8 @@ QString feedbackStatusText(const QString& status) {
     const QString normalized = normalizedFeedbackStatus(status);
     if (normalized == "resolved")
         return AppText::get("feedback.resolved");
+    if (normalized == "uncertain")
+        return AppText::get("feedback.uncertain");
     if (normalized == "ignored")
         return AppText::get("feedback.ignored");
     return AppText::get("feedback.unresolved");
@@ -93,13 +103,43 @@ QString feedbackGroupTitle(const QString& commitHash, const QString& currentWork
 
     return commitHash.isEmpty() ? AppText::get("feedback.unlinkedVersion") : AppText::get("feedback.unknownVersion").arg(commitHash.left(8));
 }
+
+bool isHeuristicRecord(const FeedbackRecord& feedback) {
+    const QString heuristicMode = AppText::get("label.heuristicQuestions");
+    return feedback.mode == heuristicMode || feedback.mode == "Guiding Questions" || feedback.mode == "启发式问题";
+}
+
+bool isReviewRecord(const FeedbackRecord& feedback) {
+    const QString reviewMode = AppText::get("label.feedbackReview");
+    return feedback.mode == reviewMode || feedback.mode == "Feedback Review" || feedback.mode == "反馈复查";
+}
+
+void configureFeedbackTreeColumns(QTreeWidget* tree, bool showingHeuristicRecords) {
+    if (showingHeuristicRecords) {
+        tree->setColumnCount(1);
+        tree->setHeaderLabels({AppText::get("label.heuristicQuestions")});
+        tree->header()->setStretchLastSection(true);
+        return;
+    }
+
+    tree->setColumnCount(4);
+    tree->setHeaderLabels({AppText::get("label.feedbackIssue"), AppText::get("label.severity"), AppText::get("label.location"), AppText::get("label.status")});
+    tree->header()->setStretchLastSection(false);
+    tree->header()->setSectionResizeMode(0, QHeaderView::Stretch);
+    tree->header()->setSectionResizeMode(1, QHeaderView::Fixed);
+    tree->header()->setSectionResizeMode(2, QHeaderView::Fixed);
+    tree->header()->setSectionResizeMode(3, QHeaderView::Fixed);
+    tree->setColumnWidth(1, 110);
+    tree->setColumnWidth(2, 240);
+    tree->setColumnWidth(3, 126);
+}
 }  // namespace
 
-FeedbackRecord MainWindow::buildFeedbackRecord(const QString& replyText) const {
+FeedbackRecord MainWindowPrivate::buildFeedbackRecord(const QString& replyText) const {
     FeedbackRecord record;
     record.id = QString::number(QDateTime::currentMSecsSinceEpoch());
     record.commitHash = feedbackSaveContextHash();
-    record.mode = currentModeName();
+    record.mode = m_pendingFeedbackMode.isEmpty() ? currentModeName() : m_pendingFeedbackMode;
     record.createdAt = QDateTime::currentDateTime().toString(Qt::ISODate);
     record.rawContent = replyText;
 
@@ -124,6 +164,7 @@ FeedbackRecord MainWindow::buildFeedbackRecord(const QString& replyText) const {
 
         FeedbackItem item = FeedbackItem::fromJson(value.toObject());
         item.id = QString("%1-item-%2").arg(record.id).arg(index++);
+        item.sourceFeedbackId = value.toObject()["sourceFeedbackId"].toString(item.sourceFeedbackId);
         if (item.status.isEmpty())
             item.status = "unresolved";
         item.status = normalizedFeedbackStatus(item.status);
@@ -137,19 +178,43 @@ FeedbackRecord MainWindow::buildFeedbackRecord(const QString& replyText) const {
     return record;
 }
 
-void MainWindow::populateFeedbackPanel(const QList<FeedbackRecord>& feedbacks) {
+void MainWindowPrivate::populateFeedbackPanel(const QList<FeedbackRecord>& feedbacks) {
     m_feedbackTree->clear();
+    if (m_openReviewRecordButton)
+        m_openReviewRecordButton->setVisible(false);
+    configureFeedbackTreeColumns(m_feedbackTree, m_showingHeuristicRecords);
+    if (m_feedbackIssuesButton)
+        m_feedbackIssuesButton->setChecked(!m_showingHeuristicRecords && !m_showingReviewRecords);
+    if (m_feedbackReviewButton)
+        m_feedbackReviewButton->setChecked(m_showingReviewRecords);
+    if (m_heuristicQuestionsButton)
+        m_heuristicQuestionsButton->setChecked(m_showingHeuristicRecords);
 
-    if (feedbacks.isEmpty()) {
+    QList<FeedbackRecord> visibleFeedbacks;
+    for (const FeedbackRecord& feedback : feedbacks) {
+        const bool isHeuristic = isHeuristicRecord(feedback);
+        const bool isReview = isReviewRecord(feedback);
+        if (m_showingHeuristicRecords && isHeuristic)
+            visibleFeedbacks.append(feedback);
+        else if (m_showingReviewRecords && isReview)
+            visibleFeedbacks.append(feedback);
+        else if (!m_showingHeuristicRecords && !m_showingReviewRecords && !isHeuristic && !isReview)
+            visibleFeedbacks.append(feedback);
+    }
+
+    if (visibleFeedbacks.isEmpty()) {
         m_reviewReport->setHtml(QString("<h2 style=\"margin:0 0 8px 0; color:#111827;\">%1</h2><p style=\"color:#64748b;\">%2</p>")
                                      .arg(htmlEscape(AppText::get("feedback.record")), htmlEscape(AppText::get("feedback.noRecordsForVersion"))));
         return;
     }
 
-    for (const FeedbackRecord& feedback : feedbacks) {
+    for (const FeedbackRecord& feedback : visibleFeedbacks) {
         const QString title = feedback.summary.isEmpty() ? AppText::get("feedback.record") : feedback.summary;
-        auto* recordItem = new QTreeWidgetItem(m_feedbackTree, QStringList() << title << AppText::get("feedback.issueCount").arg(feedback.items.size()) << feedback.mode << feedback.parseStatus);
+        auto* recordItem = m_showingHeuristicRecords
+                               ? new QTreeWidgetItem(m_feedbackTree, QStringList() << title)
+                               : new QTreeWidgetItem(m_feedbackTree, QStringList() << title << AppText::get("feedback.issueCount").arg(feedback.items.size()) << feedback.mode << feedback.parseStatus);
         recordItem->setData(0, DetailHtmlRole, renderFeedbackRecordDetail(feedback));
+        recordItem->setData(0, RecordIdRole, feedback.id);
         recordItem->setToolTip(0, displayFeedbackTime(feedback.createdAt));
 
         QList<FeedbackItem> sortedItems = feedback.items;
@@ -158,12 +223,22 @@ void MainWindow::populateFeedbackPanel(const QList<FeedbackRecord>& feedbacks) {
         });
 
         for (const FeedbackItem& item : sortedItems) {
+            if (m_showingHeuristicRecords) {
+                auto* itemNode = new QTreeWidgetItem(recordItem, QStringList() << (item.title.isEmpty() ? AppText::get("feedback.unnamedIssue") : item.title));
+                itemNode->setData(0, DetailHtmlRole, renderHeuristicItemDetail(item));
+                itemNode->setData(0, ItemIdRole, item.id);
+                itemNode->setToolTip(0, item.suggestion);
+                continue;
+            }
+
             const QString itemStatus = normalizedFeedbackStatus(item.status);
             const QString location = item.filePath.isEmpty()
                                          ? QString()
                                          : QString("%1%2").arg(item.filePath, item.line >= 0 ? QString(":%1").arg(item.line) : QString());
             auto* itemNode = new QTreeWidgetItem(recordItem, QStringList() << (item.title.isEmpty() ? AppText::get("feedback.unnamedIssue") : item.title) << item.severity << location << feedbackStatusText(itemStatus));
             itemNode->setData(0, DetailHtmlRole, renderFeedbackItemDetail(item));
+            itemNode->setData(0, ItemIdRole, item.id);
+            itemNode->setData(0, ReviewRecordIdRole, item.reviewRecordId);
             itemNode->setData(3, Qt::UserRole, itemStatus);
             applyFeedbackStatusStyle(itemNode, itemStatus);
 
@@ -171,6 +246,7 @@ void MainWindow::populateFeedbackPanel(const QList<FeedbackRecord>& feedbacks) {
             statusCombo->setMinimumWidth(88);
             statusCombo->addItem(AppText::get("feedback.unresolved"), "unresolved");
             statusCombo->addItem(AppText::get("feedback.resolved"), "resolved");
+            statusCombo->addItem(AppText::get("feedback.uncertain"), "uncertain");
             statusCombo->addItem(AppText::get("feedback.ignored"), "ignored");
             statusCombo->setCurrentIndex(statusCombo->findData(itemStatus));
             statusCombo->setStyleSheet(feedbackStatusComboStyle(itemStatus));
@@ -178,7 +254,7 @@ void MainWindow::populateFeedbackPanel(const QList<FeedbackRecord>& feedbacks) {
                 const QString status = statusCombo->itemData(index).toString();
                 QString errorMessage;
                 if (!m_feedbackStore.updateItemStatus(item.id, status, &errorMessage)) {
-                    QMessageBox::warning(this, AppText::get("feedback.statusUpdateFailed"), errorMessage);
+                    QMessageBox::warning(q, AppText::get("feedback.statusUpdateFailed"), errorMessage);
                     return;
                 }
 
@@ -199,56 +275,101 @@ void MainWindow::populateFeedbackPanel(const QList<FeedbackRecord>& feedbacks) {
         }
     }
 
-    for (int column = 1; column < m_feedbackTree->columnCount(); ++column)
-        m_feedbackTree->resizeColumnToContents(column);
-    m_feedbackTree->setColumnWidth(3, qMax(m_feedbackTree->columnWidth(3), 104));
-
     if (m_feedbackTree->topLevelItemCount() > 0)
         m_feedbackTree->setCurrentItem(m_feedbackTree->topLevelItem(0));
 }
 
-void MainWindow::populateAiFeedbackPicker() {
+void MainWindowPrivate::showFeedbackIssueRecords() {
+    m_showingHeuristicRecords = false;
+    m_showingReviewRecords = false;
+    if (m_feedbackIssuesButton)
+        m_feedbackIssuesButton->setChecked(true);
+    if (m_feedbackReviewButton)
+        m_feedbackReviewButton->setChecked(false);
+    if (m_heuristicQuestionsButton)
+        m_heuristicQuestionsButton->setChecked(false);
+    updateCurrentVersionPanel();
+}
+
+void MainWindowPrivate::showFeedbackReviewRecords() {
+    m_showingHeuristicRecords = false;
+    m_showingReviewRecords = true;
+    if (m_feedbackIssuesButton)
+        m_feedbackIssuesButton->setChecked(false);
+    if (m_feedbackReviewButton)
+        m_feedbackReviewButton->setChecked(true);
+    if (m_heuristicQuestionsButton)
+        m_heuristicQuestionsButton->setChecked(false);
+    updateCurrentVersionPanel();
+}
+
+void MainWindowPrivate::showHeuristicQuestionRecords() {
+    m_showingHeuristicRecords = true;
+    m_showingReviewRecords = false;
+    if (m_feedbackIssuesButton)
+        m_feedbackIssuesButton->setChecked(false);
+    if (m_feedbackReviewButton)
+        m_feedbackReviewButton->setChecked(false);
+    if (m_heuristicQuestionsButton)
+        m_heuristicQuestionsButton->setChecked(true);
+    updateCurrentVersionPanel();
+}
+
+void MainWindowPrivate::populateAiFeedbackPicker() {
     if (!m_aiFeedbackTree)
         return;
 
+    const QStringList previouslySelectedItemIds = selectedFeedbackItemIds();
     m_updatingAiFeedbackTree = true;
     m_aiFeedbackTree->clear();
     const QList<FeedbackRecord> feedbacks = m_feedbackStore.allFeedbacks();
-    if (feedbacks.isEmpty()) {
-        auto* emptyItem = new QTreeWidgetItem(m_aiFeedbackTree, QStringList() << AppText::get("feedback.noRecordsForProject"));
-        emptyItem->setFlags(emptyItem->flags() & ~Qt::ItemIsEnabled);
-        m_updatingAiFeedbackTree = false;
-        return;
-    }
 
     const QString currentWorkHash = currentWorkContextHash();
+    bool hasVisibleFeedback = false;
     QMap<QString, QTreeWidgetItem*> groupItems;
     for (const FeedbackRecord& feedback : feedbacks) {
+        if (isHeuristicRecord(feedback) || isReviewRecord(feedback))
+            continue;
+
+        QList<FeedbackItem> visibleItems;
+        for (const FeedbackItem& feedbackItem : feedback.items) {
+            const QString status = normalizedFeedbackStatus(feedbackItem.status);
+            if (status == "unresolved" || status == "uncertain")
+                visibleItems.append(feedbackItem);
+        }
+        if (visibleItems.isEmpty() && !feedback.items.isEmpty())
+            continue;
+
         const QString groupKey = feedback.commitHash.isEmpty() ? QString("untracked") : feedback.commitHash;
+        const bool isCurrentWorkFeedback = feedback.commitHash == currentWorkHash || feedback.commitHash == "working-tree";
         QTreeWidgetItem* groupItem = groupItems.value(groupKey, nullptr);
         if (!groupItem) {
             groupItem = new QTreeWidgetItem(m_aiFeedbackTree, QStringList() << feedbackGroupTitle(feedback.commitHash, currentWorkHash, m_commits));
             groupItem->setFlags(groupItem->flags() & ~Qt::ItemIsUserCheckable);
             groupItem->setData(0, IsDirectoryRole, true);
             groupItem->setToolTip(0, feedback.commitHash.isEmpty() ? AppText::get("feedback.unlinkedVersion") : feedback.commitHash);
+            groupItem->setExpanded(isCurrentWorkFeedback);
             groupItems.insert(groupKey, groupItem);
         }
 
         const QString title = feedback.summary.isEmpty() ? AppText::get("feedback.record") : feedback.summary;
         auto* item = new QTreeWidgetItem(groupItem, QStringList() << title);
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
-        item->setCheckState(0, Qt::Checked);
+        item->setCheckState(0, Qt::Unchecked);
         item->setData(0, IsDirectoryRole, true);
-        item->setData(0, NoteRole, feedback.rawContent);
+        item->setData(0, RecordIdRole, feedback.id);
         item->setToolTip(0, displayFeedbackTime(feedback.createdAt));
+        item->setExpanded(isCurrentWorkFeedback);
 
+        QString visibleRecordContext;
         int issueIndex = 1;
-        for (const FeedbackItem& feedbackItem : feedback.items) {
+        for (const FeedbackItem& feedbackItem : visibleItems) {
             const QString issueTitle = feedbackItem.title.isEmpty() ? AppText::get("feedback.issueNumber").arg(issueIndex) : feedbackItem.title;
             auto* issueNode = new QTreeWidgetItem(item, QStringList() << issueTitle);
             issueNode->setFlags(issueNode->flags() | Qt::ItemIsUserCheckable);
-            issueNode->setCheckState(0, Qt::Checked);
+            issueNode->setCheckState(0, previouslySelectedItemIds.contains(feedbackItem.id) ? Qt::Checked : Qt::Unchecked);
             issueNode->setData(0, IsDirectoryRole, false);
+            issueNode->setData(0, ItemIdRole, feedbackItem.id);
             const QString location = feedbackItem.filePath.isEmpty()
                                          ? AppText::get("feedback.noLocation")
                                          : QString("%1%2").arg(feedbackItem.filePath, feedbackItem.line >= 0 ? QString(":%1").arg(feedbackItem.line) : QString());
@@ -260,14 +381,25 @@ void MainWindow::populateAiFeedbackPicker() {
                                         location,
                                         feedbackItem.suggestion.isEmpty() ? AppText::get("feedback.noSuggestion") : feedbackItem.suggestion));
             issueNode->setToolTip(0, issueTitle);
+            visibleRecordContext += QString("- %1\n反馈条目ID：%2\n%3\n\n")
+                                        .arg(issueTitle, feedbackItem.id, issueNode->data(0, NoteRole).toString());
             ++issueIndex;
         }
+        item->setData(0, NoteRole, feedback.items.isEmpty() ? feedback.rawContent : visibleRecordContext.trimmed());
+        updateParentCheckState(item);
+        hasVisibleFeedback = true;
+    }
+
+    if (!hasVisibleFeedback) {
+        auto* emptyItem = new QTreeWidgetItem(m_aiFeedbackTree, QStringList() << AppText::get("feedback.noRecordsForProject"));
+        emptyItem->setFlags(emptyItem->flags() & ~Qt::ItemIsEnabled);
     }
 
     m_updatingAiFeedbackTree = false;
+    updateAiActionText();
 }
 
-void MainWindow::selectAllAiFeedbackRecords() {
+void MainWindowPrivate::selectAllAiFeedbackRecords() {
     if (!m_aiFeedbackTree)
         return;
 
@@ -284,9 +416,10 @@ void MainWindow::selectAllAiFeedbackRecords() {
         }
     }
     m_updatingAiFeedbackTree = false;
+    updateAiActionText();
 }
 
-void MainWindow::handleAiFeedbackItemChanged(QTreeWidgetItem* item, int column) {
+void MainWindowPrivate::handleAiFeedbackItemChanged(QTreeWidgetItem* item, int column) {
     if (!item || column != 0 || m_updatingAiFeedbackTree)
         return;
 
@@ -314,9 +447,10 @@ void MainWindow::handleAiFeedbackItemChanged(QTreeWidgetItem* item, int column) 
             parent->setCheckState(0, Qt::PartiallyChecked);
     }
     m_updatingAiFeedbackTree = false;
+    updateAiActionText();
 }
 
-void MainWindow::handleFeedbackTreeSelection(QTreeWidgetItem* current, QTreeWidgetItem* previous) {
+void MainWindowPrivate::handleFeedbackTreeSelection(QTreeWidgetItem* current, QTreeWidgetItem* previous) {
     Q_UNUSED(previous);
     if (!current)
         return;
@@ -324,35 +458,165 @@ void MainWindow::handleFeedbackTreeSelection(QTreeWidgetItem* current, QTreeWidg
     const QString detailHtml = current->data(0, DetailHtmlRole).toString();
     if (!detailHtml.isEmpty())
         m_reviewReport->setHtml(detailHtml);
+
+    const QString reviewRecordId = current->data(0, ReviewRecordIdRole).toString();
+    if (m_openReviewRecordButton) {
+        m_openReviewRecordButton->setProperty("reviewRecordId", reviewRecordId);
+        m_openReviewRecordButton->setVisible(!reviewRecordId.isEmpty());
+    }
 }
 
-void MainWindow::saveFeedbackToVersion() {
+void MainWindowPrivate::showFeedbackTreeContextMenu(const QPoint& position) {
+    QTreeWidgetItem* item = m_feedbackTree->itemAt(position);
+    if (!item || item->parent())
+        return;
+
+    const QString recordId = item->data(0, RecordIdRole).toString();
+    if (recordId.isEmpty())
+        return;
+
+    QMenu menu(m_feedbackTree);
+    QAction* renameAction = menu.addAction(AppText::get("menu.rename"));
+    QAction* selectedAction = menu.exec(m_feedbackTree->viewport()->mapToGlobal(position));
+    if (selectedAction != renameAction)
+        return;
+
+    bool accepted = false;
+    const QString currentName = item->text(0);
+    const QString newName = QInputDialog::getText(q,
+                                                  AppText::get("dialog.renameFeedback.title"),
+                                                  AppText::get("dialog.renameFeedback.label"),
+                                                  QLineEdit::Normal,
+                                                  currentName,
+                                                  &accepted)
+                                .trimmed();
+    if (!accepted || newName.isEmpty() || newName == currentName)
+        return;
+
+    QString errorMessage;
+    if (!m_feedbackStore.renameFeedbackRecord(recordId, newName, &errorMessage)) {
+        QMessageBox::warning(q, AppText::get("dialog.saveFailed"), errorMessage);
+        return;
+    }
+
+    updateCurrentVersionPanel();
+}
+
+void MainWindowPrivate::saveFeedbackToVersion() {
     if (m_projectDir.isEmpty()) {
-        QMessageBox::information(this, AppText::get("dialog.noProject.title"), AppText::get("dialog.noProject.body"));
+        QMessageBox::information(q, AppText::get("dialog.noProject.title"), AppText::get("dialog.noProject.body"));
         return;
     }
 
     const QString feedback = m_lastAiReply.trimmed().isEmpty() ? m_responseView->toPlainText().trimmed() : m_lastAiReply.trimmed();
     if (feedback.isEmpty()) {
-        QMessageBox::information(this, AppText::get("dialog.noFeedback.title"), AppText::get("dialog.noFeedback.body"));
+        QMessageBox::information(q, AppText::get("dialog.noFeedback.title"), AppText::get("dialog.noFeedback.body"));
         return;
     }
 
+    const bool isReviewRecord = m_lastAiModeName == AppText::get("label.feedbackReview");
+    const QStringList reviewedItemIds = isReviewRecord ? selectedFeedbackItemIds() : QStringList();
+
+    m_pendingFeedbackMode = m_lastAiModeName.isEmpty() ? currentModeName() : m_lastAiModeName;
     FeedbackRecord record = buildFeedbackRecord(feedback);
+    m_pendingFeedbackMode.clear();
+
+    if (isReviewRecord) {
+        for (int i = 0; i < record.items.size() && i < reviewedItemIds.size(); ++i) {
+            if (record.items[i].sourceFeedbackId.isEmpty())
+                record.items[i].sourceFeedbackId = reviewedItemIds.at(i);
+        }
+    }
 
     QString errorMessage;
     if (!m_feedbackStore.addFeedback(record, &errorMessage)) {
-        QMessageBox::warning(this, AppText::get("dialog.saveFailed"), errorMessage);
+        QMessageBox::warning(q, AppText::get("dialog.saveFailed"), errorMessage);
         return;
+    }
+    if (isReviewRecord && !m_feedbackStore.markItemsReviewed(reviewedItemIds, record.id, &errorMessage)) {
+        QMessageBox::warning(q, AppText::get("dialog.saveFailed"), errorMessage);
+        return;
+    }
+    if (isReviewRecord && !reviewedItemIds.isEmpty()) {
+        const QMessageBox::StandardButton answer = QMessageBox::question(
+            q,
+            AppText::get("dialog.markReviewedResolved.title"),
+            AppText::get("dialog.markReviewedResolved.body"),
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::No);
+        if (answer == QMessageBox::Yes && !m_feedbackStore.updateItemsStatus(reviewedItemIds, "resolved", &errorMessage)) {
+            QMessageBox::warning(q, AppText::get("dialog.saveFailed"), errorMessage);
+            return;
+        }
     }
 
     m_statusLabel->setText(AppText::get("status.savedFeedback"));
     m_lastAiReply.clear();
+    m_lastAiModeName.clear();
     m_responseView->clear();
     m_questionEdit->clear();
     m_responseView->setPlaceholderText(AppText::get("placeholder.savedFeedback"));
 
     refreshProjectPanel();
+    for (int i = 0; i < m_versionRoot->childCount(); ++i) {
+        QTreeWidgetItem* item = m_versionRoot->child(i);
+        if (item->data(0, CommitHashRole).toString().isEmpty()) {
+            m_versionTree->setCurrentItem(item);
+            break;
+        }
+    }
+    updateCurrentVersionPanel();
+}
+
+void MainWindowPrivate::selectFeedbackRecordById(const QString& recordId) {
+    if (recordId.isEmpty() || !m_feedbackTree)
+        return;
+
+    m_showingHeuristicRecords = false;
+    m_showingReviewRecords = true;
+    updateCurrentVersionPanel();
+
+    for (int i = 0; i < m_feedbackTree->topLevelItemCount(); ++i) {
+        QTreeWidgetItem* recordItem = m_feedbackTree->topLevelItem(i);
+        if (recordItem->data(0, RecordIdRole).toString() == recordId) {
+            m_feedbackTree->setCurrentItem(recordItem);
+            recordItem->setExpanded(true);
+            m_tabs->setCurrentIndex(3);
+            return;
+        }
+    }
+}
+
+void MainWindowPrivate::saveHeuristicToVersion() {
+    if (m_projectDir.isEmpty()) {
+        QMessageBox::information(q, AppText::get("dialog.noProject.title"), AppText::get("dialog.noProject.body"));
+        return;
+    }
+
+    const QString feedback = m_lastHeuristicReply.trimmed().isEmpty() ? m_heuristicResponseView->toPlainText().trimmed() : m_lastHeuristicReply.trimmed();
+    if (feedback.isEmpty()) {
+        QMessageBox::information(q, AppText::get("dialog.noFeedback.title"), AppText::get("dialog.noFeedback.body"));
+        return;
+    }
+
+    m_pendingFeedbackMode = heuristicModeName();
+    FeedbackRecord record = buildFeedbackRecord(feedback);
+    m_pendingFeedbackMode.clear();
+
+    QString errorMessage;
+    if (!m_feedbackStore.addFeedback(record, &errorMessage)) {
+        QMessageBox::warning(q, AppText::get("dialog.saveFailed"), errorMessage);
+        return;
+    }
+
+    m_statusLabel->setText(AppText::get("status.savedFeedback"));
+    m_lastHeuristicReply.clear();
+    m_heuristicResponseView->clear();
+    m_heuristicQuestionEdit->clear();
+    m_heuristicResponseView->setPlaceholderText(AppText::get("placeholder.savedFeedback"));
+
+    refreshProjectPanel();
+    m_showingHeuristicRecords = true;
     for (int i = 0; i < m_versionRoot->childCount(); ++i) {
         QTreeWidgetItem* item = m_versionRoot->child(i);
         if (item->data(0, CommitHashRole).toString().isEmpty()) {

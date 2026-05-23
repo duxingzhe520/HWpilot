@@ -1,4 +1,4 @@
-#include "../MainWindow.h"
+#include "MainWindowPrivate.h"
 
 #include "../AppText.h"
 
@@ -17,8 +17,8 @@
 
 using namespace MainWindowRender;
 
-void MainWindow::openProjectFolder() {
-    const QString folder = QFileDialog::getExistingDirectory(this, AppText::get("menu.openProject"), m_projectDir);
+void MainWindowPrivate::openProjectFolder() {
+    const QString folder = QFileDialog::getExistingDirectory(q, AppText::get("menu.openProject"), m_projectDir);
     if (folder.isEmpty())
         return;
 
@@ -26,9 +26,9 @@ void MainWindow::openProjectFolder() {
     scanCurrentProject();
 }
 
-void MainWindow::refreshCurrentProject() {
+void MainWindowPrivate::refreshCurrentProject() {
     if (m_projectDir.isEmpty()) {
-        QMessageBox::information(this, AppText::get("dialog.noProject.title"), AppText::get("dialog.noProject.body"));
+        QMessageBox::information(q, AppText::get("dialog.noProject.title"), AppText::get("dialog.noProject.body"));
         return;
     }
 
@@ -37,15 +37,17 @@ void MainWindow::refreshCurrentProject() {
     m_statusLabel->setText(AppText::get("status.refreshDone").arg(m_files.size()));
 }
 
-void MainWindow::setProjectFolder(const QString& folderPath) {
+void MainWindowPrivate::setProjectFolder(const QString& folderPath) {
     m_projectDir = QDir(folderPath).absolutePath();
+    m_fileTreeInitialized = false;
+    m_heuristicFileTreeInitialized = false;
     QString errorMessage;
     if (!m_projectManager.openProject(m_projectDir, &errorMessage)) {
-        QMessageBox::warning(this, AppText::get("dialog.projectInitFailed"), errorMessage);
+        QMessageBox::warning(q, AppText::get("dialog.projectInitFailed"), errorMessage);
         return;
     }
     if (!m_feedbackStore.openProject(m_projectDir, &errorMessage)) {
-        QMessageBox::warning(this, AppText::get("dialog.feedbackStoreInitFailed"), errorMessage);
+        QMessageBox::warning(q, AppText::get("dialog.feedbackStoreInitFailed"), errorMessage);
         return;
     }
     if (m_feedbackStore.isEmpty() && !m_projectManager.data().feedbacks.isEmpty()) {
@@ -57,7 +59,7 @@ void MainWindow::setProjectFolder(const QString& folderPath) {
     if (!m_gitService.isGitRepo()) {
         const GitCommandResult initResult = m_gitService.initRepo();
         if (!initResult.success) {
-            QMessageBox::warning(this, AppText::get("dialog.gitInitFailed"), initResult.stderrText.trimmed());
+            QMessageBox::warning(q, AppText::get("dialog.gitInitFailed"), initResult.stderrText.trimmed());
         }
     }
 
@@ -67,7 +69,7 @@ void MainWindow::setProjectFolder(const QString& folderPath) {
     refreshGitState();
 }
 
-void MainWindow::rememberRecentProject(const QString& folderPath) {
+void MainWindowPrivate::rememberRecentProject(const QString& folderPath) {
     QStringList projects = QSettings("HWpilot", "HWpilot").value("recentProjects").toStringList();
     const QString absolutePath = QDir(folderPath).absolutePath();
     projects.removeAll(absolutePath);
@@ -79,7 +81,7 @@ void MainWindow::rememberRecentProject(const QString& folderPath) {
     updateRecentProjectsMenu();
 }
 
-void MainWindow::scanCurrentProject(bool showWarnings) {
+void MainWindowPrivate::scanCurrentProject(bool showWarnings) {
     if (m_projectDir.isEmpty()) {
         if (showWarnings)
             openProjectFolder();
@@ -99,11 +101,11 @@ void MainWindow::scanCurrentProject(bool showWarnings) {
         m_statusLabel->setText(AppText::get("status.scanDone").arg(m_files.size()));
 
     if (showWarnings && m_files.isEmpty()) {
-        QMessageBox::warning(this, AppText::get("dialog.noFilesFound.title"), AppText::get("dialog.noFilesFound.body"));
+        QMessageBox::warning(q, AppText::get("dialog.noFilesFound.title"), AppText::get("dialog.noFilesFound.body"));
     }
 }
 
-void MainWindow::refreshProjectPanel() {
+void MainWindowPrivate::refreshProjectPanel() {
     const QString name = m_projectDir.isEmpty() ? AppText::get("label.noProject") : QFileInfo(m_projectDir).fileName();
     m_projectNameLabel->setText(name);
     m_projectPathLabel->setText(m_projectDir.isEmpty() ? AppText::get("label.chooseProjectStart") : m_projectDir);
@@ -111,7 +113,7 @@ void MainWindow::refreshProjectPanel() {
     m_feedbackCountLabel->setText(AppText::get("label.feedbackCount").arg(m_feedbackStore.allFeedbacks().size()));
 }
 
-void MainWindow::populateFileTree() {
+void MainWindowPrivate::populateFileTree() {
     QStringList paths;
     const QString commitHash = selectedCommitHash();
     if (commitHash.isEmpty()) {
@@ -126,9 +128,11 @@ void MainWindow::populateFileTree() {
     }
 
     populateFileTreeForPaths(paths);
+    populateHeuristicFileTreeForPaths(paths);
 }
 
-void MainWindow::populateFileTreeForPaths(const QStringList& paths) {
+void MainWindowPrivate::populateFileTreeForPaths(const QStringList& paths) {
+    const QStringList previouslyCheckedPaths = m_fileTreeInitialized ? checkedFilePaths() : paths;
     m_updatingFileTree = true;
     m_fileTree->clear();
 
@@ -156,21 +160,93 @@ void MainWindow::populateFileTreeForPaths(const QStringList& paths) {
             if (!child) {
                 child = new QTreeWidgetItem(parent, QStringList() << parts.at(i));
                 child->setFlags(child->flags() | Qt::ItemIsUserCheckable);
-                child->setCheckState(0, Qt::Checked);
+                child->setCheckState(0, Qt::Unchecked);
             }
 
             child->setData(0, FilePathRole, currentPath);
             child->setData(0, IsDirectoryRole, !isLast);
+            if (isLast)
+                child->setCheckState(0, previouslyCheckedPaths.contains(currentPath) ? Qt::Checked : Qt::Unchecked);
             child->setToolTip(0, currentPath);
             parent = child;
         }
     }
 
+    auto updateParents = [&](auto&& self, QTreeWidgetItem* item) -> void {
+        for (int i = 0; i < item->childCount(); ++i) {
+            QTreeWidgetItem* child = item->child(i);
+            self(self, child);
+            if (!child->data(0, IsDirectoryRole).toBool())
+                updateParentCheckState(child);
+        }
+    };
+    updateParents(updateParents, m_fileTree->invisibleRootItem());
+
     m_fileTree->expandAll();
+    m_fileTreeInitialized = true;
     m_updatingFileTree = false;
 }
 
-void MainWindow::setTreeChildrenCheckState(QTreeWidgetItem* item, Qt::CheckState state) {
+void MainWindowPrivate::populateHeuristicFileTreeForPaths(const QStringList& paths) {
+    if (!m_heuristicFileTree)
+        return;
+
+    const QStringList previouslyCheckedPaths = m_heuristicFileTreeInitialized ? checkedHeuristicFilePaths() : paths;
+    m_updatingHeuristicFileTree = true;
+    m_heuristicFileTree->clear();
+
+    QStringList sortedPaths = paths;
+    sortedPaths.removeDuplicates();
+    sortedPaths.sort(Qt::CaseInsensitive);
+
+    for (const QString& path : sortedPaths) {
+        QTreeWidgetItem* parent = m_heuristicFileTree->invisibleRootItem();
+        QString currentPath;
+        const QStringList parts = path.split('/', Qt::SkipEmptyParts);
+        for (int i = 0; i < parts.size(); ++i) {
+            const bool isLast = i == parts.size() - 1;
+            currentPath = currentPath.isEmpty() ? parts.at(i) : currentPath + "/" + parts.at(i);
+
+            QTreeWidgetItem* child = nullptr;
+            for (int childIndex = 0; childIndex < parent->childCount(); ++childIndex) {
+                QTreeWidgetItem* existing = parent->child(childIndex);
+                if (existing->text(0) == parts.at(i)) {
+                    child = existing;
+                    break;
+                }
+            }
+
+            if (!child) {
+                child = new QTreeWidgetItem(parent, QStringList() << parts.at(i));
+                child->setFlags(child->flags() | Qt::ItemIsUserCheckable);
+                child->setCheckState(0, Qt::Unchecked);
+            }
+
+            child->setData(0, FilePathRole, currentPath);
+            child->setData(0, IsDirectoryRole, !isLast);
+            if (isLast)
+                child->setCheckState(0, previouslyCheckedPaths.contains(currentPath) ? Qt::Checked : Qt::Unchecked);
+            child->setToolTip(0, currentPath);
+            parent = child;
+        }
+    }
+
+    auto updateParents = [&](auto&& self, QTreeWidgetItem* item) -> void {
+        for (int i = 0; i < item->childCount(); ++i) {
+            QTreeWidgetItem* child = item->child(i);
+            self(self, child);
+            if (!child->data(0, IsDirectoryRole).toBool())
+                updateParentCheckState(child);
+        }
+    };
+    updateParents(updateParents, m_heuristicFileTree->invisibleRootItem());
+
+    m_heuristicFileTree->expandAll();
+    m_heuristicFileTreeInitialized = true;
+    m_updatingHeuristicFileTree = false;
+}
+
+void MainWindowPrivate::setTreeChildrenCheckState(QTreeWidgetItem* item, Qt::CheckState state) {
     for (int i = 0; i < item->childCount(); ++i) {
         QTreeWidgetItem* child = item->child(i);
         child->setCheckState(0, state);
@@ -178,7 +254,7 @@ void MainWindow::setTreeChildrenCheckState(QTreeWidgetItem* item, Qt::CheckState
     }
 }
 
-void MainWindow::updateParentCheckState(QTreeWidgetItem* item) {
+void MainWindowPrivate::updateParentCheckState(QTreeWidgetItem* item) {
     QTreeWidgetItem* parent = item->parent();
     while (parent) {
         int checkedCount = 0;
@@ -203,7 +279,7 @@ void MainWindow::updateParentCheckState(QTreeWidgetItem* item) {
     }
 }
 
-QList<CodeFile> MainWindow::selectedFiles() const {
+QList<CodeFile> MainWindowPrivate::selectedFiles() const {
     QList<CodeFile> files;
     const QString commitHash = selectedCommitHash();
     const QStringList paths = checkedFilePaths();
@@ -229,7 +305,7 @@ QList<CodeFile> MainWindow::selectedFiles() const {
     return files;
 }
 
-QStringList MainWindow::checkedFilePaths() const {
+QStringList MainWindowPrivate::checkedFilePaths() const {
     QStringList paths;
     auto collect = [&](auto&& self, QTreeWidgetItem* item) -> void {
         for (int i = 0; i < item->childCount(); ++i) {
@@ -246,23 +322,95 @@ QStringList MainWindow::checkedFilePaths() const {
     return paths;
 }
 
-QString MainWindow::selectedCommitHash() const {
+QList<CodeFile> MainWindowPrivate::selectedHeuristicFiles() const {
+    QList<CodeFile> files;
+    const QString commitHash = selectedCommitHash();
+    const QStringList paths = checkedHeuristicFilePaths();
+    for (const QString& path : paths) {
+        if (commitHash.isEmpty()) {
+            const QString absolutePath = QDir(m_projectDir).filePath(path);
+            for (const CodeFile& file : m_files) {
+                if (file.absolutePath == absolutePath || file.relativePath == path) {
+                    files.append(file);
+                    break;
+                }
+            }
+            continue;
+        }
+
+        CodeFile file;
+        file.relativePath = path;
+        file.absolutePath = QDir(m_projectDir).filePath(path);
+        file.extension = extensionForPath(path);
+        file.content = m_gitService.fileContentAtCommit(commitHash, path);
+        files.append(file);
+    }
+    return files;
+}
+
+QStringList MainWindowPrivate::checkedHeuristicFilePaths() const {
+    QStringList paths;
+    if (!m_heuristicFileTree)
+        return paths;
+
+    auto collect = [&](auto&& self, QTreeWidgetItem* item) -> void {
+        for (int i = 0; i < item->childCount(); ++i) {
+            QTreeWidgetItem* child = item->child(i);
+            if (child->data(0, IsDirectoryRole).toBool()) {
+                self(self, child);
+            } else if (child->checkState(0) == Qt::Checked) {
+                paths.append(child->data(0, FilePathRole).toString());
+            }
+        }
+    };
+
+    collect(collect, m_heuristicFileTree->invisibleRootItem());
+    return paths;
+}
+
+QStringList MainWindowPrivate::selectedFeedbackItemIds() const {
+    QStringList ids;
+    if (!m_aiFeedbackTree)
+        return ids;
+
+    QTreeWidgetItem* root = m_aiFeedbackTree->invisibleRootItem();
+    for (int groupIndex = 0; groupIndex < root->childCount(); ++groupIndex) {
+        QTreeWidgetItem* groupItem = root->child(groupIndex);
+        for (int recordIndex = 0; recordIndex < groupItem->childCount(); ++recordIndex) {
+            QTreeWidgetItem* recordItem = groupItem->child(recordIndex);
+            for (int childIndex = 0; childIndex < recordItem->childCount(); ++childIndex) {
+                QTreeWidgetItem* issueItem = recordItem->child(childIndex);
+                if (issueItem->checkState(0) != Qt::Checked)
+                    continue;
+
+                const QString id = issueItem->data(0, ItemIdRole).toString();
+                if (!id.isEmpty())
+                    ids.append(id);
+            }
+        }
+    }
+
+    ids.removeDuplicates();
+    return ids;
+}
+
+QString MainWindowPrivate::selectedCommitHash() const {
     QTreeWidgetItem* item = m_versionTree->currentItem();
     if (!item || item == m_versionRoot)
         return QString();
     return item->data(0, CommitHashRole).toString();
 }
 
-QString MainWindow::feedbackContextHash() const {
+QString MainWindowPrivate::feedbackContextHash() const {
     const QString commitHash = selectedCommitHash();
     return commitHash.isEmpty() ? currentWorkContextHash() : commitHash;
 }
 
-QString MainWindow::feedbackSaveContextHash() const {
+QString MainWindowPrivate::feedbackSaveContextHash() const {
     return currentWorkContextHash();
 }
 
-void MainWindow::selectAllFiles() {
+void MainWindowPrivate::selectAllFiles() {
     if (!m_fileTree)
         return;
 
@@ -276,7 +424,21 @@ void MainWindow::selectAllFiles() {
     m_updatingFileTree = false;
 }
 
-void MainWindow::handleFileItemChanged(QTreeWidgetItem* item, int column) {
+void MainWindowPrivate::selectAllHeuristicFiles() {
+    if (!m_heuristicFileTree)
+        return;
+
+    m_updatingHeuristicFileTree = true;
+    QTreeWidgetItem* root = m_heuristicFileTree->invisibleRootItem();
+    for (int i = 0; i < root->childCount(); ++i) {
+        QTreeWidgetItem* item = root->child(i);
+        item->setCheckState(0, Qt::Checked);
+        setTreeChildrenCheckState(item, Qt::Checked);
+    }
+    m_updatingHeuristicFileTree = false;
+}
+
+void MainWindowPrivate::handleFileItemChanged(QTreeWidgetItem* item, int column) {
     if (!item || column != 0 || m_updatingFileTree)
         return;
 
@@ -287,7 +449,18 @@ void MainWindow::handleFileItemChanged(QTreeWidgetItem* item, int column) {
     m_updatingFileTree = false;
 }
 
-QString MainWindow::currentWorkContextHash() const {
+void MainWindowPrivate::handleHeuristicFileItemChanged(QTreeWidgetItem* item, int column) {
+    if (!item || column != 0 || m_updatingHeuristicFileTree)
+        return;
+
+    m_updatingHeuristicFileTree = true;
+    if (item->data(0, IsDirectoryRole).toBool())
+        setTreeChildrenCheckState(item, item->checkState(0));
+    updateParentCheckState(item);
+    m_updatingHeuristicFileTree = false;
+}
+
+QString MainWindowPrivate::currentWorkContextHash() const {
     const QString head = m_gitService.currentHead();
     if (head.isEmpty() || !m_gitService.statusPorcelain().trimmed().isEmpty())
         return "working-tree";

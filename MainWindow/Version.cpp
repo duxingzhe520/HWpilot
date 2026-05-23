@@ -1,4 +1,4 @@
-#include "../MainWindow.h"
+#include "MainWindowPrivate.h"
 
 #include "../AppText.h"
 
@@ -16,20 +16,20 @@
 
 using namespace MainWindowRender;
 
-void MainWindow::commitCurrentSnapshot() {
+void MainWindowPrivate::commitCurrentSnapshot() {
     if (m_projectDir.isEmpty()) {
-        QMessageBox::information(this, AppText::get("dialog.noProject.title"), AppText::get("dialog.noProject.body"));
+        QMessageBox::information(q, AppText::get("dialog.noProject.title"), AppText::get("dialog.noProject.body"));
         return;
     }
 
     const QStringList paths = m_gitService.changedPaths();
     if (paths.isEmpty()) {
-        QMessageBox::information(this, AppText::get("dialog.noChanges.title"), AppText::get("dialog.noChanges.body"));
+        QMessageBox::information(q, AppText::get("dialog.noChanges.title"), AppText::get("dialog.noChanges.body"));
         return;
     }
 
     const QString defaultMessage = QString("Save progress: %1").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm"));
-    QInputDialog dialog(this);
+    QInputDialog dialog(q);
     dialog.setWindowTitle(AppText::get("dialog.commitMessage.title"));
     dialog.setLabelText(AppText::get("dialog.commitMessage.label"));
     dialog.setTextValue(defaultMessage);
@@ -46,21 +46,21 @@ void MainWindow::commitCurrentSnapshot() {
         return;
     const QString message = dialog.textValue().trimmed();
     if (message.isEmpty()) {
-        QMessageBox::information(this, AppText::get("dialog.emptyCommit.title"), AppText::get("dialog.emptyCommit.body"));
+        QMessageBox::information(q, AppText::get("dialog.emptyCommit.title"), AppText::get("dialog.emptyCommit.body"));
         return;
     }
 
     m_statusLabel->setText(AppText::get("status.committing"));
     const GitCommandResult addResult = m_gitService.addPaths(paths);
     if (!addResult.success) {
-        QMessageBox::warning(this, AppText::get("dialog.gitAddFailed"), addResult.stderrText.trimmed().isEmpty() ? addResult.stdoutText.trimmed() : addResult.stderrText.trimmed());
+        QMessageBox::warning(q, AppText::get("dialog.gitAddFailed"), addResult.stderrText.trimmed().isEmpty() ? addResult.stdoutText.trimmed() : addResult.stderrText.trimmed());
         m_statusLabel->setText(AppText::get("status.commitFailed"));
         return;
     }
 
     const GitCommandResult commitResult = m_gitService.commit(message);
     if (!commitResult.success) {
-        QMessageBox::warning(this, AppText::get("dialog.gitCommitFailed"), commitResult.stderrText.trimmed().isEmpty() ? commitResult.stdoutText.trimmed() : commitResult.stderrText.trimmed());
+        QMessageBox::warning(q, AppText::get("dialog.gitCommitFailed"), commitResult.stderrText.trimmed().isEmpty() ? commitResult.stdoutText.trimmed() : commitResult.stderrText.trimmed());
         m_statusLabel->setText(AppText::get("status.commitFailed"));
         return;
     }
@@ -77,7 +77,7 @@ void MainWindow::commitCurrentSnapshot() {
     m_statusLabel->setText(AppText::get("status.commitDone"));
 }
 
-void MainWindow::refreshChangeSummary() {
+void MainWindowPrivate::refreshChangeSummary() {
     QString html = QString("<h2>%1</h2>").arg(htmlEscape(AppText::get("label.versionOverview")));
     if (m_projectDir.isEmpty()) {
         html += QString("<p>%1</p>").arg(htmlEscape(AppText::get("label.noProject")));
@@ -133,7 +133,7 @@ void MainWindow::refreshChangeSummary() {
     m_changeSummary->setHtml(html);
 }
 
-void MainWindow::refreshGitState() {
+void MainWindowPrivate::refreshGitState() {
     const QString previousCommitHash = selectedCommitHash();
     m_commits = m_gitService.log();
     rebuildVersionTree(previousCommitHash);
@@ -141,7 +141,7 @@ void MainWindow::refreshGitState() {
     refreshChangeSummary();
 }
 
-void MainWindow::rebuildVersionTree(const QString& preferredCommitHash) {
+void MainWindowPrivate::rebuildVersionTree(const QString& preferredCommitHash) {
     m_versionRoot->takeChildren();
     if (m_projectDir.isEmpty()) {
         appendVersionNode(AppText::get("version.noProjectNode"), AppText::get("version.noProjectNote"));
@@ -172,7 +172,7 @@ void MainWindow::rebuildVersionTree(const QString& preferredCommitHash) {
         m_versionTree->setCurrentItem(itemToSelect);
 }
 
-void MainWindow::appendVersionNode(const QString& title, const QString& note, const QString& commitHash) {
+void MainWindowPrivate::appendVersionNode(const QString& title, const QString& note, const QString& commitHash) {
     auto* item = new QTreeWidgetItem(QStringList() << title);
     item->setData(0, NoteRole, note);
     item->setData(0, CommitHashRole, commitHash);
@@ -180,7 +180,7 @@ void MainWindow::appendVersionNode(const QString& title, const QString& note, co
     m_versionRoot->addChild(item);
 }
 
-void MainWindow::updateCurrentVersionPanel() {
+void MainWindowPrivate::updateCurrentVersionPanel() {
     QTreeWidgetItem* item = m_versionTree->currentItem();
     if (!item)
         return;

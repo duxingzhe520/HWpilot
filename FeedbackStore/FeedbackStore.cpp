@@ -101,6 +101,55 @@ bool FeedbackStore::updateItemStatus(const QString& itemId, const QString& statu
     return false;
 }
 
+bool FeedbackStore::updateItemsStatus(const QStringList& itemIds, const QString& status, QString* errorMessage) {
+    if (itemIds.isEmpty())
+        return true;
+
+    bool changed = false;
+    for (FeedbackRecord& record : m_feedbacks) {
+        for (FeedbackItem& item : record.items) {
+            if (itemIds.contains(item.id)) {
+                item.status = status;
+                changed = true;
+            }
+        }
+    }
+
+    if (!changed && errorMessage)
+        *errorMessage = AppText::get("error.feedbackItemMissing");
+    return changed ? save(errorMessage) : false;
+}
+
+bool FeedbackStore::renameFeedbackRecord(const QString& recordId, const QString& summary, QString* errorMessage) {
+    for (FeedbackRecord& record : m_feedbacks) {
+        if (record.id == recordId) {
+            record.summary = summary;
+            return save(errorMessage);
+        }
+    }
+
+    if (errorMessage)
+        *errorMessage = AppText::get("error.feedbackRecordMissing");
+    return false;
+}
+
+bool FeedbackStore::markItemsReviewed(const QStringList& itemIds, const QString& reviewRecordId, QString* errorMessage) {
+    if (itemIds.isEmpty() || reviewRecordId.isEmpty())
+        return true;
+
+    bool changed = false;
+    for (FeedbackRecord& record : m_feedbacks) {
+        for (FeedbackItem& item : record.items) {
+            if (itemIds.contains(item.id)) {
+                item.reviewRecordId = reviewRecordId;
+                changed = true;
+            }
+        }
+    }
+
+    return changed ? save(errorMessage) : true;
+}
+
 bool FeedbackStore::reassignCommit(const QString& fromCommitHash, const QString& toCommitHash, QString* errorMessage) {
     bool changed = false;
     for (FeedbackRecord& record : m_feedbacks) {

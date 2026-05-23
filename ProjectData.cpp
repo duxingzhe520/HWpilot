@@ -12,6 +12,8 @@ QJsonObject FeedbackItem::toJson() const {
     object["title"] = title;
     object["suggestion"] = suggestion;
     object["status"] = status;
+    object["sourceFeedbackId"] = sourceFeedbackId;
+    object["reviewRecordId"] = reviewRecordId;
     return object;
 }
 
@@ -25,6 +27,8 @@ FeedbackItem FeedbackItem::fromJson(const QJsonObject& object) {
     item.title = object["title"].toString();
     item.suggestion = object["suggestion"].toString();
     item.status = object["status"].toString("unresolved");
+    item.sourceFeedbackId = object["sourceFeedbackId"].toString();
+    item.reviewRecordId = object["reviewRecordId"].toString();
     return item;
 }
 

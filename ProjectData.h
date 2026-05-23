@@ -14,6 +14,8 @@ struct FeedbackItem {
     QString title;
     QString suggestion;
     QString status = "unresolved";
+    QString sourceFeedbackId;
+    QString reviewRecordId;
 
     QJsonObject toJson() const;
     static FeedbackItem fromJson(const QJsonObject& object);

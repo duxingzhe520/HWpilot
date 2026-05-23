@@ -741,6 +741,7 @@ HWpilot_autogen/timestamp: /Applications/Xcode.app/Contents/Developer/Platforms/
   /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow.h \
   /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Ai.cpp \
   /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Feedback.cpp \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/MainWindowPrivate.h \
   /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Project.cpp \
   /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Render.cpp \
   /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Render.h \
@@ -1901,6 +1902,8 @@ CMakeFiles/4.3.1/CMakeCXXCompiler.cmake:
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/allocate_at_least.h:
 
 /Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Project.cpp:
+
+/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/MainWindowPrivate.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__algorithm/iter_swap.h:
 

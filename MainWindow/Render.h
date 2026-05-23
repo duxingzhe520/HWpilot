@@ -16,6 +16,7 @@ QString renderReadableDiff(const QString& diff);
 QString renderDiffStat(const QString& diffStat);
 QString renderFeedbackRecordDetail(const FeedbackRecord& feedback);
 QString renderFeedbackItemDetail(const FeedbackItem& item);
+QString renderHeuristicItemDetail(const FeedbackItem& item);
 
 }  // namespace MainWindowRender
 

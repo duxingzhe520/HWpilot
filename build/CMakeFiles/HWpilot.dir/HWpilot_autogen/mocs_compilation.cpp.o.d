@@ -1025,12 +1025,15 @@ CMakeFiles/HWpilot.dir/HWpilot_autogen/mocs_compilation.cpp.o: \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers/qcursor.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers/qbitmap.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers/qtabwidget.h \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/WCPGUQ57CZ/moc_MainWindowPrivate.cpp \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/WCPGUQ57CZ/../../../MainWindow/MainWindowPrivate.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QPointer \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qpointer.h \
-  /Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/EWIEGA46WW/../../../FeedbackStore/FeedbackStore.h \
-  /Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/EWIEGA46WW/../../../FeedbackStore/../ProjectData.h \
-  /Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/EWIEGA46WW/../../../GitService/GitService.h \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/WCPGUQ57CZ/../../../MainWindow/../FeedbackStore/FeedbackStore.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QStringList \
-  /Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/EWIEGA46WW/../../../HWFileScanner/HWFileScanner.h \
-  /Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/EWIEGA46WW/../../../ProjectManager/ProjectManager.h \
-  /Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/EWIEGA46WW/../../../ProjectManager/../ProjectData.h
+  /Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/WCPGUQ57CZ/../../../MainWindow/../FeedbackStore/../ProjectData.h \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/WCPGUQ57CZ/../../../MainWindow/../GitService/GitService.h \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/WCPGUQ57CZ/../../../MainWindow/../HWFileScanner/HWFileScanner.h \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/WCPGUQ57CZ/../../../MainWindow/../MainWindow.h \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/WCPGUQ57CZ/../../../MainWindow/../ProjectManager/ProjectManager.h \
+  /Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/WCPGUQ57CZ/../../../MainWindow/../ProjectManager/../ProjectData.h

@@ -1,4 +1,4 @@
-#include "../MainWindow.h"
+#include "MainWindowPrivate.h"
 
 #include "../AppText.h"
 
@@ -50,7 +50,7 @@ QString readableAiReply(const QString& replyText) {
 }
 }  // namespace
 
-QString MainWindow::currentFeedbackHistory() const {
+QString MainWindowPrivate::currentFeedbackHistory() const {
     QString history;
     const QString commitHash = feedbackContextHash();
     const QList<FeedbackRecord> records = m_feedbackStore.feedbacksForCommit(commitHash);
@@ -60,7 +60,7 @@ QString MainWindow::currentFeedbackHistory() const {
     return history.trimmed();
 }
 
-QString MainWindow::selectedFeedbackHistory() const {
+QString MainWindowPrivate::selectedFeedbackHistory() const {
     if (!m_aiFeedbackTree)
         return QString();
 
@@ -76,7 +76,8 @@ QString MainWindow::selectedFeedbackHistory() const {
             if (recordItem->checkState(0) == Qt::Checked) {
                 const QString rawContent = recordItem->data(0, NoteRole).toString().trimmed();
                 if (!rawContent.isEmpty())
-                    history += QString("### %1 / %2\n%3\n\n").arg(groupItem->text(0), recordItem->text(0), rawContent);
+                    history += QString("### %1 / %2\n反馈记录ID：%3\n%4\n\n")
+                                   .arg(groupItem->text(0), recordItem->text(0), recordItem->data(0, RecordIdRole).toString(), rawContent);
                 continue;
             }
 
@@ -88,7 +89,7 @@ QString MainWindow::selectedFeedbackHistory() const {
 
                 const QString issueContent = issueItem->data(0, NoteRole).toString().trimmed();
                 if (!issueContent.isEmpty())
-                    selectedIssues += QString("- %1\n%2\n\n").arg(issueItem->text(0), issueContent);
+                    selectedIssues += QString("- %1\n反馈条目ID：%2\n%3\n\n").arg(issueItem->text(0), issueItem->data(0, ItemIdRole).toString(), issueContent);
             }
 
             if (!selectedIssues.trimmed().isEmpty())
@@ -99,23 +100,40 @@ QString MainWindow::selectedFeedbackHistory() const {
     return history.trimmed();
 }
 
-QString MainWindow::currentModePrompt() const {
+QString MainWindowPrivate::currentModePrompt() const {
     return
         AppText::get("prompt.system");
 }
 
-QString MainWindow::currentModeName() const {
+QString MainWindowPrivate::currentModeName() const {
     return AppText::get("label.fileAnalysis");
 }
 
-double MainWindow::currentTemperature() const {
+QString MainWindowPrivate::heuristicModePrompt() const {
+    return AppText::get("prompt.heuristicSystem");
+}
+
+QString MainWindowPrivate::heuristicModeName() const {
+    return AppText::get("label.heuristicQuestions");
+}
+
+void MainWindowPrivate::updateAiActionText() {
+    if (!m_analyzeButton)
+        return;
+
+    const bool hasSelectedFeedback = !selectedFeedbackHistory().isEmpty();
+    m_analyzeButton->setText(hasSelectedFeedback ? AppText::get("button.reviewSelectedFeedback") : AppText::get("button.aiAssistant"));
+}
+
+double MainWindowPrivate::currentTemperature() const {
     return m_temperature;
 }
 
-void MainWindow::startAiAnalysis() {
+void MainWindowPrivate::startAiAnalysis() {
+    scanCurrentProject(false);
     QList<CodeFile> filesForAnalysis = selectedFiles();
     if (filesForAnalysis.isEmpty()) {
-        QMessageBox::information(this, AppText::get("dialog.noFiles.title"), AppText::get("dialog.noFiles.body"));
+        QMessageBox::information(q, AppText::get("dialog.noFiles.title"), AppText::get("dialog.noFiles.body"));
         return;
     }
 
@@ -127,13 +145,13 @@ void MainWindow::startAiAnalysis() {
         }
     }
     if (!hasReadableContent) {
-        QMessageBox::warning(this, AppText::get("dialog.emptyFiles.title"), AppText::get("dialog.emptyFiles.body"));
+        QMessageBox::warning(q, AppText::get("dialog.emptyFiles.title"), AppText::get("dialog.emptyFiles.body"));
         return;
     }
 
     const QString apiKey = qEnvironmentVariable("DEEPSEEK_API_KEY");
     if (apiKey.isEmpty()) {
-        QMessageBox::warning(this, AppText::get("dialog.noApiKey.title"), AppText::get("dialog.noApiKey.body"));
+        QMessageBox::warning(q, AppText::get("dialog.noApiKey.title"), AppText::get("dialog.noApiKey.body"));
         return;
     }
 
@@ -149,20 +167,23 @@ void MainWindow::startAiAnalysis() {
     m_projectManager.save(&errorMessage);
 
     const QString feedback = selectedFeedbackHistory();
-    if (!feedback.isEmpty())
+    const bool reviewingFeedback = !feedback.isEmpty();
+    if (reviewingFeedback)
         userContent += AppText::get("prompt.selectedFeedback") + feedback + "\n\n";
 
     userContent += HWFileScanner::formatFilesForLLM(filesForAnalysis, task);
 
     if (userContent.trimmed().isEmpty()) {
-        QMessageBox::information(this, AppText::get("dialog.emptyContent.title"), AppText::get("dialog.emptyContent.body"));
+        QMessageBox::information(q, AppText::get("dialog.emptyContent.title"), AppText::get("dialog.emptyContent.body"));
         return;
     }
 
     QJsonArray messages;
     QJsonObject systemMsg;
     systemMsg["role"] = "system";
-    systemMsg["content"] = currentModePrompt() + "\n\n" + structuredFeedbackInstruction();
+    systemMsg["content"] = reviewingFeedback
+                               ? AppText::get("prompt.feedbackReviewSystem") + "\n\n" + AppText::get("prompt.feedbackReviewStructured")
+                               : currentModePrompt() + "\n\n" + structuredFeedbackInstruction();
     messages.append(systemMsg);
 
     QJsonObject userMsg;
@@ -176,12 +197,13 @@ void MainWindow::startAiAnalysis() {
 
     connect(m_llm, &HWpilotLLM::responseReceived, this, [this](const QString& replyText) {
         m_lastAiReply = replyText;
-        m_responseView->setPlainText(readableAiReply(replyText));
+        m_responseView->setMarkdown(readableAiReply(replyText));
         setBusy(false);
         m_statusLabel->setText(AppText::get("status.aiDone"));
     });
     connect(m_llm, &HWpilotLLM::errorOccurred, this, [this](const QString& errorString) {
         m_lastAiReply.clear();
+        m_lastAiModeName.clear();
         m_responseView->setPlainText(QString("Network/API error:\n") + errorString);
         setBusy(false);
         m_statusLabel->setText(AppText::get("status.aiFailed"));
@@ -189,15 +211,101 @@ void MainWindow::startAiAnalysis() {
 
     setBusy(true);
     m_lastAiReply.clear();
+    m_lastAiModeName = reviewingFeedback ? AppText::get("label.feedbackReview") : currentModeName();
     m_responseView->setPlainText(AppText::get("status.aiSending"));
     m_llm->sendChatRequest(messages, currentTemperature());
 }
 
-void MainWindow::setBusy(bool busy) {
+void MainWindowPrivate::startHeuristicQuestions() {
+    scanCurrentProject(false);
+    QList<CodeFile> filesForAnalysis = selectedHeuristicFiles();
+
+    const QString apiKey = qEnvironmentVariable("DEEPSEEK_API_KEY");
+    if (apiKey.isEmpty()) {
+        QMessageBox::warning(q, AppText::get("dialog.noApiKey.title"), AppText::get("dialog.noApiKey.body"));
+        return;
+    }
+
+    QString userContent;
+    const QString task = m_heuristicTaskEdit->toPlainText().trimmed();
+    const QString question = m_heuristicQuestionEdit->toPlainText().trimmed();
+    if (filesForAnalysis.isEmpty() && task.isEmpty()) {
+        QMessageBox::information(q, AppText::get("dialog.emptyContent.title"), AppText::get("dialog.emptyContent.body"));
+        return;
+    }
+
+    if (!filesForAnalysis.isEmpty()) {
+        bool hasReadableContent = false;
+        for (const CodeFile& file : filesForAnalysis) {
+            if (!file.content.isEmpty()) {
+                hasReadableContent = true;
+                break;
+            }
+        }
+        if (!hasReadableContent) {
+            QMessageBox::warning(q, AppText::get("dialog.emptyFiles.title"), AppText::get("dialog.emptyFiles.body"));
+            return;
+        }
+    }
+
+    if (!question.isEmpty())
+        userContent += AppText::get("prompt.userQuestion") + question + "\n\n";
+
+    if (filesForAnalysis.isEmpty()) {
+        userContent += AppText::get("prompt.assignment") + task + "\n\n";
+    } else {
+        userContent += HWFileScanner::formatFilesForLLM(filesForAnalysis, task);
+    }
+    if (userContent.trimmed().isEmpty()) {
+        QMessageBox::information(q, AppText::get("dialog.emptyContent.title"), AppText::get("dialog.emptyContent.body"));
+        return;
+    }
+
+    QJsonArray messages;
+    QJsonObject systemMsg;
+    systemMsg["role"] = "system";
+    systemMsg["content"] = heuristicModePrompt() + "\n\n" + AppText::get("prompt.heuristicStructuredFeedback");
+    messages.append(systemMsg);
+
+    QJsonObject userMsg;
+    userMsg["role"] = "user";
+    userMsg["content"] = userContent;
+    messages.append(userMsg);
+
+    if (m_llm)
+        m_llm->deleteLater();
+    m_llm = new HWpilotLLM(apiKey, this);
+
+    connect(m_llm, &HWpilotLLM::responseReceived, this, [this](const QString& replyText) {
+        m_lastHeuristicReply = replyText;
+        m_heuristicResponseView->setMarkdown(readableAiReply(replyText));
+        setBusy(false);
+        m_statusLabel->setText(AppText::get("status.aiDone"));
+    });
+    connect(m_llm, &HWpilotLLM::errorOccurred, this, [this](const QString& errorString) {
+        m_lastHeuristicReply.clear();
+        m_heuristicResponseView->setPlainText(QString("Network/API error:\n") + errorString);
+        setBusy(false);
+        m_statusLabel->setText(AppText::get("status.aiFailed"));
+    });
+
+    setBusy(true);
+    m_lastHeuristicReply.clear();
+    m_heuristicResponseView->setPlainText(AppText::get("status.aiSending"));
+    m_llm->sendChatRequest(messages, currentTemperature());
+}
+
+void MainWindowPrivate::setBusy(bool busy) {
     m_analyzeButton->setDisabled(busy);
     m_saveFeedbackButton->setDisabled(busy);
     m_cancelFeedbackButton->setDisabled(busy);
     m_refreshProjectButton->setDisabled(busy);
     m_commitButton->setDisabled(busy);
+    if (m_generateHeuristicButton)
+        m_generateHeuristicButton->setDisabled(busy);
+    if (m_saveHeuristicButton)
+        m_saveHeuristicButton->setDisabled(busy);
+    if (m_cancelHeuristicButton)
+        m_cancelHeuristicButton->setDisabled(busy);
     m_statusLabel->setText(busy ? AppText::get("status.aiRunning") : AppText::get("status.ready"));
 }
