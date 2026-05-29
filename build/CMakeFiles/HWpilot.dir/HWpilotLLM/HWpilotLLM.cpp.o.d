@@ -979,4 +979,7 @@ CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.o: \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/qnetworkreply.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QIODevice \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/QNetworkRequest \
-  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QDebug
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QProcess \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qprocess.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QDebug \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/QSslSocket

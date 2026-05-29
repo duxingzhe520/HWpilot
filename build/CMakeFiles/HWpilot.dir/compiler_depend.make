@@ -4648,6 +4648,7 @@ CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.o: /Users/duxingzhe520/Desktop/
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QList \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QMetaType \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QObject \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QProcess \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QSharedDataPointer \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QString \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QUrl \
@@ -4736,6 +4737,7 @@ CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.o: /Users/duxingzhe520/Desktop/
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qobjectdefs_impl.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qoverload.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qpair.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qprocess.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qprocessordetection.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qrefcount.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qregularexpression.h \
@@ -4796,6 +4798,7 @@ CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.o: /Users/duxingzhe520/Desktop/
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/QNetworkRequest \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/QSslConfiguration \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/QSslPreSharedKeyAuthenticator \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/QSslSocket \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/qabstractsocket.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/qhostaddress.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/qhttpheaders.h \
@@ -5642,6 +5645,7 @@ CMakeFiles/HWpilot.dir/HWpilot_autogen/mocs_compilation.cpp.o: HWpilot_autogen/m
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QMetaType \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QObject \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QPointer \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QProcess \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QSharedDataPointer \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QString \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QStringList \
@@ -5737,6 +5741,7 @@ CMakeFiles/HWpilot.dir/HWpilot_autogen/mocs_compilation.cpp.o: HWpilot_autogen/m
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qpair.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qpoint.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qpointer.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qprocess.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qprocessordetection.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qrect.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qrefcount.h \
@@ -7678,6 +7683,7 @@ CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.o: /Users/duxingzhe520/Desktop/Project/
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QMetaType \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QObject \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QPointer \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QProcess \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QSharedDataPointer \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QString \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QStringList \
@@ -7774,6 +7780,7 @@ CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.o: /Users/duxingzhe520/Desktop/Project/
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qpair.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qpoint.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qpointer.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qprocess.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qprocessordetection.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qrect.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qrefcount.h \
@@ -16255,6 +16262,8 @@ HWpilot_autogen/JOIUH6QTTR/moc_HWpilotLLM.cpp:
 /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/qnetworkreply.h:
 
 /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/qnetworkaccessmanager.h:
+
+/Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/QSslSocket:
 
 /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/QSslPreSharedKeyAuthenticator:
 

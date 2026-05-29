@@ -733,6 +733,7 @@
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QList \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QMetaType \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QObject \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QProcess \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QSharedDataPointer \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QString \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QUrl \
@@ -821,6 +822,7 @@
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qobjectdefs_impl.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qoverload.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qpair.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qprocess.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qprocessordetection.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qrefcount.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qregularexpression.h \

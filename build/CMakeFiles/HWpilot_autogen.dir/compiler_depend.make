@@ -764,6 +764,7 @@ HWpilot_autogen/timestamp: /Applications/Xcode.app/Contents/Developer/Platforms/
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QMetaType \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QObject \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QPointer \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QProcess \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QSharedDataPointer \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QString \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QStringList \
@@ -858,6 +859,7 @@ HWpilot_autogen/timestamp: /Applications/Xcode.app/Contents/Developer/Platforms/
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qpair.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qpoint.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qpointer.h \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qprocess.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qprocessordetection.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qrect.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qrefcount.h \
@@ -1682,6 +1684,8 @@ HWpilot_autogen/timestamp: /Applications/Xcode.app/Contents/Developer/Platforms/
 /Users/duxingzhe520/Qt/6.11.0/macos/lib/cmake/Qt6/QtFeatureCommon.cmake:
 
 /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qrect.h:
+
+/Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/qprocess.h:
 
 /Users/duxingzhe520/Qt/6.11.0/macos/lib/cmake/Qt6Core/Qt6QDarwinContactsPermissionPluginDependencies.cmake:
 
@@ -3293,6 +3297,10 @@ CMakeFiles/4.3.1/CMakeSystem.cmake:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__atomic/check_memory_order.h:
 
+/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Ai.cpp:
+
+/Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Versions/A/Headers/QProcess:
+
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityVersions.h:
 
 /Users/duxingzhe520/Qt/6.11.0/macos/lib/cmake/Qt6Network/Qt6NetworkDependencies.cmake:
@@ -3526,8 +3534,6 @@ CMakeFiles/4.3.1/CMakeSystem.cmake:
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__algorithm/prev_permutation.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__iterator/istream_iterator.h:
-
-/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Ai.cpp:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1/__bit/invert_if.h:
 

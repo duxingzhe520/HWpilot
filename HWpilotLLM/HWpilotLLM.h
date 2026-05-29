@@ -7,6 +7,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QObject>
+#include <QProcess>
 
 class HWpilotLLM : public QObject {
     Q_OBJECT
@@ -29,6 +30,11 @@ class HWpilotLLM : public QObject {
     void onNetworkReply(QNetworkReply* reply);
 
    private:
+    bool handleApiResponse(const QByteArray& responseData,
+                           const QString& statusText);
+    void sendCurlFallback(const QByteArray& postData,
+                          const QString& originalError);
+
     QString m_apiKey;
     QString m_apiUrl;
     QNetworkAccessManager* m_networkManager;

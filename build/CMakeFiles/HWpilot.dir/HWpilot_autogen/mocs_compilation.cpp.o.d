@@ -980,6 +980,8 @@ CMakeFiles/HWpilot.dir/HWpilot_autogen/mocs_compilation.cpp.o: \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/qnetworkreply.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QIODevice \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/QNetworkRequest \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/QProcess \
+  /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qprocess.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers/QSslError \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qtmochelpers.h \
   /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers/qtmocconstants.h \
