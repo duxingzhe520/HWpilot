@@ -133,6 +133,7 @@ void MainWindowPrivate::startAiAnalysis() {
     scanCurrentProject(false);
     QList<CodeFile> filesForAnalysis = selectedFiles();
     if (filesForAnalysis.isEmpty()) {
+        m_autoSaveAiAfterResponse = false;
         QMessageBox::information(q, AppText::get("dialog.noFiles.title"), AppText::get("dialog.noFiles.body"));
         return;
     }
@@ -145,12 +146,14 @@ void MainWindowPrivate::startAiAnalysis() {
         }
     }
     if (!hasReadableContent) {
+        m_autoSaveAiAfterResponse = false;
         QMessageBox::warning(q, AppText::get("dialog.emptyFiles.title"), AppText::get("dialog.emptyFiles.body"));
         return;
     }
 
     const QString apiKey = qEnvironmentVariable("DEEPSEEK_API_KEY");
     if (apiKey.isEmpty()) {
+        m_autoSaveAiAfterResponse = false;
         QMessageBox::warning(q, AppText::get("dialog.noApiKey.title"), AppText::get("dialog.noApiKey.body"));
         return;
     }
@@ -174,6 +177,7 @@ void MainWindowPrivate::startAiAnalysis() {
     userContent += HWFileScanner::formatFilesForLLM(filesForAnalysis, task);
 
     if (userContent.trimmed().isEmpty()) {
+        m_autoSaveAiAfterResponse = false;
         QMessageBox::information(q, AppText::get("dialog.emptyContent.title"), AppText::get("dialog.emptyContent.body"));
         return;
     }
@@ -200,8 +204,13 @@ void MainWindowPrivate::startAiAnalysis() {
         m_responseView->setMarkdown(readableAiReply(replyText));
         setBusy(false);
         m_statusLabel->setText(AppText::get("status.aiDone"));
+        if (m_autoSaveAiAfterResponse) {
+            m_autoSaveAiAfterResponse = false;
+            saveFeedbackToVersion();
+        }
     });
     connect(m_llm, &HWpilotLLM::errorOccurred, this, [this](const QString& errorString) {
+        m_autoSaveAiAfterResponse = false;
         m_lastAiReply.clear();
         m_lastAiModeName.clear();
         m_responseView->setPlainText(QString("Network/API error:\n") + errorString);
@@ -222,6 +231,7 @@ void MainWindowPrivate::startHeuristicQuestions() {
 
     const QString apiKey = qEnvironmentVariable("DEEPSEEK_API_KEY");
     if (apiKey.isEmpty()) {
+        m_autoSaveHeuristicAfterResponse = false;
         QMessageBox::warning(q, AppText::get("dialog.noApiKey.title"), AppText::get("dialog.noApiKey.body"));
         return;
     }
@@ -230,6 +240,7 @@ void MainWindowPrivate::startHeuristicQuestions() {
     const QString task = m_heuristicTaskEdit->toPlainText().trimmed();
     const QString question = m_heuristicQuestionEdit->toPlainText().trimmed();
     if (filesForAnalysis.isEmpty() && task.isEmpty()) {
+        m_autoSaveHeuristicAfterResponse = false;
         QMessageBox::information(q, AppText::get("dialog.emptyContent.title"), AppText::get("dialog.emptyContent.body"));
         return;
     }
@@ -243,6 +254,7 @@ void MainWindowPrivate::startHeuristicQuestions() {
             }
         }
         if (!hasReadableContent) {
+            m_autoSaveHeuristicAfterResponse = false;
             QMessageBox::warning(q, AppText::get("dialog.emptyFiles.title"), AppText::get("dialog.emptyFiles.body"));
             return;
         }
@@ -257,6 +269,7 @@ void MainWindowPrivate::startHeuristicQuestions() {
         userContent += HWFileScanner::formatFilesForLLM(filesForAnalysis, task);
     }
     if (userContent.trimmed().isEmpty()) {
+        m_autoSaveHeuristicAfterResponse = false;
         QMessageBox::information(q, AppText::get("dialog.emptyContent.title"), AppText::get("dialog.emptyContent.body"));
         return;
     }
@@ -281,8 +294,13 @@ void MainWindowPrivate::startHeuristicQuestions() {
         m_heuristicResponseView->setMarkdown(readableAiReply(replyText));
         setBusy(false);
         m_statusLabel->setText(AppText::get("status.aiDone"));
+        if (m_autoSaveHeuristicAfterResponse) {
+            m_autoSaveHeuristicAfterResponse = false;
+            saveHeuristicToVersion();
+        }
     });
     connect(m_llm, &HWpilotLLM::errorOccurred, this, [this](const QString& errorString) {
+        m_autoSaveHeuristicAfterResponse = false;
         m_lastHeuristicReply.clear();
         m_heuristicResponseView->setPlainText(QString("Network/API error:\n") + errorString);
         setBusy(false);

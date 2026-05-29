@@ -53,10 +53,10 @@ RM = /opt/homebrew/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/duxingzhe520/Desktop/Project/HWpilot
+CMAKE_SOURCE_DIR = /Users/yangruochen/Desktop/HWpilot
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/duxingzhe520/Desktop/Project/HWpilot/build
+CMAKE_BINARY_DIR = /Users/yangruochen/Desktop/HWpilot/build
 
 # Utility rule file for HWpilot_autogen.
 
@@ -68,11 +68,11 @@ include CMakeFiles/HWpilot_autogen.dir/progress.make
 
 CMakeFiles/HWpilot_autogen: HWpilot_autogen/timestamp
 
-HWpilot_autogen/timestamp: /Users/duxingzhe520/Qt/6.11.0/macos/libexec/moc
+HWpilot_autogen/timestamp: /opt/homebrew/share/qt/libexec/moc
 HWpilot_autogen/timestamp: CMakeFiles/HWpilot_autogen.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Automatic MOC for target HWpilot"
-	/opt/homebrew/bin/cmake -E cmake_autogen /Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles/HWpilot_autogen.dir/AutogenInfo.json Debug
-	/opt/homebrew/bin/cmake -E touch /Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/timestamp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/Users/yangruochen/Desktop/HWpilot/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Automatic MOC for target HWpilot"
+	/opt/homebrew/bin/cmake -E cmake_autogen /Users/yangruochen/Desktop/HWpilot/build/CMakeFiles/HWpilot_autogen.dir/AutogenInfo.json Debug
+	/opt/homebrew/bin/cmake -E touch /Users/yangruochen/Desktop/HWpilot/build/HWpilot_autogen/timestamp
 
 CMakeFiles/HWpilot_autogen.dir/codegen:
 .PHONY : CMakeFiles/HWpilot_autogen.dir/codegen
@@ -91,6 +91,6 @@ CMakeFiles/HWpilot_autogen.dir/clean:
 .PHONY : CMakeFiles/HWpilot_autogen.dir/clean
 
 CMakeFiles/HWpilot_autogen.dir/depend:
-	cd /Users/duxingzhe520/Desktop/Project/HWpilot/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/duxingzhe520/Desktop/Project/HWpilot /Users/duxingzhe520/Desktop/Project/HWpilot /Users/duxingzhe520/Desktop/Project/HWpilot/build /Users/duxingzhe520/Desktop/Project/HWpilot/build /Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles/HWpilot_autogen.dir/DependInfo.cmake "--color=$(COLOR)" HWpilot_autogen
+	cd /Users/yangruochen/Desktop/HWpilot/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/yangruochen/Desktop/HWpilot /Users/yangruochen/Desktop/HWpilot /Users/yangruochen/Desktop/HWpilot/build /Users/yangruochen/Desktop/HWpilot/build /Users/yangruochen/Desktop/HWpilot/build/CMakeFiles/HWpilot_autogen.dir/DependInfo.cmake "--color=$(COLOR)" HWpilot_autogen
 .PHONY : CMakeFiles/HWpilot_autogen.dir/depend
 

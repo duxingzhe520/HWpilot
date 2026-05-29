@@ -6,8 +6,12 @@
 
 #include <QDateTime>
 #include <QBrush>
+#include <QCheckBox>
 #include <QColor>
 #include <QComboBox>
+#include <QFrame>
+#include <QHBoxLayout>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -25,6 +29,7 @@
 #include <QTextBrowser>
 #include <QTextEdit>
 #include <QTreeWidget>
+#include <QVBoxLayout>
 #include <QtGlobal>
 
 #include "Render.h"
@@ -132,6 +137,32 @@ void configureFeedbackTreeColumns(QTreeWidget* tree, bool showingHeuristicRecord
     tree->setColumnWidth(1, 110);
     tree->setColumnWidth(2, 240);
     tree->setColumnWidth(3, 126);
+}
+
+void clearLayout(QLayout* layout) {
+    if (!layout)
+        return;
+
+    while (QLayoutItem* item = layout->takeAt(0)) {
+        if (QWidget* widget = item->widget())
+            widget->deleteLater();
+        delete item;
+    }
+}
+
+QString shortText(QString text, qsizetype maxLength = 92) {
+    text = text.simplified();
+    if (text.size() > maxLength)
+        return text.left(maxLength) + "...";
+    return text;
+}
+
+QString severityLabel(const FeedbackItem& item) {
+    if (item.severity == "high")
+        return "严重";
+    if (item.severity == "low")
+        return "建议";
+    return item.category.isEmpty() ? "待处理" : item.category;
 }
 }  // namespace
 
@@ -270,6 +301,7 @@ void MainWindowPrivate::populateFeedbackPanel(const QList<FeedbackRecord>& feedb
                 if (m_feedbackTree->currentItem() == itemNode)
                     m_reviewReport->setHtml(itemNode->data(0, DetailHtmlRole).toString());
                 m_statusLabel->setText(AppText::get("status.feedbackStatusUpdated").arg(feedbackStatusText(status)));
+                refreshCopilotPanel();
             });
             m_feedbackTree->setItemWidget(itemNode, 3, statusCombo);
         }
@@ -566,6 +598,7 @@ void MainWindowPrivate::saveFeedbackToVersion() {
         }
     }
     updateCurrentVersionPanel();
+    refreshCopilotPanel();
 }
 
 void MainWindowPrivate::selectFeedbackRecordById(const QString& recordId) {
@@ -625,4 +658,189 @@ void MainWindowPrivate::saveHeuristicToVersion() {
         }
     }
     updateCurrentVersionPanel();
+    refreshCopilotPanel();
+}
+
+QStringList MainWindowPrivate::checkedCopilotTodoItemIds() const {
+    QStringList ids;
+    for (QCheckBox* check : m_copilotTodoChecks) {
+        if (check && check->isChecked()) {
+            const QString id = check->property("itemId").toString();
+            if (!id.isEmpty())
+                ids.append(id);
+        }
+    }
+    ids.removeDuplicates();
+    return ids;
+}
+
+void MainWindowPrivate::applyFeedbackPickerSelection(const QStringList& itemIds) {
+    if (!m_aiFeedbackTree)
+        return;
+
+    m_updatingAiFeedbackTree = true;
+    QTreeWidgetItem* root = m_aiFeedbackTree->invisibleRootItem();
+    for (int groupIndex = 0; groupIndex < root->childCount(); ++groupIndex) {
+        QTreeWidgetItem* groupItem = root->child(groupIndex);
+        for (int recordIndex = 0; recordIndex < groupItem->childCount(); ++recordIndex) {
+            QTreeWidgetItem* recordItem = groupItem->child(recordIndex);
+            if (recordItem->flags() & Qt::ItemIsUserCheckable)
+                recordItem->setCheckState(0, Qt::Unchecked);
+            for (int childIndex = 0; childIndex < recordItem->childCount(); ++childIndex) {
+                QTreeWidgetItem* issueItem = recordItem->child(childIndex);
+                const bool checked = itemIds.contains(issueItem->data(0, ItemIdRole).toString());
+                issueItem->setCheckState(0, checked ? Qt::Checked : Qt::Unchecked);
+            }
+            updateParentCheckState(recordItem->childCount() > 0 ? recordItem->child(0) : recordItem);
+        }
+    }
+    m_updatingAiFeedbackTree = false;
+    updateAiActionText();
+}
+
+void MainWindowPrivate::refreshCopilotPanel() {
+    if (!m_copilotSummaryLabel)
+        return;
+
+    if (m_projectDir.isEmpty()) {
+        if (m_copilotProjectLabel)
+            m_copilotProjectLabel->setText(AppText::get("label.chooseProjectStart"));
+        m_copilotSummaryLabel->setText("打开一个作业文件夹开始分析。");
+        if (m_copilotMetaLabel)
+            m_copilotMetaLabel->setText("副驾会在这里整理本版本的待办、复查结果和启发式问题。");
+        if (m_copilotAnalyzeButton)
+            m_copilotAnalyzeButton->setEnabled(false);
+        if (m_copilotReviewButton)
+            m_copilotReviewButton->setEnabled(false);
+        if (m_copilotHeuristicButton)
+            m_copilotHeuristicButton->setEnabled(false);
+    } else {
+        if (m_copilotProjectLabel)
+            m_copilotProjectLabel->setText(QFileInfo(m_projectDir).fileName());
+        if (m_copilotAnalyzeButton)
+            m_copilotAnalyzeButton->setEnabled(true);
+        if (m_copilotReviewButton)
+            m_copilotReviewButton->setEnabled(true);
+        if (m_copilotHeuristicButton)
+            m_copilotHeuristicButton->setEnabled(true);
+    }
+
+    rebuildCopilotCards();
+}
+
+void MainWindowPrivate::rebuildCopilotCards() {
+    if (!m_copilotTodoLayout || !m_copilotQuestionLayout)
+        return;
+
+    clearLayout(m_copilotTodoLayout);
+    clearLayout(m_copilotQuestionLayout);
+    m_copilotTodoChecks.clear();
+
+    QList<FeedbackItem> todos;
+    QList<FeedbackItem> questions;
+    QString newestTime;
+    for (const FeedbackRecord& record : m_feedbackStore.allFeedbacks()) {
+        if (!record.createdAt.isEmpty() && record.createdAt > newestTime)
+            newestTime = record.createdAt;
+
+        if (isHeuristicRecord(record)) {
+            for (const FeedbackItem& item : record.items)
+                questions.append(item);
+            continue;
+        }
+
+        if (isReviewRecord(record))
+            continue;
+
+        for (const FeedbackItem& item : record.items) {
+            const QString status = normalizedFeedbackStatus(item.status);
+            if (status == "unresolved" || status == "uncertain")
+                todos.append(item);
+        }
+    }
+
+    int highCount = 0;
+    for (const FeedbackItem& item : todos) {
+        if (item.severity == "high")
+            ++highCount;
+    }
+
+    if (!m_projectDir.isEmpty()) {
+        if (todos.isEmpty()) {
+            m_copilotSummaryLabel->setText("当前没有未解决待办，可以继续分析或生成启发式问题。");
+        } else {
+            m_copilotSummaryLabel->setText(QString("发现 %1 个待办，其中 %2 个严重问题。").arg(todos.size()).arg(highCount));
+        }
+        if (m_copilotMetaLabel)
+            m_copilotMetaLabel->setText(newestTime.isEmpty() ? "尚未保存分析记录。" : QString("最近分析：%1").arg(newestTime.replace('T', ' ')));
+    }
+
+    if (todos.isEmpty()) {
+        auto* empty = new QLabel(m_projectDir.isEmpty() ? "还没有打开项目。" : "没有未解决反馈。需要时可以重新分析当前版本。", m_copilotTodoList);
+        empty->setObjectName("CopilotEmptyText");
+        empty->setWordWrap(true);
+        m_copilotTodoLayout->addWidget(empty);
+    } else {
+        const int maxTodos = qMin(todos.size(), 8);
+        for (int i = 0; i < maxTodos; ++i) {
+            const FeedbackItem& item = todos.at(i);
+            const bool severe = item.severity == "high";
+            auto* card = new QFrame(m_copilotTodoList);
+            card->setObjectName(severe ? "TodoCardHigh" : "TodoCardMedium");
+            auto* row = new QHBoxLayout(card);
+            row->setContentsMargins(16, 14, 16, 14);
+            row->setSpacing(12);
+            auto* check = new QCheckBox(card);
+            check->setProperty("itemId", item.id);
+            m_copilotTodoChecks.append(check);
+            auto* textLayout = new QVBoxLayout();
+            textLayout->setContentsMargins(0, 0, 0, 0);
+            textLayout->setSpacing(6);
+            auto* title = new QLabel(item.title.isEmpty() ? AppText::get("feedback.unnamedIssue") : item.title, card);
+            title->setObjectName("TodoTitle");
+            title->setWordWrap(true);
+            auto* body = new QLabel(shortText(item.suggestion), card);
+            body->setObjectName("TodoBody");
+            body->setWordWrap(true);
+            auto* tag = new QLabel(severityLabel(item), card);
+            tag->setObjectName(severe ? "TodoTagHigh" : "TodoTagMedium");
+            auto* titleRow = new QHBoxLayout();
+            titleRow->setContentsMargins(0, 0, 0, 0);
+            titleRow->addWidget(title, 1);
+            titleRow->addWidget(tag);
+            textLayout->addLayout(titleRow);
+            textLayout->addWidget(body);
+            row->addWidget(check);
+            row->addLayout(textLayout, 1);
+            m_copilotTodoLayout->addWidget(card);
+        }
+    }
+
+    if (questions.isEmpty()) {
+        auto* empty = new QLabel("还没有启发式问题。可以生成一组问题，帮助学生自己定位下一步。", m_copilotQuestionList);
+        empty->setObjectName("CopilotEmptyText");
+        empty->setWordWrap(true);
+        m_copilotQuestionLayout->addWidget(empty);
+    } else {
+        const int maxQuestions = qMin(questions.size(), 3);
+        for (int i = 0; i < maxQuestions; ++i) {
+            const FeedbackItem& item = questions.at(questions.size() - 1 - i);
+            auto* card = new QFrame(m_copilotQuestionList);
+            card->setObjectName("QuestionCard");
+            auto* cardLayout = new QVBoxLayout(card);
+            cardLayout->setContentsMargins(16, 14, 16, 14);
+            cardLayout->setSpacing(8);
+            auto* title = new QLabel(item.title.isEmpty() ? "启发式问题" : item.title, card);
+            title->setObjectName("QuestionTitle");
+            auto* body = new QLabel(item.suggestion.isEmpty() ? AppText::get("feedback.noSuggestion") : item.suggestion, card);
+            body->setObjectName("QuestionBody");
+            body->setWordWrap(true);
+            cardLayout->addWidget(title);
+            cardLayout->addWidget(body);
+            m_copilotQuestionLayout->addWidget(card);
+        }
+    }
+
+    m_copilotTodoLayout->addStretch(1);
+    m_copilotQuestionLayout->addStretch(1);
 }

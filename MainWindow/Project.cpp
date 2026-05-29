@@ -111,6 +111,7 @@ void MainWindowPrivate::refreshProjectPanel() {
     m_projectPathLabel->setText(m_projectDir.isEmpty() ? AppText::get("label.chooseProjectStart") : m_projectDir);
     m_fileCountLabel->setText(AppText::get("label.filesCount").arg(m_files.size()));
     m_feedbackCountLabel->setText(AppText::get("label.feedbackCount").arg(m_feedbackStore.allFeedbacks().size()));
+    refreshCopilotPanel();
 }
 
 void MainWindowPrivate::populateFileTree() {
@@ -436,6 +437,29 @@ void MainWindowPrivate::selectAllHeuristicFiles() {
         setTreeChildrenCheckState(item, Qt::Checked);
     }
     m_updatingHeuristicFileTree = false;
+}
+
+void MainWindowPrivate::setCheckedFilePaths(QTreeWidget* tree, const QStringList& paths, bool& updatingFlag) {
+    if (!tree)
+        return;
+
+    updatingFlag = true;
+    auto apply = [&](auto&& self, QTreeWidgetItem* item) -> void {
+        for (int i = 0; i < item->childCount(); ++i) {
+            QTreeWidgetItem* child = item->child(i);
+            if (child->data(0, IsDirectoryRole).toBool()) {
+                self(self, child);
+            } else {
+                child->setCheckState(0, paths.contains(child->data(0, FilePathRole).toString()) ? Qt::Checked : Qt::Unchecked);
+                updateParentCheckState(child);
+            }
+        }
+    };
+    apply(apply, tree->invisibleRootItem());
+
+    for (int i = 0; i < tree->invisibleRootItem()->childCount(); ++i)
+        updateParentCheckState(tree->invisibleRootItem()->child(i));
+    updatingFlag = false;
 }
 
 void MainWindowPrivate::handleFileItemChanged(QTreeWidgetItem* item, int column) {

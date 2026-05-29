@@ -8,22 +8,22 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/Users/duxingzhe520/Desktop/Project/HWpilot/AppText.cpp" "CMakeFiles/HWpilot.dir/AppText.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/AppText.cpp.o.d"
-  "/Users/duxingzhe520/Desktop/Project/HWpilot/FeedbackStore/FeedbackStore.cpp" "CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.o.d"
-  "/Users/duxingzhe520/Desktop/Project/HWpilot/GitService/GitService.cpp" "CMakeFiles/HWpilot.dir/GitService/GitService.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/GitService/GitService.cpp.o.d"
-  "/Users/duxingzhe520/Desktop/Project/HWpilot/HWFileScanner/HWFileScanner.cpp" "CMakeFiles/HWpilot.dir/HWFileScanner/HWFileScanner.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/HWFileScanner/HWFileScanner.cpp.o.d"
-  "/Users/duxingzhe520/Desktop/Project/HWpilot/HWpilotLLM/HWpilotLLM.cpp" "CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.o.d"
-  "/Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/mocs_compilation.cpp" "CMakeFiles/HWpilot.dir/HWpilot_autogen/mocs_compilation.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/HWpilot_autogen/mocs_compilation.cpp.o.d"
-  "/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow.cpp" "CMakeFiles/HWpilot.dir/MainWindow.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/MainWindow.cpp.o.d"
-  "/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Ai.cpp" "CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.o.d"
-  "/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Feedback.cpp" "CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.o.d"
-  "/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Project.cpp" "CMakeFiles/HWpilot.dir/MainWindow/Project.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/MainWindow/Project.cpp.o.d"
-  "/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Render.cpp" "CMakeFiles/HWpilot.dir/MainWindow/Render.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/MainWindow/Render.cpp.o.d"
-  "/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Ui.cpp" "CMakeFiles/HWpilot.dir/MainWindow/Ui.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/MainWindow/Ui.cpp.o.d"
-  "/Users/duxingzhe520/Desktop/Project/HWpilot/MainWindow/Version.cpp" "CMakeFiles/HWpilot.dir/MainWindow/Version.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/MainWindow/Version.cpp.o.d"
-  "/Users/duxingzhe520/Desktop/Project/HWpilot/ProjectData.cpp" "CMakeFiles/HWpilot.dir/ProjectData.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/ProjectData.cpp.o.d"
-  "/Users/duxingzhe520/Desktop/Project/HWpilot/ProjectManager/ProjectManager.cpp" "CMakeFiles/HWpilot.dir/ProjectManager/ProjectManager.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/ProjectManager/ProjectManager.cpp.o.d"
-  "/Users/duxingzhe520/Desktop/Project/HWpilot/main.cpp" "CMakeFiles/HWpilot.dir/main.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/main.cpp.o.d"
+  "/Users/yangruochen/Desktop/HWpilot/AppText.cpp" "CMakeFiles/HWpilot.dir/AppText.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/AppText.cpp.o.d"
+  "/Users/yangruochen/Desktop/HWpilot/FeedbackStore/FeedbackStore.cpp" "CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/FeedbackStore/FeedbackStore.cpp.o.d"
+  "/Users/yangruochen/Desktop/HWpilot/GitService/GitService.cpp" "CMakeFiles/HWpilot.dir/GitService/GitService.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/GitService/GitService.cpp.o.d"
+  "/Users/yangruochen/Desktop/HWpilot/HWFileScanner/HWFileScanner.cpp" "CMakeFiles/HWpilot.dir/HWFileScanner/HWFileScanner.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/HWFileScanner/HWFileScanner.cpp.o.d"
+  "/Users/yangruochen/Desktop/HWpilot/HWpilotLLM/HWpilotLLM.cpp" "CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/HWpilotLLM/HWpilotLLM.cpp.o.d"
+  "/Users/yangruochen/Desktop/HWpilot/build/HWpilot_autogen/mocs_compilation.cpp" "CMakeFiles/HWpilot.dir/HWpilot_autogen/mocs_compilation.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/HWpilot_autogen/mocs_compilation.cpp.o.d"
+  "/Users/yangruochen/Desktop/HWpilot/MainWindow.cpp" "CMakeFiles/HWpilot.dir/MainWindow.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/MainWindow.cpp.o.d"
+  "/Users/yangruochen/Desktop/HWpilot/MainWindow/Ai.cpp" "CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/MainWindow/Ai.cpp.o.d"
+  "/Users/yangruochen/Desktop/HWpilot/MainWindow/Feedback.cpp" "CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/MainWindow/Feedback.cpp.o.d"
+  "/Users/yangruochen/Desktop/HWpilot/MainWindow/Project.cpp" "CMakeFiles/HWpilot.dir/MainWindow/Project.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/MainWindow/Project.cpp.o.d"
+  "/Users/yangruochen/Desktop/HWpilot/MainWindow/Render.cpp" "CMakeFiles/HWpilot.dir/MainWindow/Render.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/MainWindow/Render.cpp.o.d"
+  "/Users/yangruochen/Desktop/HWpilot/MainWindow/Ui.cpp" "CMakeFiles/HWpilot.dir/MainWindow/Ui.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/MainWindow/Ui.cpp.o.d"
+  "/Users/yangruochen/Desktop/HWpilot/MainWindow/Version.cpp" "CMakeFiles/HWpilot.dir/MainWindow/Version.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/MainWindow/Version.cpp.o.d"
+  "/Users/yangruochen/Desktop/HWpilot/ProjectData.cpp" "CMakeFiles/HWpilot.dir/ProjectData.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/ProjectData.cpp.o.d"
+  "/Users/yangruochen/Desktop/HWpilot/ProjectManager/ProjectManager.cpp" "CMakeFiles/HWpilot.dir/ProjectManager/ProjectManager.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/ProjectManager/ProjectManager.cpp.o.d"
+  "/Users/yangruochen/Desktop/HWpilot/main.cpp" "CMakeFiles/HWpilot.dir/main.cpp.o" "gcc" "CMakeFiles/HWpilot.dir/main.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

@@ -12,14 +12,18 @@
 #include "../ProjectManager/ProjectManager.h"
 
 class QLabel;
+class QCheckBox;
 class QMenu;
 class QPushButton;
+class QScrollArea;
 class QStackedWidget;
 class QTabWidget;
 class QTextBrowser;
 class QTextEdit;
 class QTreeWidget;
 class QTreeWidgetItem;
+class QVBoxLayout;
+class QWidget;
 class HWpilotLLM;
 class MainWindowPrivate : public QObject {
     Q_OBJECT
@@ -31,6 +35,8 @@ public:
     void buildLeftPanel();
     void buildCenterPanel();
     void buildAiPanel();
+    QWidget* buildCopilotPanel();
+    QWidget* buildDeepAnalysisPanel(QWidget* leftPanel, QWidget* centerPanel);
     void buildMenuBar();
     void applyLanguage();
     void applyStyle();
@@ -56,6 +62,11 @@ public:
     void showFeedbackIssueRecords();
     void showFeedbackReviewRecords();
     void showHeuristicQuestionRecords();
+    void showCopilotPanel();
+    void showDeepAnalysisPanel();
+    void showAnalysisDialog();
+    void showReviewDialog();
+    void showHeuristicDialog();
 
 private:
     static constexpr int NoteRole = Qt::UserRole + 2;
@@ -96,6 +107,11 @@ private:
     void populateFeedbackPanel(const QList<FeedbackRecord>& feedbacks);
     void populateAiFeedbackPicker();
     void selectFeedbackRecordById(const QString& recordId);
+    void refreshCopilotPanel();
+    void rebuildCopilotCards();
+    QStringList checkedCopilotTodoItemIds() const;
+    void applyFeedbackPickerSelection(const QStringList& itemIds);
+    void setCheckedFilePaths(QTreeWidget* tree, const QStringList& paths, bool& updatingFlag);
     QString currentModePrompt() const;
     QString currentModeName() const;
     QString heuristicModePrompt() const;
@@ -112,6 +128,25 @@ private:
     FeedbackStore m_feedbackStore;
     GitService m_gitService;
     QPointer<HWpilotLLM> m_llm;
+
+    QStackedWidget* m_rootStack = nullptr;
+    QWidget* m_copilotPanel = nullptr;
+    QWidget* m_deepAnalysisPanel = nullptr;
+    QLabel* m_copilotProjectLabel = nullptr;
+    QLabel* m_copilotSummaryLabel = nullptr;
+    QLabel* m_copilotMetaLabel = nullptr;
+    QWidget* m_copilotTodoList = nullptr;
+    QVBoxLayout* m_copilotTodoLayout = nullptr;
+    QWidget* m_copilotQuestionList = nullptr;
+    QVBoxLayout* m_copilotQuestionLayout = nullptr;
+    QPushButton* m_copilotOpenProjectButton = nullptr;
+    QPushButton* m_copilotAnalyzeButton = nullptr;
+    QPushButton* m_copilotReviewButton = nullptr;
+    QPushButton* m_copilotHeuristicButton = nullptr;
+    QPushButton* m_copilotDeepButton = nullptr;
+    QPushButton* m_copilotReturnButton = nullptr;
+    QPushButton* m_backToCopilotButton = nullptr;
+    QList<QCheckBox*> m_copilotTodoChecks;
 
     QTreeWidget* m_versionTree = nullptr;
     QTreeWidgetItem* m_versionRoot = nullptr;
@@ -161,6 +196,8 @@ private:
     QString m_lastHeuristicReply;
     QString m_lastAiModeName;
     QString m_pendingFeedbackMode;
+    bool m_autoSaveAiAfterResponse = false;
+    bool m_autoSaveHeuristicAfterResponse = false;
     double m_temperature = 0.3;
     bool m_updatingFileTree = false;
     bool m_updatingHeuristicFileTree = false;

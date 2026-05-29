@@ -53,10 +53,10 @@ RM = /opt/homebrew/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/duxingzhe520/Desktop/Project/HWpilot
+CMAKE_SOURCE_DIR = /Users/yangruochen/Desktop/HWpilot
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/duxingzhe520/Desktop/Project/HWpilot/build
+CMAKE_BINARY_DIR = /Users/yangruochen/Desktop/HWpilot/build
 
 # Utility rule file for HWpilot_autogen_timestamp_deps.
 
@@ -81,6 +81,6 @@ CMakeFiles/HWpilot_autogen_timestamp_deps.dir/clean:
 .PHONY : CMakeFiles/HWpilot_autogen_timestamp_deps.dir/clean
 
 CMakeFiles/HWpilot_autogen_timestamp_deps.dir/depend:
-	cd /Users/duxingzhe520/Desktop/Project/HWpilot/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/duxingzhe520/Desktop/Project/HWpilot /Users/duxingzhe520/Desktop/Project/HWpilot /Users/duxingzhe520/Desktop/Project/HWpilot/build /Users/duxingzhe520/Desktop/Project/HWpilot/build /Users/duxingzhe520/Desktop/Project/HWpilot/build/CMakeFiles/HWpilot_autogen_timestamp_deps.dir/DependInfo.cmake "--color=$(COLOR)" HWpilot_autogen_timestamp_deps
+	cd /Users/yangruochen/Desktop/HWpilot/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/yangruochen/Desktop/HWpilot /Users/yangruochen/Desktop/HWpilot /Users/yangruochen/Desktop/HWpilot/build /Users/yangruochen/Desktop/HWpilot/build /Users/yangruochen/Desktop/HWpilot/build/CMakeFiles/HWpilot_autogen_timestamp_deps.dir/DependInfo.cmake "--color=$(COLOR)" HWpilot_autogen_timestamp_deps
 .PHONY : CMakeFiles/HWpilot_autogen_timestamp_deps.dir/depend
 

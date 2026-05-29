@@ -4,16 +4,24 @@
 
 #include <QApplication>
 #include <QActionGroup>
+#include <QCheckBox>
+#include <QComboBox>
 #include <QDialog>
+#include <QDialogButtonBox>
+#include <QFrame>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
+#include <QKeySequence>
 #include <QList>
 #include <QMenu>
 #include <QMenuBar>
+#include <QMessageBox>
 #include <QPair>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QSettings>
+#include <QShortcut>
 #include <QSplitter>
 #include <QStackedWidget>
 #include <QStatusBar>
@@ -28,20 +36,21 @@ MainWindowPrivate::MainWindowPrivate(MainWindow* window) : QObject(window), q(wi
 
 void MainWindowPrivate::buildUi() {
     q->setWindowTitle(AppText::get("app.title"));
-    q->resize(1280, 820);
+    q->resize(520, 840);
 
     auto* root = new QWidget(q);
-    auto* rootLayout = new QHBoxLayout(root);
-    rootLayout->setContentsMargins(10, 10, 10, 10);
-    rootLayout->setSpacing(8);
+    auto* rootLayout = new QVBoxLayout(root);
+    rootLayout->setContentsMargins(0, 0, 0, 0);
+    rootLayout->setSpacing(0);
 
-    auto* splitter = new QSplitter(Qt::Horizontal, root);
-
-    auto* leftPanel = new QWidget(splitter);
-    auto* leftLayout = new QVBoxLayout(leftPanel);
-    leftLayout->setContentsMargins(0, 0, 0, 0);
-    leftLayout->setSpacing(8);
     buildLeftPanel();
+    buildAiPanel();
+    buildCenterPanel();
+
+    auto* leftPanel = new QWidget(q);
+    auto* leftLayout = new QVBoxLayout(leftPanel);
+    leftLayout->setContentsMargins(18, 18, 18, 18);
+    leftLayout->setSpacing(8);
     leftLayout->addWidget(m_projectNameLabel);
     leftLayout->addWidget(m_projectPathLabel);
     leftLayout->addWidget(m_fileCountLabel);
@@ -55,26 +64,164 @@ void MainWindowPrivate::buildUi() {
     leftLayout->addLayout(projectActionsLayout);
     leftLayout->addWidget(m_versionTree, 1);
 
-    buildAiPanel();
-    buildCenterPanel();
-
-    auto* centerPanel = new QWidget(splitter);
+    auto* centerPanel = new QWidget(q);
     auto* centerLayout = new QVBoxLayout(centerPanel);
-    centerLayout->setContentsMargins(0, 0, 0, 0);
+    centerLayout->setContentsMargins(18, 18, 18, 18);
     centerLayout->addWidget(m_tabs);
 
-    splitter->addWidget(leftPanel);
-    splitter->addWidget(centerPanel);
-    splitter->setStretchFactor(0, 0);
-    splitter->setStretchFactor(1, 1);
-    splitter->setSizes({260, 1000});
-
-    rootLayout->addWidget(splitter);
+    m_rootStack = new QStackedWidget(root);
+    m_copilotPanel = buildCopilotPanel();
+    m_deepAnalysisPanel = buildDeepAnalysisPanel(leftPanel, centerPanel);
+    m_rootStack->addWidget(m_copilotPanel);
+    m_rootStack->addWidget(m_deepAnalysisPanel);
+    m_rootStack->setCurrentWidget(m_copilotPanel);
+    auto* escapeShortcut = new QShortcut(QKeySequence(Qt::Key_Escape), q);
+    connect(escapeShortcut, &QShortcut::activated, this, [this]() {
+        if (m_rootStack && m_rootStack->currentWidget() == m_deepAnalysisPanel)
+            showCopilotPanel();
+    });
+    rootLayout->addWidget(m_rootStack, 1);
     q->setCentralWidget(root);
 
     m_statusLabel = new QLabel(AppText::get("label.chooseProjectStart"), q);
     q->statusBar()->addWidget(m_statusLabel, 1);
     refreshProjectPanel();
+}
+
+QWidget* MainWindowPrivate::buildCopilotPanel() {
+    auto* panel = new QWidget(q);
+    panel->setObjectName("CopilotPanel");
+    auto* layout = new QVBoxLayout(panel);
+    layout->setContentsMargins(24, 20, 24, 20);
+    layout->setSpacing(16);
+
+    auto* header = new QHBoxLayout();
+    header->setContentsMargins(0, 0, 0, 0);
+    auto* logo = new QLabel("▱", panel);
+    logo->setObjectName("CopilotLogo");
+    auto* title = new QLabel("HWpilot 副驾", panel);
+    title->setObjectName("CopilotTitle");
+    m_copilotProjectLabel = new QLabel(AppText::get("label.chooseProjectStart"), panel);
+    m_copilotProjectLabel->setObjectName("CopilotMeta");
+    m_copilotProjectLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    header->addWidget(logo);
+    header->addWidget(title);
+    header->addStretch(1);
+    header->addWidget(m_copilotProjectLabel);
+    layout->addLayout(header);
+
+    auto* summaryCard = new QFrame(panel);
+    summaryCard->setObjectName("CopilotSummaryCard");
+    auto* summaryLayout = new QVBoxLayout(summaryCard);
+    summaryLayout->setContentsMargins(22, 20, 22, 20);
+    summaryLayout->setSpacing(8);
+    m_copilotSummaryLabel = new QLabel(panel);
+    m_copilotSummaryLabel->setObjectName("CopilotSummaryText");
+    m_copilotSummaryLabel->setWordWrap(true);
+    m_copilotMetaLabel = new QLabel(panel);
+    m_copilotMetaLabel->setObjectName("CopilotMeta");
+    m_copilotMetaLabel->setWordWrap(true);
+    summaryLayout->addWidget(m_copilotSummaryLabel);
+    summaryLayout->addWidget(m_copilotMetaLabel);
+    layout->addWidget(summaryCard);
+
+    auto* scrollArea = new QScrollArea(panel);
+    scrollArea->setObjectName("CopilotScroll");
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setFrameShape(QFrame::NoFrame);
+    auto* scrollContent = new QWidget(scrollArea);
+    auto* scrollLayout = new QVBoxLayout(scrollContent);
+    scrollLayout->setContentsMargins(0, 0, 0, 0);
+    scrollLayout->setSpacing(16);
+
+    auto* todoTitle = new QLabel("行动清单 (TO-DO)", scrollContent);
+    todoTitle->setObjectName("CopilotSectionTitle");
+    scrollLayout->addWidget(todoTitle);
+    m_copilotTodoList = new QWidget(scrollContent);
+    m_copilotTodoLayout = new QVBoxLayout(m_copilotTodoList);
+    m_copilotTodoLayout->setContentsMargins(0, 0, 0, 0);
+    m_copilotTodoLayout->setSpacing(12);
+    scrollLayout->addWidget(m_copilotTodoList);
+
+    auto* questionTitle = new QLabel("启发式问题", scrollContent);
+    questionTitle->setObjectName("CopilotSectionTitle");
+    scrollLayout->addWidget(questionTitle);
+    m_copilotQuestionList = new QWidget(scrollContent);
+    m_copilotQuestionLayout = new QVBoxLayout(m_copilotQuestionList);
+    m_copilotQuestionLayout->setContentsMargins(0, 0, 0, 0);
+    m_copilotQuestionLayout->setSpacing(12);
+    scrollLayout->addWidget(m_copilotQuestionList);
+    scrollLayout->addStretch(1);
+    scrollArea->setWidget(scrollContent);
+    layout->addWidget(scrollArea, 1);
+
+    m_copilotAnalyzeButton = new QPushButton("分析当前版本", panel);
+    m_copilotAnalyzeButton->setObjectName("CopilotPrimaryButton");
+    connect(m_copilotAnalyzeButton, &QPushButton::clicked, this, &MainWindowPrivate::showAnalysisDialog);
+    m_copilotReviewButton = new QPushButton("复查已选反馈", panel);
+    m_copilotReviewButton->setObjectName("CopilotSecondaryButton");
+    connect(m_copilotReviewButton, &QPushButton::clicked, this, &MainWindowPrivate::showReviewDialog);
+    m_copilotHeuristicButton = new QPushButton("生成启发式问题", panel);
+    m_copilotHeuristicButton->setObjectName("CopilotSecondaryButton");
+    connect(m_copilotHeuristicButton, &QPushButton::clicked, this, &MainWindowPrivate::showHeuristicDialog);
+    m_copilotDeepButton = new QPushButton("展开深度分析", panel);
+    m_copilotDeepButton->setObjectName("CopilotPrimaryButton");
+    connect(m_copilotDeepButton, &QPushButton::clicked, this, &MainWindowPrivate::showDeepAnalysisPanel);
+    m_copilotReturnButton = new QPushButton("返回修改", panel);
+    m_copilotReturnButton->setObjectName("CopilotSecondaryButton");
+    connect(m_copilotReturnButton, &QPushButton::clicked, q, &QWidget::showMinimized);
+    m_copilotOpenProjectButton = new QPushButton(AppText::get("button.openFolder"), panel);
+    m_copilotOpenProjectButton->setObjectName("CopilotSecondaryButton");
+    connect(m_copilotOpenProjectButton, &QPushButton::clicked, this, &MainWindowPrivate::openProjectFolder);
+
+    layout->addWidget(m_copilotAnalyzeButton);
+    layout->addWidget(m_copilotReviewButton);
+    layout->addWidget(m_copilotHeuristicButton);
+    layout->addWidget(m_copilotDeepButton);
+    layout->addWidget(m_copilotReturnButton);
+    layout->addWidget(m_copilotOpenProjectButton);
+    return panel;
+}
+
+QWidget* MainWindowPrivate::buildDeepAnalysisPanel(QWidget* leftPanel, QWidget* centerPanel) {
+    auto* panel = new QWidget(q);
+    panel->setObjectName("DeepAnalysisPanel");
+    auto* layout = new QVBoxLayout(panel);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+
+    auto* header = new QWidget(panel);
+    header->setObjectName("DeepHeader");
+    auto* headerLayout = new QHBoxLayout(header);
+    headerLayout->setContentsMargins(24, 16, 24, 16);
+    auto* logo = new QLabel("▱", header);
+    logo->setObjectName("CopilotLogo");
+    auto* title = new QLabel("HWpilot 分析工作台", header);
+    title->setObjectName("CopilotTitle");
+    auto* versionButton = new QPushButton("查看版本记录", header);
+    versionButton->setObjectName("CopilotSecondaryButton");
+    connect(versionButton, &QPushButton::clicked, this, [this]() {
+        if (m_tabs)
+            m_tabs->setCurrentIndex(0);
+    });
+    m_backToCopilotButton = new QPushButton("返回副驾 (Esc)", header);
+    m_backToCopilotButton->setObjectName("CopilotSecondaryButton");
+    connect(m_backToCopilotButton, &QPushButton::clicked, this, &MainWindowPrivate::showCopilotPanel);
+    headerLayout->addWidget(logo);
+    headerLayout->addWidget(title);
+    headerLayout->addStretch(1);
+    headerLayout->addWidget(versionButton);
+    headerLayout->addWidget(m_backToCopilotButton);
+    layout->addWidget(header);
+
+    auto* splitter = new QSplitter(Qt::Horizontal, panel);
+    splitter->addWidget(leftPanel);
+    splitter->addWidget(centerPanel);
+    splitter->setStretchFactor(0, 0);
+    splitter->setStretchFactor(1, 1);
+    splitter->setSizes({300, 980});
+    layout->addWidget(splitter, 1);
+    return panel;
 }
 
 void MainWindowPrivate::buildLeftPanel() {
@@ -562,38 +709,270 @@ void MainWindowPrivate::showAiFeedbackRecordPicker() {
     updateAiActionText();
 }
 
+void MainWindowPrivate::showCopilotPanel() {
+    if (m_rootStack && m_copilotPanel)
+        m_rootStack->setCurrentWidget(m_copilotPanel);
+    q->resize(520, 840);
+    refreshCopilotPanel();
+}
+
+void MainWindowPrivate::showDeepAnalysisPanel() {
+    if (m_rootStack && m_deepAnalysisPanel)
+        m_rootStack->setCurrentWidget(m_deepAnalysisPanel);
+    q->resize(1320, 860);
+    refreshCurrentProject();
+}
+
+void MainWindowPrivate::showAnalysisDialog() {
+    if (m_projectDir.isEmpty()) {
+        openProjectFolder();
+        if (m_projectDir.isEmpty())
+            return;
+    }
+
+    scanCurrentProject(false);
+
+    QDialog dialog(q);
+    dialog.setWindowTitle("分析当前版本");
+    dialog.setMinimumSize(620, 560);
+    dialog.setObjectName("CopilotDialog");
+    auto* layout = new QVBoxLayout(&dialog);
+    layout->setContentsMargins(22, 22, 22, 22);
+    layout->setSpacing(12);
+
+    auto* title = new QLabel("分析当前版本", &dialog);
+    title->setObjectName("DialogTitle");
+    layout->addWidget(title);
+
+    auto* scope = new QComboBox(&dialog);
+    scope->addItem("智能选择推荐文件", "recommended");
+    scope->addItem("分析全部代码文件", "all");
+    scope->addItem("手动选择文件", "manual");
+    layout->addWidget(scope);
+
+    auto* manualTree = new QTreeWidget(&dialog);
+    manualTree->setHeaderLabel(AppText::get("label.projectFiles"));
+    manualTree->setVisible(false);
+    for (const CodeFile& file : m_files) {
+        auto* item = new QTreeWidgetItem(manualTree, QStringList() << file.relativePath);
+        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+        item->setCheckState(0, Qt::Checked);
+        item->setData(0, FilePathRole, file.relativePath);
+    }
+    layout->addWidget(manualTree, 1);
+    connect(scope, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [scope, manualTree]() {
+        manualTree->setVisible(scope->currentData().toString() == "manual");
+    });
+
+    auto* task = new QTextEdit(&dialog);
+    task->setPlaceholderText(AppText::get("placeholder.task"));
+    task->setFixedHeight(110);
+    task->setPlainText(m_taskEdit ? m_taskEdit->toPlainText() : QString());
+    layout->addWidget(task);
+
+    auto* question = new QTextEdit(&dialog);
+    question->setPlaceholderText(AppText::get("placeholder.question"));
+    question->setFixedHeight(90);
+    layout->addWidget(question);
+
+    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Cancel, &dialog);
+    auto* startButton = buttons->addButton("开始分析", QDialogButtonBox::AcceptRole);
+    startButton->setObjectName("CopilotPrimaryButton");
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    connect(startButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+    layout->addWidget(buttons);
+
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+
+    QStringList paths;
+    if (scope->currentData().toString() == "manual") {
+        for (int i = 0; i < manualTree->topLevelItemCount(); ++i) {
+            QTreeWidgetItem* item = manualTree->topLevelItem(i);
+            if (item->checkState(0) == Qt::Checked)
+                paths.append(item->data(0, FilePathRole).toString());
+        }
+    } else {
+        for (const CodeFile& file : m_files)
+            paths.append(file.relativePath);
+    }
+
+    setCheckedFilePaths(m_fileTree, paths, m_updatingFileTree);
+    if (m_aiPickerStack)
+        m_aiPickerStack->setCurrentIndex(0);
+    if (m_chooseCodeFilesButton)
+        m_chooseCodeFilesButton->setChecked(true);
+    if (m_chooseFeedbackRecordsButton)
+        m_chooseFeedbackRecordsButton->setChecked(false);
+    if (m_taskEdit)
+        m_taskEdit->setPlainText(task->toPlainText());
+    if (m_questionEdit)
+        m_questionEdit->setPlainText(question->toPlainText());
+
+    m_autoSaveAiAfterResponse = true;
+    startAiAnalysis();
+}
+
+void MainWindowPrivate::showReviewDialog() {
+    if (m_projectDir.isEmpty()) {
+        openProjectFolder();
+        if (m_projectDir.isEmpty())
+            return;
+    }
+
+    const QStringList itemIds = checkedCopilotTodoItemIds();
+    if (itemIds.isEmpty()) {
+        QMessageBox::information(q, "未选择待办", "请先在行动清单中勾选要复查的反馈。");
+        return;
+    }
+
+    QDialog dialog(q);
+    dialog.setWindowTitle("复查已选反馈");
+    dialog.setMinimumSize(560, 360);
+    dialog.setObjectName("CopilotDialog");
+    auto* layout = new QVBoxLayout(&dialog);
+    layout->setContentsMargins(22, 22, 22, 22);
+    layout->setSpacing(12);
+    auto* title = new QLabel(QString("复查 %1 条反馈").arg(itemIds.size()), &dialog);
+    title->setObjectName("DialogTitle");
+    layout->addWidget(title);
+    auto* hint = new QLabel("系统会自动刷新当前代码，并读取已选反馈对应的上下文。", &dialog);
+    hint->setObjectName("CopilotMeta");
+    hint->setWordWrap(true);
+    layout->addWidget(hint);
+    auto* notes = new QTextEdit(&dialog);
+    notes->setPlaceholderText("补充说明，例如：我已经修改了析构函数和测试用例...");
+    notes->setFixedHeight(120);
+    layout->addWidget(notes);
+    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Cancel, &dialog);
+    auto* startButton = buttons->addButton("开始复查", QDialogButtonBox::AcceptRole);
+    startButton->setObjectName("CopilotPrimaryButton");
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    connect(startButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+    layout->addWidget(buttons);
+
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+
+    scanCurrentProject(false);
+    QStringList paths;
+    for (const CodeFile& file : m_files)
+        paths.append(file.relativePath);
+    setCheckedFilePaths(m_fileTree, paths, m_updatingFileTree);
+    populateAiFeedbackPicker();
+    applyFeedbackPickerSelection(itemIds);
+    if (m_questionEdit)
+        m_questionEdit->setPlainText(notes->toPlainText());
+    m_autoSaveAiAfterResponse = true;
+    startAiAnalysis();
+}
+
+void MainWindowPrivate::showHeuristicDialog() {
+    if (m_projectDir.isEmpty()) {
+        openProjectFolder();
+        if (m_projectDir.isEmpty())
+            return;
+    }
+
+    scanCurrentProject(false);
+
+    QDialog dialog(q);
+    dialog.setWindowTitle("生成启发式问题");
+    dialog.setMinimumSize(560, 430);
+    dialog.setObjectName("CopilotDialog");
+    auto* layout = new QVBoxLayout(&dialog);
+    layout->setContentsMargins(22, 22, 22, 22);
+    layout->setSpacing(12);
+    auto* title = new QLabel("生成启发式问题", &dialog);
+    title->setObjectName("DialogTitle");
+    layout->addWidget(title);
+    auto* task = new QTextEdit(&dialog);
+    task->setPlaceholderText(AppText::get("placeholder.task"));
+    task->setFixedHeight(110);
+    task->setPlainText(m_taskEdit ? m_taskEdit->toPlainText() : QString());
+    layout->addWidget(task);
+    auto* question = new QTextEdit(&dialog);
+    question->setPlaceholderText("额外要求，例如：更偏向引导学生自己发现内存问题...");
+    question->setFixedHeight(100);
+    layout->addWidget(question);
+    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Cancel, &dialog);
+    auto* startButton = buttons->addButton("生成问题", QDialogButtonBox::AcceptRole);
+    startButton->setObjectName("CopilotPrimaryButton");
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    connect(startButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+    layout->addWidget(buttons);
+
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+
+    QStringList paths;
+    for (const CodeFile& file : m_files)
+        paths.append(file.relativePath);
+    setCheckedFilePaths(m_heuristicFileTree, paths, m_updatingHeuristicFileTree);
+    if (m_heuristicTaskEdit)
+        m_heuristicTaskEdit->setPlainText(task->toPlainText());
+    if (m_heuristicQuestionEdit)
+        m_heuristicQuestionEdit->setPlainText(question->toPlainText());
+    m_autoSaveHeuristicAfterResponse = true;
+    startHeuristicQuestions();
+}
+
 void MainWindowPrivate::applyStyle() {
     qApp->setStyleSheet(
-        "QMainWindow, QWidget { background: #eef2f6; color: #1f2937; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Arial, sans-serif; font-size: 14px; line-height: 1.45; }"
-        "QSplitter::handle { background: #e4eaf1; }"
-        "QSplitter::handle:hover { background: #d5dee9; }"
-        "QToolButton, QPushButton { background: #ffffff; border: 0; border-radius: 0px; padding: 8px 13px; color: #243244; line-height: 1.45; }"
-        "QToolButton:hover, QPushButton:hover { background: #f3f8ff; }"
-        "QToolButton:pressed, QPushButton:pressed { background: #e8f1ff; }"
-        "QPushButton#PrimaryButton { background: #2563eb; color: white; font-weight: 600; }"
-        "QPushButton#PrimaryButton:hover { background: #1d4ed8; }"
-        "QPushButton:checked { background: #dbeafe; color: #1d4ed8; font-weight: 600; }"
-        "QPushButton:disabled { color: #94a3b8; background: #e8edf3; }"
-        "QTreeWidget, QTextEdit, QTextBrowser, QComboBox { background: #ffffff; border: 0; border-radius: 0px; padding: 5px; selection-background-color: #dbeafe; selection-color: #0f172a; line-height: 1.45; }"
-        "QTextEdit[readOnly=\"true\"] { background: #fbfcfe; }"
-        "QHeaderView::section { background: #f3f6fa; color: #475569; border: 0; padding: 7px 8px; font-weight: 600; line-height: 1.45; }"
-        "QLabel#PanelTitle { background: transparent; color: #0f172a; font-size: 16px; font-weight: 700; padding: 2px 0 6px 0; line-height: 1.45; }"
-        "QLabel#ProjectName { background: transparent; color: #0f172a; font-size: 18px; font-weight: 700; padding: 2px 0 3px 0; line-height: 1.45; }"
-        "QLabel#MetaLabel { background: transparent; color: #5b6878; padding: 1px 0; line-height: 1.45; }"
-        "QTreeWidget { alternate-background-color: #f8fafc; }"
-        "QTreeWidget::item { padding: 6px 5px; border-radius: 0px; }"
-        "QTreeWidget::item:hover { background: #eef6ff; }"
-        "QTreeWidget::item:selected { background: #dbeafe; color: #102a43; }"
-        "QTabWidget::pane { border: 0; background: #ffffff; border-radius: 0px; top: -1px; }"
-        "QTabBar::tab { background: #e4eaf2; color: #516071; padding: 9px 18px; border: 0; border-radius: 0px; margin-right: 4px; line-height: 1.45; }"
-        "QTabBar::tab:hover { background: #eef5ff; color: #1f2937; }"
-        "QTabBar::tab:selected { background: #ffffff; color: #0f172a; font-weight: 700; }"
+        "QMainWindow, QWidget { background: #1c1c1d; color: #e8e8ea; font-family: \"PingFang SC\", \"Helvetica Neue\", Arial, sans-serif; font-size: 14px; line-height: 1.45; }"
+        "QWidget#CopilotPanel, QWidget#DeepAnalysisPanel { background: #1c1c1d; }"
+        "QWidget#DeepHeader { background: #202123; border-bottom: 1px solid #3a3b3f; }"
+        "QLabel#CopilotLogo { color: #0b8bdc; font-size: 28px; font-weight: 800; padding-right: 4px; }"
+        "QLabel#CopilotTitle { color: #f4f4f5; font-size: 24px; font-weight: 800; }"
+        "QLabel#CopilotMeta, QLabel#MetaLabel { color: #a1a1aa; background: transparent; font-weight: 600; }"
+        "QLabel#CopilotSummaryText { color: #e5e7eb; background: transparent; font-size: 21px; font-weight: 800; line-height: 1.45; }"
+        "QLabel#CopilotSectionTitle { color: #9b9ba1; background: transparent; font-size: 17px; font-weight: 800; padding: 4px 0; }"
+        "QLabel#CopilotEmptyText { color: #a1a1aa; background: #222326; border: 1px solid #3f4045; border-radius: 8px; padding: 14px; }"
+        "QFrame#CopilotSummaryCard { background: #28282a; border: 1px solid #44454a; border-radius: 10px; }"
+        "QFrame#TodoCardHigh { background: #222224; border: 1px solid #57352e; border-left: 5px solid #ff806d; border-radius: 8px; }"
+        "QFrame#TodoCardMedium { background: #222224; border: 1px solid #4e4725; border-left: 5px solid #d8b800; border-radius: 8px; }"
+        "QFrame#QuestionCard { background: #1f262d; border: 1px solid #0b84d8; border-left: 5px solid #0b8bdc; border-radius: 8px; }"
+        "QLabel#TodoTitle { color: #ffffff; background: transparent; font-size: 17px; font-weight: 800; }"
+        "QLabel#TodoBody { color: #b8b8bd; background: transparent; font-size: 15px; font-weight: 600; }"
+        "QLabel#TodoTagHigh { color: #ff9a8a; background: #5a3933; border-radius: 5px; padding: 4px 8px; font-weight: 800; }"
+        "QLabel#TodoTagMedium { color: #d7d7dc; background: #45484c; border-radius: 5px; padding: 4px 8px; font-weight: 800; }"
+        "QLabel#QuestionTitle { color: #0b98ee; background: transparent; font-size: 16px; font-weight: 800; }"
+        "QLabel#QuestionBody { color: #e8eef7; background: transparent; font-size: 16px; font-weight: 650; line-height: 1.55; }"
+        "QLabel#DialogTitle, QLabel#PanelTitle, QLabel#ProjectName { background: transparent; color: #f4f4f5; font-size: 18px; font-weight: 800; padding: 2px 0 6px 0; }"
+        "QPushButton, QToolButton { background: #26272a; border: 1px solid #46474d; border-radius: 8px; padding: 10px 14px; color: #d9d9dd; font-weight: 700; }"
+        "QPushButton:hover, QToolButton:hover { background: #303137; border-color: #5b5c63; }"
+        "QPushButton:pressed, QToolButton:pressed { background: #18191b; }"
+        "QPushButton#PrimaryButton, QPushButton#CopilotPrimaryButton { background: #0b8bdc; color: white; border: 1px solid #0b8bdc; font-size: 16px; font-weight: 850; padding: 14px 16px; }"
+        "QPushButton#PrimaryButton:hover, QPushButton#CopilotPrimaryButton:hover { background: #0a7bc2; }"
+        "QPushButton#CopilotSecondaryButton { background: #1d1e20; color: #d7d7dc; border: 1px solid #414247; font-size: 15px; font-weight: 800; padding: 12px 16px; }"
+        "QPushButton#CopilotSecondaryButton:hover { background: #27282c; }"
+        "QPushButton:checked { background: #16364f; color: #64c3ff; border-color: #0b8bdc; }"
+        "QPushButton:disabled { color: #696a70; background: #242528; border-color: #33343a; }"
+        "QCheckBox { background: transparent; color: #e5e7eb; spacing: 10px; }"
+        "QCheckBox::indicator { width: 24px; height: 24px; border: 3px solid #6a6b70; border-radius: 6px; background: transparent; }"
+        "QCheckBox::indicator:checked { background: #0b8bdc; border-color: #0b8bdc; }"
+        "QTreeWidget, QTextEdit, QTextBrowser, QComboBox { background: #202123; border: 1px solid #3e3f44; border-radius: 8px; padding: 6px; color: #e5e7eb; selection-background-color: #16364f; selection-color: #ffffff; }"
+        "QTextEdit[readOnly=\"true\"] { background: #202123; }"
+        "QHeaderView::section { background: #28292d; color: #a7a7ad; border: 0; padding: 8px; font-weight: 800; }"
+        "QTreeWidget { alternate-background-color: #242529; }"
+        "QTreeWidget::item { padding: 7px 5px; border-radius: 4px; }"
+        "QTreeWidget::item:hover { background: #2b3036; }"
+        "QTreeWidget::item:selected { background: #16364f; color: #ffffff; }"
+        "QTabWidget::pane { border: 1px solid #35363a; background: #202123; border-radius: 8px; top: -1px; }"
+        "QTabBar::tab { background: #292a2f; color: #b2b2b8; padding: 10px 18px; border: 1px solid #383940; border-bottom: 0; border-top-left-radius: 8px; border-top-right-radius: 8px; margin-right: 4px; }"
+        "QTabBar::tab:hover { background: #303139; color: #ffffff; }"
+        "QTabBar::tab:selected { background: #202123; color: #ffffff; font-weight: 800; }"
+        "QScrollArea#CopilotScroll { background: transparent; border: 0; }"
         "QScrollBar:vertical { background: transparent; width: 10px; margin: 2px; }"
-        "QScrollBar::handle:vertical { background: #c7d1df; border-radius: 0px; min-height: 28px; }"
-        "QScrollBar::handle:vertical:hover { background: #9fb0c4; }"
+        "QScrollBar::handle:vertical { background: #4f5056; border-radius: 5px; min-height: 28px; }"
+        "QScrollBar::handle:vertical:hover { background: #686a72; }"
         "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }"
         "QScrollBar:horizontal { background: transparent; height: 10px; margin: 2px; }"
-        "QScrollBar::handle:horizontal { background: #c7d1df; border-radius: 0px; min-width: 28px; }"
+        "QScrollBar::handle:horizontal { background: #4f5056; border-radius: 5px; min-width: 28px; }"
         "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0px; }"
-        "QStatusBar { background: #ffffff; color: #475569; border: 0; line-height: 1.45; }");
+        "QStatusBar { background: #202123; color: #a1a1aa; border-top: 1px solid #33343a; }"
+        "QMenuBar { background: #1c1c1d; color: #d8d8dc; }"
+        "QMenuBar::item:selected { background: #2b2c31; }"
+        "QMenu { background: #25262a; color: #e8e8ea; border: 1px solid #46474d; }"
+        "QMenu::item:selected { background: #16364f; }");
 }

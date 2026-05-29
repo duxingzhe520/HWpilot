@@ -37,10 +37,13 @@ void HWpilotLLM::sendChatRequest(const QJsonArray& messages,
 }
 
 void HWpilotLLM::onNetworkReply(QNetworkReply* reply) {
+    const QByteArray responseData = reply->readAll();
+    const int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    const QString responseBody = QString::fromUtf8(responseData).trimmed();
+
     if (reply->error() == QNetworkReply::NoError) {
-        // 读取返回的 JSON 数据
-        QByteArray responseData = reply->readAll();
-        QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData);
+        QJsonParseError parseError;
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData, &parseError);
 
         if (jsonDoc.isObject()) {
             QJsonObject jsonObj = jsonDoc.object();
@@ -55,14 +58,23 @@ void HWpilotLLM::onNetworkReply(QNetworkReply* reply) {
 
                     // 成功获取 AI 回复，发射信号！
                     emit responseReceived(content);
+                    reply->deleteLater();
+                    return;
                 }
             }
         }
+
+        emit errorOccurred(QString("Unexpected API response. HTTP status: %1\nParse error: %2\nResponse body:\n%3")
+                               .arg(statusCode)
+                               .arg(parseError.errorString())
+                               .arg(responseBody.left(4000)));
     } else {
-        // 发生错误，发射错误信号
-        emit errorOccurred(reply->errorString());
-        // 可以通过 reply->readAll() 获取具体的服务器报错信息
-        qDebug() << "API Error details:" << reply->readAll();
+        const QString detail = QString("Network/API error. HTTP status: %1\nQt error: %2\nResponse body:\n%3")
+                                   .arg(statusCode)
+                                   .arg(reply->errorString())
+                                   .arg(responseBody.left(4000));
+        emit errorOccurred(detail);
+        qDebug().noquote() << detail;
     }
 
     reply->deleteLater();  // 释放内存
