@@ -77,6 +77,7 @@ QJsonObject ProjectData::toJson() const {
     object["projectName"] = projectName;
     object["projectPath"] = projectPath;
     object["assignmentText"] = assignmentText;
+    object["apiKey"] = apiKey;
     object["lastOpenedAt"] = lastOpenedAt;
 
     QJsonArray feedbackArray;
@@ -92,6 +93,7 @@ ProjectData ProjectData::fromJson(const QJsonObject& object) {
     data.projectName = object["projectName"].toString();
     data.projectPath = object["projectPath"].toString();
     data.assignmentText = object["assignmentText"].toString();
+    data.apiKey = object["apiKey"].toString();
     data.lastOpenedAt = object["lastOpenedAt"].toString();
 
     const QJsonArray feedbackArray = object["feedbacks"].toArray();

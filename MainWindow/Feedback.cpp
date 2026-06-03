@@ -13,6 +13,7 @@
 #include <QJsonObject>
 #include <QJsonParseError>
 #include <QHeaderView>
+#include <QHBoxLayout>
 #include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
@@ -21,10 +22,13 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QSize>
+#include <QSizePolicy>
 #include <QTabWidget>
 #include <QTextBrowser>
 #include <QTextEdit>
 #include <QTreeWidget>
+#include <QWidget>
 #include <QtGlobal>
 
 #include "Render.h"
@@ -79,13 +83,46 @@ void applyFeedbackStatusStyle(QTreeWidgetItem* item, const QString& status) {
         item->setForeground(column, ignored ? ignoredBrush : QBrush());
 }
 
+void setFeedbackRowHeight(QTreeWidgetItem* item) {
+    static constexpr int RowHeight = 44;
+    for (int column = 0; column < item->columnCount(); ++column)
+        item->setSizeHint(column, QSize(-1, RowHeight));
+}
+
 QString feedbackStatusComboStyle(const QString& status) {
-    const QString comboColor = normalizedFeedbackStatus(status) == "ignored" ? "#94a3b8" : "#243244";
+    const QString normalizedStatus = normalizedFeedbackStatus(status);
+    const QString comboColor = normalizedStatus == "ignored" ? "#94a3b8" : "#243244";
     return QString(
-        "QComboBox { color: %1; padding-left: 6px; padding-right: 24px; min-height: 24px; }"
-        "QComboBox::drop-down { width: 22px; border: 0; }"
-        "QComboBox QAbstractItemView { min-width: 88px; }")
+        "QComboBox { background: transparent; color: %1; border: 0; padding: 2px 24px 2px 10px; min-height: 24px; }"
+        "QComboBox::drop-down { subcontrol-origin: padding; subcontrol-position: top right; width: 24px; border-left: 1px solid transparent; background: transparent; }"
+        "QComboBox QAbstractItemView { min-width: 96px; background: #ffffff; color: #243244; border: 1px solid #94a3b8; border-radius: 8px; padding: 4px; selection-background-color: #dbeafe; selection-color: #0f172a; }")
         .arg(comboColor);
+}
+
+QString feedbackStatusCellStyle(const QString& status) {
+    const QString normalizedStatus = normalizedFeedbackStatus(status);
+    const bool ignored = normalizedStatus == "ignored";
+    QString accentColor = "#ffffff";
+    QString dividerColor = "#dbe3ee";
+    if (normalizedStatus == "unresolved") {
+        accentColor = "#fee2e2";
+        dividerColor = "#fca5a5";
+    } else if (normalizedStatus == "resolved") {
+        accentColor = "#dcfce7";
+        dividerColor = "#86efac";
+    } else if (normalizedStatus == "uncertain") {
+        accentColor = "#fef3c7";
+        dividerColor = "#fcd34d";
+    }
+    const QString borderColor = ignored ? "#cbd5e1" : "#94a3b8";
+    const QString background = ignored
+                                   ? QString("#ffffff")
+                                   : QString("qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #ffffff, stop:0.79 #ffffff, stop:0.80 %1, stop:1 %2)")
+                                         .arg(dividerColor, accentColor);
+    return QString(
+        "QWidget#StatusCell { background: %1; border: 1px solid %2; border-radius: 8px; }"
+        "QWidget#StatusCell:hover { background: %1; border-color: #2563eb; }")
+        .arg(background, borderColor);
 }
 
 QString displayFeedbackTime(QString createdAt) {
@@ -213,6 +250,7 @@ void MainWindowPrivate::populateFeedbackPanel(const QList<FeedbackRecord>& feedb
         auto* recordItem = m_showingHeuristicRecords
                                ? new QTreeWidgetItem(m_feedbackTree, QStringList() << title)
                                : new QTreeWidgetItem(m_feedbackTree, QStringList() << title << AppText::get("feedback.issueCount").arg(feedback.items.size()) << feedback.mode << feedback.parseStatus);
+        setFeedbackRowHeight(recordItem);
         recordItem->setData(0, DetailHtmlRole, renderFeedbackRecordDetail(feedback));
         recordItem->setData(0, RecordIdRole, feedback.id);
         recordItem->setToolTip(0, displayFeedbackTime(feedback.createdAt));
@@ -225,6 +263,7 @@ void MainWindowPrivate::populateFeedbackPanel(const QList<FeedbackRecord>& feedb
         for (const FeedbackItem& item : sortedItems) {
             if (m_showingHeuristicRecords) {
                 auto* itemNode = new QTreeWidgetItem(recordItem, QStringList() << (item.title.isEmpty() ? AppText::get("feedback.unnamedIssue") : item.title));
+                setFeedbackRowHeight(itemNode);
                 itemNode->setData(0, DetailHtmlRole, renderHeuristicItemDetail(item));
                 itemNode->setData(0, ItemIdRole, item.id);
                 itemNode->setToolTip(0, item.suggestion);
@@ -236,21 +275,31 @@ void MainWindowPrivate::populateFeedbackPanel(const QList<FeedbackRecord>& feedb
                                          ? QString()
                                          : QString("%1%2").arg(item.filePath, item.line >= 0 ? QString(":%1").arg(item.line) : QString());
             auto* itemNode = new QTreeWidgetItem(recordItem, QStringList() << (item.title.isEmpty() ? AppText::get("feedback.unnamedIssue") : item.title) << item.severity << location << feedbackStatusText(itemStatus));
+            setFeedbackRowHeight(itemNode);
             itemNode->setData(0, DetailHtmlRole, renderFeedbackItemDetail(item));
             itemNode->setData(0, ItemIdRole, item.id);
             itemNode->setData(0, ReviewRecordIdRole, item.reviewRecordId);
             itemNode->setData(3, Qt::UserRole, itemStatus);
             applyFeedbackStatusStyle(itemNode, itemStatus);
 
-            auto* statusCombo = new QComboBox(m_feedbackTree);
-            statusCombo->setMinimumWidth(88);
+            auto* statusCell = new QWidget(m_feedbackTree);
+            statusCell->setObjectName("StatusCell");
+            statusCell->setStyleSheet(feedbackStatusCellStyle(itemStatus));
+            statusCell->setMinimumHeight(44);
+            auto* statusCellLayout = new QHBoxLayout(statusCell);
+            statusCellLayout->setContentsMargins(0, 0, 0, 0);
+            statusCellLayout->setSpacing(0);
+
+            auto* statusCombo = new QComboBox(statusCell);
+            statusCombo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
             statusCombo->addItem(AppText::get("feedback.unresolved"), "unresolved");
             statusCombo->addItem(AppText::get("feedback.resolved"), "resolved");
             statusCombo->addItem(AppText::get("feedback.uncertain"), "uncertain");
             statusCombo->addItem(AppText::get("feedback.ignored"), "ignored");
             statusCombo->setCurrentIndex(statusCombo->findData(itemStatus));
             statusCombo->setStyleSheet(feedbackStatusComboStyle(itemStatus));
-            connect(statusCombo, QOverload<int>::of(&QComboBox::activated), this, [this, itemNode, item = item, statusCombo](int index) mutable {
+            statusCellLayout->addWidget(statusCombo);
+            connect(statusCombo, QOverload<int>::of(&QComboBox::activated), this, [this, itemNode, item = item, statusCell, statusCombo](int index) mutable {
                 const QString status = statusCombo->itemData(index).toString();
                 QString errorMessage;
                 if (!m_feedbackStore.updateItemStatus(item.id, status, &errorMessage)) {
@@ -264,6 +313,7 @@ void MainWindowPrivate::populateFeedbackPanel(const QList<FeedbackRecord>& feedb
                 itemNode->setData(0, DetailHtmlRole, renderFeedbackItemDetail(item));
                 itemNode->setData(3, Qt::UserRole, status);
                 applyFeedbackStatusStyle(itemNode, status);
+                statusCell->setStyleSheet(feedbackStatusCellStyle(status));
                 statusCombo->setStyleSheet(feedbackStatusComboStyle(status));
 
                 m_feedbackTree->verticalScrollBar()->setValue(scrollPosition);
@@ -271,7 +321,7 @@ void MainWindowPrivate::populateFeedbackPanel(const QList<FeedbackRecord>& feedb
                     m_reviewReport->setHtml(itemNode->data(0, DetailHtmlRole).toString());
                 m_statusLabel->setText(AppText::get("status.feedbackStatusUpdated").arg(feedbackStatusText(status)));
             });
-            m_feedbackTree->setItemWidget(itemNode, 3, statusCombo);
+            m_feedbackTree->setItemWidget(itemNode, 3, statusCell);
         }
     }
 

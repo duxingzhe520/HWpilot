@@ -12,7 +12,10 @@
 #include "../ProjectManager/ProjectManager.h"
 
 class QLabel;
+class QEvent;
+class QGraphicsOpacityEffect;
 class QMenu;
+class QPropertyAnimation;
 class QPushButton;
 class QStackedWidget;
 class QTabWidget;
@@ -20,12 +23,15 @@ class QTextBrowser;
 class QTextEdit;
 class QTreeWidget;
 class QTreeWidgetItem;
+class QWidget;
 class HWpilotLLM;
 class MainWindowPrivate : public QObject {
     Q_OBJECT
 
 public:
     explicit MainWindowPrivate(MainWindow* window);
+
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
     void buildUi();
     void buildLeftPanel();
@@ -56,6 +62,7 @@ public:
     void showFeedbackIssueRecords();
     void showFeedbackReviewRecords();
     void showHeuristicQuestionRecords();
+    void showProjectApiKeyDialog();
 
 private:
     static constexpr int NoteRole = Qt::UserRole + 2;
@@ -103,6 +110,7 @@ private:
     void updateAiActionText();
     double currentTemperature() const;
     void setBusy(bool busy);
+    void toggleProjectOverview();
 
     MainWindow* q = nullptr;
     QString m_projectDir;
@@ -112,13 +120,11 @@ private:
     FeedbackStore m_feedbackStore;
     GitService m_gitService;
     QPointer<HWpilotLLM> m_llm;
+    bool m_projectOverviewShownByName = false;
 
     QTreeWidget* m_versionTree = nullptr;
     QTreeWidgetItem* m_versionRoot = nullptr;
     QLabel* m_projectNameLabel = nullptr;
-    QLabel* m_projectPathLabel = nullptr;
-    QLabel* m_fileCountLabel = nullptr;
-    QLabel* m_feedbackCountLabel = nullptr;
     QPushButton* m_openProjectButton = nullptr;
     QPushButton* m_refreshProjectButton = nullptr;
     QPushButton* m_commitButton = nullptr;
@@ -131,6 +137,9 @@ private:
     QPushButton* m_selectAllFilesButton = nullptr;
     QPushButton* m_selectAllHeuristicFilesButton = nullptr;
     QPushButton* m_selectAllFeedbackRecordsButton = nullptr;
+    QWidget* m_overviewOverlay = nullptr;
+    QGraphicsOpacityEffect* m_overviewOverlayEffect = nullptr;
+    QPropertyAnimation* m_overviewOverlayAnimation = nullptr;
     QTextBrowser* m_changeSummary = nullptr;
     QTextBrowser* m_reviewReport = nullptr;
     QTreeWidget* m_feedbackTree = nullptr;

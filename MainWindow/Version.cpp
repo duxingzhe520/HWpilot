@@ -4,6 +4,7 @@
 
 #include <QDateTime>
 #include <QDialog>
+#include <QFileInfo>
 #include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
@@ -87,14 +88,15 @@ void MainWindowPrivate::refreshChangeSummary() {
 
     const QString commitHash = selectedCommitHash();
     const QString versionTitle = m_versionTree->currentItem() ? m_versionTree->currentItem()->text(0) : AppText::get("version.currentWorkspace");
-    const QList<FeedbackRecord> feedbacks = m_feedbackStore.feedbacksForCommit(feedbackContextHash());
-    const int fileCount = commitHash.isEmpty() ? m_files.size() : m_gitService.filesAtCommit(commitHash).size();
+    const QString projectName = QFileInfo(m_projectDir).fileName();
+    const int projectFeedbackCount = m_feedbackStore.allFeedbacks().size();
 
     html += QString("<h3>%1</h3>").arg(htmlEscape(AppText::get("version.info")));
     html += "<table cellspacing=\"0\" cellpadding=\"6\" style=\"border-collapse:collapse; width:100%;\">";
+    html += QString("<tr><td style=\"color:#64748b; width:110px;\">%1</td><td><b>%2</b></td></tr>").arg(htmlEscape(AppText::get("version.projectName")), htmlEscape(projectName));
+    html += QString("<tr><td style=\"color:#64748b;\">%1</td><td>%2</td></tr>").arg(htmlEscape(AppText::get("version.projectFileCount"))).arg(m_files.size());
+    html += QString("<tr><td style=\"color:#64748b;\">%1</td><td>%2</td></tr>").arg(htmlEscape(AppText::get("version.projectFeedbackCount")), htmlEscape(AppText::get("version.recordsUnit").arg(projectFeedbackCount)));
     html += QString("<tr><td style=\"color:#64748b; width:110px;\">%1</td><td><b>%2</b></td></tr>").arg(htmlEscape(AppText::get("version.version")), htmlEscape(versionTitle));
-    html += QString("<tr><td style=\"color:#64748b;\">%1</td><td>%2</td></tr>").arg(htmlEscape(AppText::get("version.fileCount"))).arg(fileCount);
-    html += QString("<tr><td style=\"color:#64748b;\">%1</td><td>%2</td></tr>").arg(htmlEscape(AppText::get("version.feedbackCount")), htmlEscape(AppText::get("version.recordsUnit").arg(feedbacks.size())));
 
     if (commitHash.isEmpty()) {
         const QString diffStat = m_gitService.diffStat().trimmed();

@@ -3,19 +3,60 @@
 #include "../AppText.h"
 
 #include <QDir>
+#include <QDialog>
+#include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QLabel>
+#include <QLineEdit>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QSettings>
 #include <QStringList>
 #include <QTextEdit>
 #include <QTreeWidget>
+#include <QVBoxLayout>
 
 #include "Render.h"
 
 using namespace MainWindowRender;
+
+namespace {
+QString promptForProjectApiKey(QWidget* parent, const QString& initialApiKey = QString()) {
+    QDialog dialog(parent);
+    dialog.setWindowTitle(AppText::get("dialog.apiKey.title"));
+
+    auto* layout = new QVBoxLayout(&dialog);
+    layout->setSpacing(10);
+
+    auto* messageLabel = new QLabel(AppText::get("dialog.apiKey.body"), &dialog);
+    messageLabel->setWordWrap(true);
+    layout->addWidget(messageLabel);
+
+    auto* inputLabel = new QLabel(AppText::get("dialog.apiKey.label"), &dialog);
+    layout->addWidget(inputLabel);
+
+    auto* apiKeyEdit = new QLineEdit(&dialog);
+    apiKeyEdit->setEchoMode(QLineEdit::Password);
+    apiKeyEdit->setClearButtonEnabled(true);
+    apiKeyEdit->setText(initialApiKey);
+    layout->addWidget(apiKeyEdit);
+
+    auto* buttons = new QDialogButtonBox(&dialog);
+    QPushButton* confirmButton = buttons->addButton(AppText::get("dialog.apiKey.confirm"), QDialogButtonBox::AcceptRole);
+    buttons->addButton(AppText::get("dialog.apiKey.skip"), QDialogButtonBox::RejectRole);
+    layout->addWidget(buttons);
+
+    QObject::connect(confirmButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+    QObject::connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+
+    apiKeyEdit->setFocus();
+    if (dialog.exec() != QDialog::Accepted)
+        return QString();
+
+    return apiKeyEdit->text().trimmed();
+}
+}  // namespace
 
 void MainWindowPrivate::openProjectFolder() {
     const QString folder = QFileDialog::getExistingDirectory(q, AppText::get("menu.openProject"), m_projectDir);
@@ -64,9 +105,27 @@ void MainWindowPrivate::setProjectFolder(const QString& folderPath) {
     }
 
     m_taskEdit->setPlainText(m_projectManager.data().assignmentText);
+    if (m_projectManager.data().apiKey.trimmed().isEmpty())
+        showProjectApiKeyDialog();
     rememberRecentProject(m_projectDir);
     refreshProjectPanel();
     refreshGitState();
+}
+
+void MainWindowPrivate::showProjectApiKeyDialog() {
+    if (m_projectDir.isEmpty()) {
+        QMessageBox::information(q, AppText::get("dialog.noProject.title"), AppText::get("dialog.noProject.body"));
+        return;
+    }
+
+    const QString apiKey = promptForProjectApiKey(q, m_projectManager.data().apiKey.trimmed());
+    if (apiKey.isEmpty())
+        return;
+
+    m_projectManager.data().apiKey = apiKey;
+    QString errorMessage;
+    if (!m_projectManager.save(&errorMessage))
+        QMessageBox::warning(q, AppText::get("dialog.saveFailed"), errorMessage);
 }
 
 void MainWindowPrivate::rememberRecentProject(const QString& folderPath) {
@@ -108,9 +167,6 @@ void MainWindowPrivate::scanCurrentProject(bool showWarnings) {
 void MainWindowPrivate::refreshProjectPanel() {
     const QString name = m_projectDir.isEmpty() ? AppText::get("label.noProject") : QFileInfo(m_projectDir).fileName();
     m_projectNameLabel->setText(name);
-    m_projectPathLabel->setText(m_projectDir.isEmpty() ? AppText::get("label.chooseProjectStart") : m_projectDir);
-    m_fileCountLabel->setText(AppText::get("label.filesCount").arg(m_files.size()));
-    m_feedbackCountLabel->setText(AppText::get("label.feedbackCount").arg(m_feedbackStore.allFeedbacks().size()));
 }
 
 void MainWindowPrivate::populateFileTree() {

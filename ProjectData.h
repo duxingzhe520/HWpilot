@@ -39,6 +39,7 @@ struct ProjectData {
     QString projectName;
     QString projectPath;
     QString assignmentText;
+    QString apiKey;
     QString lastOpenedAt;
     QList<FeedbackRecord> feedbacks;
 

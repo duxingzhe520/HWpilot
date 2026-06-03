@@ -6,5 +6,7 @@ CXX_DEFINES = -DQT_CORE_LIB -DQT_GUI_LIB -DQT_NETWORK_LIB -DQT_WIDGETS_LIB
 
 CXX_INCLUDES = -I/Users/duxingzhe520/Desktop/Project/HWpilot/build/HWpilot_autogen/include -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtCore.framework/Headers -iframework /Users/duxingzhe520/Qt/6.11.0/macos/lib -isystem /Users/duxingzhe520/Qt/6.11.0/macos/mkspecs/macx-clang -isystem /Users/duxingzhe520/Qt/6.11.0/macos/include -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtWidgets.framework/Headers -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtGui.framework/Headers -isystem /Users/duxingzhe520/Qt/6.11.0/macos/lib/QtNetwork.framework/Headers
 
-CXX_FLAGS = -g -std=gnu++17
+CXX_FLAGSarm64 = -g -std=gnu++17 -arch arm64
+
+CXX_FLAGS = -g -std=gnu++17 -arch arm64
 

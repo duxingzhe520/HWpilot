@@ -5,6 +5,9 @@
 #include <QApplication>
 #include <QActionGroup>
 #include <QDialog>
+#include <QEasingCurve>
+#include <QEvent>
+#include <QGraphicsOpacityEffect>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QLabel>
@@ -12,6 +15,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QPair>
+#include <QPropertyAnimation>
 #include <QPushButton>
 #include <QSettings>
 #include <QSplitter>
@@ -25,6 +29,20 @@
 #include <QVBoxLayout>
 
 MainWindowPrivate::MainWindowPrivate(MainWindow* window) : QObject(window), q(window) {}
+
+bool MainWindowPrivate::eventFilter(QObject* watched, QEvent* event) {
+    if (watched == m_projectNameLabel && event->type() == QEvent::MouseButtonRelease) {
+        toggleProjectOverview();
+        return true;
+    }
+    if (m_overviewOverlay && watched == m_overviewOverlay->parentWidget() && event->type() == QEvent::Resize) {
+        m_overviewOverlay->setGeometry(m_overviewOverlay->parentWidget()->rect());
+        if (m_overviewOverlay->isVisible())
+            m_overviewOverlay->raise();
+    }
+
+    return QObject::eventFilter(watched, event);
+}
 
 void MainWindowPrivate::buildUi() {
     q->setWindowTitle(AppText::get("app.title"));
@@ -42,10 +60,6 @@ void MainWindowPrivate::buildUi() {
     leftLayout->setContentsMargins(0, 0, 0, 0);
     leftLayout->setSpacing(8);
     buildLeftPanel();
-    leftLayout->addWidget(m_projectNameLabel);
-    leftLayout->addWidget(m_projectPathLabel);
-    leftLayout->addWidget(m_fileCountLabel);
-    leftLayout->addWidget(m_feedbackCountLabel);
     auto* projectActionsLayout = new QHBoxLayout();
     projectActionsLayout->setContentsMargins(0, 0, 0, 0);
     projectActionsLayout->setSpacing(8);
@@ -54,6 +68,7 @@ void MainWindowPrivate::buildUi() {
     projectActionsLayout->addWidget(m_commitButton);
     leftLayout->addLayout(projectActionsLayout);
     leftLayout->addWidget(m_versionTree, 1);
+    leftLayout->addWidget(m_projectNameLabel);
 
     buildAiPanel();
     buildCenterPanel();
@@ -62,6 +77,31 @@ void MainWindowPrivate::buildUi() {
     auto* centerLayout = new QVBoxLayout(centerPanel);
     centerLayout->setContentsMargins(0, 0, 0, 0);
     centerLayout->addWidget(m_tabs);
+
+    m_overviewOverlay = new QWidget(centerPanel);
+    m_overviewOverlay->setObjectName("OverviewOverlay");
+    m_overviewOverlay->setAttribute(Qt::WA_StyledBackground, true);
+    m_overviewOverlay->setGeometry(centerPanel->rect());
+    m_overviewOverlay->hide();
+    centerPanel->installEventFilter(this);
+
+    auto* overlayLayout = new QVBoxLayout(m_overviewOverlay);
+    overlayLayout->setContentsMargins(28, 28, 28, 28);
+    overlayLayout->setSpacing(0);
+    m_changeSummary = new QTextBrowser(m_overviewOverlay);
+    m_changeSummary->setObjectName("OverviewCard");
+    overlayLayout->addWidget(m_changeSummary, 1);
+
+    m_overviewOverlayEffect = new QGraphicsOpacityEffect(m_overviewOverlay);
+    m_overviewOverlayEffect->setOpacity(0.0);
+    m_overviewOverlay->setGraphicsEffect(m_overviewOverlayEffect);
+    m_overviewOverlayAnimation = new QPropertyAnimation(m_overviewOverlayEffect, "opacity", this);
+    m_overviewOverlayAnimation->setDuration(180);
+    m_overviewOverlayAnimation->setEasingCurve(QEasingCurve::OutCubic);
+    connect(m_overviewOverlayAnimation, &QPropertyAnimation::finished, this, [this]() {
+        if (m_overviewOverlayEffect && m_overviewOverlayEffect->opacity() <= 0.01 && m_overviewOverlay)
+            m_overviewOverlay->hide();
+    });
 
     splitter->addWidget(leftPanel);
     splitter->addWidget(centerPanel);
@@ -80,13 +120,9 @@ void MainWindowPrivate::buildUi() {
 void MainWindowPrivate::buildLeftPanel() {
     m_projectNameLabel = new QLabel(q);
     m_projectNameLabel->setObjectName("ProjectName");
-    m_projectPathLabel = new QLabel(q);
-    m_projectPathLabel->setObjectName("MetaLabel");
-    m_projectPathLabel->setWordWrap(true);
-    m_fileCountLabel = new QLabel(q);
-    m_fileCountLabel->setObjectName("MetaLabel");
-    m_feedbackCountLabel = new QLabel(q);
-    m_feedbackCountLabel->setObjectName("MetaLabel");
+    m_projectNameLabel->setWordWrap(true);
+    m_projectNameLabel->setCursor(Qt::PointingHandCursor);
+    m_projectNameLabel->installEventFilter(this);
 
     m_openProjectButton = new QPushButton(AppText::get("button.openFolder"), q);
     connect(m_openProjectButton, &QPushButton::clicked, this, &MainWindowPrivate::openProjectFolder);
@@ -140,9 +176,9 @@ void MainWindowPrivate::buildCenterPanel() {
     m_aiFeedbackTree->header()->setSectionResizeMode(0, QHeaderView::Stretch);
     connect(m_aiFeedbackTree, &QTreeWidget::itemChanged, this, &MainWindowPrivate::handleAiFeedbackItemChanged);
 
-    m_changeSummary = new QTextBrowser(q);
     m_reviewReport = new QTextBrowser(q);
     m_feedbackTree = new QTreeWidget(q);
+    m_feedbackTree->setObjectName("FeedbackTree");
     m_feedbackTree->setHeaderLabels({AppText::get("label.feedbackIssue"), AppText::get("label.severity"), AppText::get("label.location"), AppText::get("label.status")});
     m_feedbackTree->setSelectionMode(QAbstractItemView::SingleSelection);
     m_feedbackTree->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -158,11 +194,6 @@ void MainWindowPrivate::buildCenterPanel() {
     m_feedbackTree->setColumnWidth(3, 126);
     connect(m_feedbackTree, &QTreeWidget::currentItemChanged, this, &MainWindowPrivate::handleFeedbackTreeSelection);
     connect(m_feedbackTree, &QTreeWidget::customContextMenuRequested, this, &MainWindowPrivate::showFeedbackTreeContextMenu);
-
-    auto* versionPanel = new QWidget(q);
-    auto* versionLayout = new QVBoxLayout(versionPanel);
-    versionLayout->setContentsMargins(0, 0, 0, 0);
-    versionLayout->addWidget(m_changeSummary, 1);
 
     auto* fileAnalysisPanel = new QWidget(q);
     auto* fileAnalysisLayout = new QVBoxLayout(fileAnalysisPanel);
@@ -303,7 +334,6 @@ void MainWindowPrivate::buildCenterPanel() {
     heuristicSplitter->setSizes({360, 540});
     heuristicLayout->addWidget(heuristicSplitter, 1);
 
-    m_tabs->addTab(versionPanel, AppText::get("label.versionOverview"));
     m_tabs->addTab(fileAnalysisPanel, AppText::get("label.fileAnalysis"));
     m_tabs->addTab(heuristicPanel, AppText::get("label.heuristicQuestions"));
     m_tabs->addTab(feedbackPanel, AppText::get("label.feedbackRecords"));
@@ -385,23 +415,7 @@ void MainWindowPrivate::buildMenuBar() {
         applyLanguage();
     });
 
-    QMenu* themeMenu = settingsMenu->addMenu(AppText::get("menu.theme"));
-    auto* themeGroup = new QActionGroup(this);
-    themeGroup->setExclusive(true);
-    QAction* lightAction = themeMenu->addAction(AppText::get("menu.theme.light"));
-    QAction* darkAction = themeMenu->addAction(AppText::get("menu.theme.dark"));
-    lightAction->setCheckable(true);
-    darkAction->setCheckable(true);
-    themeGroup->addAction(lightAction);
-    themeGroup->addAction(darkAction);
-    const QString theme = settings.value("ui/theme", "light").toString();
-    (theme == "dark" ? darkAction : lightAction)->setChecked(true);
-    connect(lightAction, &QAction::triggered, this, []() {
-        QSettings("HWpilot", "HWpilot").setValue("ui/theme", "light");
-    });
-    connect(darkAction, &QAction::triggered, this, []() {
-        QSettings("HWpilot", "HWpilot").setValue("ui/theme", "dark");
-    });
+    settingsMenu->addAction(AppText::get("menu.apiKey"), this, &MainWindowPrivate::showProjectApiKeyDialog);
 
     QMenu* temperatureMenu = settingsMenu->addMenu(AppText::get("menu.temperature"));
     auto* temperatureGroup = new QActionGroup(this);
@@ -499,10 +513,9 @@ void MainWindowPrivate::applyLanguage() {
     }
 
     if (m_tabs) {
-        m_tabs->setTabText(0, AppText::get("label.versionOverview"));
-        m_tabs->setTabText(1, AppText::get("label.fileAnalysis"));
-        m_tabs->setTabText(2, AppText::get("label.heuristicQuestions"));
-        m_tabs->setTabText(3, AppText::get("label.feedbackRecords"));
+        m_tabs->setTabText(0, AppText::get("label.fileAnalysis"));
+        m_tabs->setTabText(1, AppText::get("label.heuristicQuestions"));
+        m_tabs->setTabText(2, AppText::get("label.feedbackRecords"));
     }
 
     if (m_taskEdit)
@@ -562,6 +575,31 @@ void MainWindowPrivate::showAiFeedbackRecordPicker() {
     updateAiActionText();
 }
 
+void MainWindowPrivate::toggleProjectOverview() {
+    if (!m_overviewOverlay || !m_overviewOverlayEffect || !m_overviewOverlayAnimation)
+        return;
+    if (m_projectDir.isEmpty())
+        return;
+
+    m_overviewOverlayAnimation->stop();
+    if (!m_projectOverviewShownByName) {
+        refreshChangeSummary();
+        m_overviewOverlay->setGeometry(m_overviewOverlay->parentWidget()->rect());
+        m_overviewOverlay->show();
+        m_overviewOverlay->raise();
+        m_overviewOverlayAnimation->setStartValue(m_overviewOverlayEffect->opacity());
+        m_overviewOverlayAnimation->setEndValue(1.0);
+        m_overviewOverlayAnimation->start();
+        m_projectOverviewShownByName = true;
+        return;
+    }
+
+    m_overviewOverlayAnimation->setStartValue(m_overviewOverlayEffect->opacity());
+    m_overviewOverlayAnimation->setEndValue(0.0);
+    m_overviewOverlayAnimation->start();
+    m_projectOverviewShownByName = false;
+}
+
 void MainWindowPrivate::applyStyle() {
     qApp->setStyleSheet(
         "QMainWindow, QWidget { background: #eef2f6; color: #1f2937; font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Arial, sans-serif; font-size: 14px; line-height: 1.45; }"
@@ -575,6 +613,8 @@ void MainWindowPrivate::applyStyle() {
         "QPushButton:checked { background: #dbeafe; color: #1d4ed8; font-weight: 600; }"
         "QPushButton:disabled { color: #94a3b8; background: #e8edf3; }"
         "QTreeWidget, QTextEdit, QTextBrowser, QComboBox { background: #ffffff; border: 0; border-radius: 0px; padding: 5px; selection-background-color: #dbeafe; selection-color: #0f172a; line-height: 1.45; }"
+        "QWidget#OverviewOverlay { background: rgba(15, 23, 42, 118); }"
+        "QTextBrowser#OverviewCard { background: #ffffff; border: 1px solid #d9dee7; padding: 18px; }"
         "QTextEdit[readOnly=\"true\"] { background: #fbfcfe; }"
         "QHeaderView::section { background: #f3f6fa; color: #475569; border: 0; padding: 7px 8px; font-weight: 600; line-height: 1.45; }"
         "QLabel#PanelTitle { background: transparent; color: #0f172a; font-size: 16px; font-weight: 700; padding: 2px 0 6px 0; line-height: 1.45; }"
@@ -582,6 +622,7 @@ void MainWindowPrivate::applyStyle() {
         "QLabel#MetaLabel { background: transparent; color: #5b6878; padding: 1px 0; line-height: 1.45; }"
         "QTreeWidget { alternate-background-color: #f8fafc; }"
         "QTreeWidget::item { padding: 6px 5px; border-radius: 0px; }"
+        "QTreeWidget#FeedbackTree::item { padding: 0px; }"
         "QTreeWidget::item:hover { background: #eef6ff; }"
         "QTreeWidget::item:selected { background: #dbeafe; color: #102a43; }"
         "QTabWidget::pane { border: 0; background: #ffffff; border-radius: 0px; top: -1px; }"

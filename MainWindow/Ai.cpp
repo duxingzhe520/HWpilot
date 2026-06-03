@@ -149,7 +149,7 @@ void MainWindowPrivate::startAiAnalysis() {
         return;
     }
 
-    const QString apiKey = qEnvironmentVariable("DEEPSEEK_API_KEY");
+    const QString apiKey = m_projectManager.data().apiKey.trimmed();
     if (apiKey.isEmpty()) {
         QMessageBox::warning(q, AppText::get("dialog.noApiKey.title"), AppText::get("dialog.noApiKey.body"));
         return;
@@ -220,7 +220,7 @@ void MainWindowPrivate::startHeuristicQuestions() {
     scanCurrentProject(false);
     QList<CodeFile> filesForAnalysis = selectedHeuristicFiles();
 
-    const QString apiKey = qEnvironmentVariable("DEEPSEEK_API_KEY");
+    const QString apiKey = m_projectManager.data().apiKey.trimmed();
     if (apiKey.isEmpty()) {
         QMessageBox::warning(q, AppText::get("dialog.noApiKey.title"), AppText::get("dialog.noApiKey.body"));
         return;
