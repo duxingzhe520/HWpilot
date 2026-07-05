@@ -90,3 +90,4 @@ core.*
 
 api-key.txt
 .hwpilot/
+**/.hwpilot/
