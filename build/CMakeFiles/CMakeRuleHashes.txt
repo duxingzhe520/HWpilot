@@ -1,4 +1,0 @@
-# Hashes of file build rules.
-4c058f7af98df7977e00449e3fb3fd23 .qt/rcc/qrc_ui_assets.cpp
-b36e66a281a59ba6dcea2917c8b82ea7 CMakeFiles/HWpilot_autogen
-fdb4e5907e64668f403277cbfae986d0 HWpilot_autogen/timestamp

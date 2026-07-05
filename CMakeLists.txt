@@ -9,31 +9,32 @@ set(CMAKE_AUTOMOC ON)
 find_package(Qt6 REQUIRED COMPONENTS Widgets Network)
 
 qt_add_executable(HWpilot
-    main.cpp
-    AppText.cpp
-    AppText.h
-    MainWindow.cpp
-    MainWindow.h
-    MainWindow/Ai.cpp
-    MainWindow/Feedback.cpp
-    MainWindow/MainWindowPrivate.h
-    MainWindow/Project.cpp
-    MainWindow/Render.cpp
-    MainWindow/Render.h
-    MainWindow/Ui.cpp
-    MainWindow/Version.cpp
-    ProjectData.cpp
-    ProjectData.h
-    ProjectManager/ProjectManager.cpp
-    ProjectManager/ProjectManager.h
-    FeedbackStore/FeedbackStore.cpp
-    FeedbackStore/FeedbackStore.h
-    GitService/GitService.cpp
-    GitService/GitService.h
-    HWFileScanner/HWFileScanner.cpp
-    HWFileScanner/HWFileScanner.h
-    HWpilotLLM/HWpilotLLM.cpp
-    HWpilotLLM/HWpilotLLM.h
+    src/main.cpp
+    src/AppText.cpp
+    src/AppText.h
+    src/MainWindow.cpp
+    src/MainWindow.h
+    src/MainWindow/Ai.cpp
+    src/MainWindow/Feedback.cpp
+    src/MainWindow/MainWindowPrivate.h
+    src/MainWindow/Project.cpp
+    src/MainWindow/Render.cpp
+    src/MainWindow/Render.h
+    src/MainWindow/Ui.cpp
+    src/MainWindow/Version.cpp
+    src/ProjectData.cpp
+    src/ProjectData.h
+    src/ProjectManager/ProjectManager.cpp
+    src/ProjectManager/ProjectManager.h
+    src/FeedbackStore/FeedbackStore.cpp
+    src/FeedbackStore/FeedbackStore.h
+    src/GitService/GitService.cpp
+    src/GitService/GitService.h
+    src/HWFileScanner/HWFileScanner.cpp
+    src/HWFileScanner/HWFileScanner.h
+    src/HWpilotLLM/HWpilotLLM.cpp
+    src/HWpilotLLM/HWpilotLLM.h
 )
 
+target_include_directories(HWpilot PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(HWpilot PRIVATE Qt6::Widgets Qt6::Network)

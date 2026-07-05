@@ -1,0 +1,42 @@
+$myself
+I
+yours truly
+me
+$new
+novel
+newfangled
+original
+latest
+recent
+$name
+call
+christen
+baptize
+identify
+specify
+$class
+group
+set
+lesson
+period
+refinement
+$old
+$school
+university
+college
+seminary
+conservatory
+graduate school
+$phone
+call
+ring
+ring up
+buzz
+telephone
+$body
+form
+figure
+frame
+physique
+corpse
+$head

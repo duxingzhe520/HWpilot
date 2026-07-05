@@ -1,0 +1,10 @@
+Test Case: 1
+1  VYIGG
+2  KNIIX
+3  AOCCU
+6  NMYOO
+Test Case: 2
+1  RJURR
+6  POLVP
+7  KQWUF
+8  TMPZR

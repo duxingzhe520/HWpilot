@@ -1,0 +1,207 @@
+\documentclass[UTF8,a4paper,11pt,fontset=fandol]{ctexart}
+
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{longtable}
+\usepackage{listings}
+
+\geometry{left=2.3cm,right=2.3cm,top=2.4cm,bottom=2.4cm}
+\setlist{nosep,leftmargin=2em}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    urlcolor=blue
+}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    columns=fullflexible
+}
+
+\title{\textbf{程设大作业 HWpilot 项目作业报告}}
+\author{组号：118组 \quad 成员：宋睿宇，杨若辰}
+\date{\today}
+
+\begin{document}
+\sloppy
+
+\maketitle
+
+\section*{验收前重要说明：DeepSeek API Key 配置}
+
+本项目的 AI 分析、反馈复查和启发式问题生成功能均依赖 DeepSeek API Key。为避免密钥泄露，真实 API Key 不应提交到 GitHub 仓库；助教验收时需要在本地运行程序后手动填写。
+
+为方便验收，仓库根目录提供了一个样例作业文件夹 \texttt{test/}。助教启动程序后可以直接选择 \texttt{test/} 文件夹，进行项目各功能的验收和测试。
+
+\subsection*{推荐配置步骤}
+
+\begin{enumerate}
+    \item 准备一个可用的 DeepSeek API Key。平台网址为https://platform.deepseek.com。 
+    \item 按 README 中的命令编译并启动 HWpilot。
+    \item 点击左上角“打开文件夹”，选择一个需要分析的作业项目目录；验收时可直接选择随项目提供的 \texttt{test/} 文件夹。
+    \item 程序首次打开该作业目录时，如果没有保存 API Key，会弹出“填写 API Key”窗口。
+    \item 将 DeepSeek API Key 粘贴到输入框，点击“确认”。
+    \item 程序会把密钥保存到被分析作业目录下的 \texttt{.hwpilot/project.json} 中，之后同一目录可直接使用 AI 功能。
+    \item 如果首次弹窗中选择了“暂不填写”，可在菜单栏选择“设置 $\rightarrow$ 设置 API-key”重新填写。
+\end{enumerate}
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{程序功能介绍}
+
+HWpilot 是一个面向程序设计实习、计算概论等编程基础课程作业场景的辅助工具。项目使用 C++ 与 Qt 开发，界面由 Qt Widgets 完成，网络请求由 Qt Network 完成。程序的核心目标是：在学生完成一门课程作业的整个过程中，帮助记录与跟踪学生与大模型的交互进程，从而帮助学生更方便地复习错题与攻克难题；同时项目也调用了真实的 Git 命令，希望用户初步建立版本控制的思想。
+
+\subsection{作业项目打开与数据管理}
+
+用户点击“打开文件夹”可以选择一个作业目录，程序会把该目录看作被分析的作业文件夹，并在该目录下创建 \texttt{.hwpilot} 数据文件夹，其中， \texttt{.hwpilot/project.json} 用于保存项目名、项目路径、最近打开时间、作业要求文本以及 DeepSeek API Key。
+
+如果被打开的作业目录不是 Git 仓库，程序会自动尝试执行 \texttt{git init}。这一步力求用户建立版本控制的思想。
+
+\subsection{文件扫描}
+
+程序会递归地扫描被打开目录中的代码与文本文件，支持 C/C++、Python、Java、JavaScript/TypeScript、Go、Rust、C\#、Shell、CMake、Markdown 和 TXT 等常见文件类型。扫描时会跳过隐藏目录和隐藏文件，例如 \texttt{.git} 与 \texttt{.hwpilot}，并默认跳过超过 200KB 的单个文件，避免一次发送给大模型的上下文过大。
+
+扫描结果会按相对路径排序并展示为文件树。用户可以勾选需要参与 AI 分析的文件，也可以一键全选。
+
+\subsection{AI 反馈生成}
+
+在“AI反馈”页中，用户可以填写作业要求和补充问题，并选择要分析的代码文件。程序会把作业要求、用户问题和勾选文件内容组织成 prompt，调用 DeepSeek 大模型 \texttt{https://api.deepseek.com/chat/completions}，模型为 \texttt{deepseek-chat}。
+
+AI 返回的内容严格采用 JSON 格式，包含简短摘要、问题列表和完整的自然语言报告。程序会优先解析结构化结果，若解析失败则保存原始文本，保证用户仍可查看回复。
+
+\subsection{反馈保存、状态跟踪与复查}
+
+用户可以把一次 AI 回复保存为反馈记录。记录会写入被分析作业目录的 \texttt{.hwpilot/feedbacks.json}。每条反馈包含创建时间、关联的版本、反馈模式、摘要、原始内容和问题列表。
+
+对于问题列表，程序会保存严重程度、文件路径、行号、类别、标题、建议和处理状态。状态包括“未解决”“已解决”“无法确定”和“忽略”。用户可在界面中直接修改状态，修改会同步写回本地 JSON 文件。另外，为了美观，我们将各个状态进行了染色。
+
+程序还支持“反馈复查”。用户可以勾选历史反馈中的待处理条目，再让 AI 结合当前代码判断这些问题是否已经解决。复查记录会与原反馈条目建立关联，并可选择把原条目标记为已解决。
+
+\subsection{启发式问题生成}
+
+除了直接指出问题，HWpilot 还有“启发式问题”功能。该模式会根据作业要求和选中文件生成开放式问题，帮助学生从题目理解、边界条件、数据结构、算法设计等角度思考。该模式的 prompt 明确要求模型避免直接给完整答案，适合教学辅助场景。
+
+\subsection{版本快照与变更查看}
+
+左侧版本树展示当前工作区和 Git 历史提交。用户可以点击“提交”保存当前工作目录的快照，程序会收集除 \texttt{.hwpilot} 外的变更，执行 \texttt{git add} 和 \texttt{git commit -m 「commit message」}。
+
+点击所打开的文件夹名称，会出现版本概览页面，可以展示当前工作区的变更统计。反馈记录会根据当前工作区或具体 commit 进行分组，方便用户追踪“哪个版本产生了哪些反馈”。
+
+\subsection{菜单栏和辅助功能}
+
+菜单栏提供最近打开项目、语言切换、DeepSeek API Key 设置和大模型温度设置。语言文本由统一的 AppText 表维护，支持中文和英文显示。
+
+\section{项目各模块与类设计细节}
+
+从宏观上来看，ui 界面逻辑写在 \texttt{MainWindow} 与 \texttt{MainWindowPrivate}两个类中，其余功能被分别封装为独立的类。
+
+\subsection{整体架构}
+
+\begin{center}
+\begin{tabular}{p{4.2cm}p{9.2cm}}
+\toprule
+模块 & 职责 \\
+\midrule
+\texttt{main.cpp} & 创建 \texttt{QApplication}，显示主窗口。 \\
+\texttt{MainWindow} & 对外的主窗口类，有 \texttt{MainWindowPrivate}。 \\
+\texttt{MainWindowPrivate} & 负责界面构建、按钮响应、文件选择、AI 调用、反馈保存、版本树刷新等。 \\
+\texttt{HWFileScanner} & 扫描作业目录，读取支持类型的文件，格式化发给 LLM 的代码内容。 \\
+\texttt{HWpilotLLM} & 处理与 DeepSeek 的聊天prompt补全，并处理大模型的回复。 \\
+\texttt{ProjectManager} & 维护 \texttt{.hwpilot/project.json} 项目数据。 \\
+\texttt{FeedbackStore} & 维护 \texttt{.hwpilot/feedbacks.json}，负责反馈增删改查中的保存、导入和状态更新。 \\
+\texttt{GitService} & 以 \texttt{QProcess} 调用真实 Git，封装 status、diff、log、add、commit 等操作。 \\
+\texttt{ProjectData} & 定义 \texttt{ProjectData}、\texttt{FeedbackRecord}、\texttt{FeedbackItem} 三个数据结构及 JSON 序列化。 \\
+\texttt{AppText} & 统一管理中英文界面文字和 prompt 内容。 \\
+\texttt{Render} & 将所有内容渲染为界面可显示的 HTML。 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{ProjectData}
+
+\texttt{ProjectData} 反映项目状态，包括项目名称、项目路径、作业要求、API Key、最近打开时间和反馈记录列表。\texttt{FeedbackRecord} 表示一次 AI 回复，保存记录 ID、关联 commit、模式、创建时间、摘要、原始内容和解析状态。\texttt{FeedbackItem} 表示反馈中的单条问题，包含严重程度、文件路径、行号、类别、标题、建议、处理状态和复查关联。
+
+这个设计使得 AI 返回的自然语言报告和问题列表能够同时保存。
+
+\subsection{ProjectManager}
+
+\texttt{ProjectManager::openProject} 会检查作业目录是否存在，创建 \texttt{.hwpilot} 目录，读取已有 \texttt{project.json}，并更新项目路径与最近打开时间。保存时使用 \texttt{QJsonDocument::Indented} 输出，便于用户手动检查。
+
+API Key 存储在 \texttt{ProjectData::apiKey} 中。主界面打开项目后，如果其为空，就调用 API Key 输入对话框。也就是 API Key 被存储在被分析的作业文件夹中，而不是存在项目运行时占用的内存中。
+
+\subsection{HWFileScanner 文件扫描}
+
+\texttt{HWFileScanner::scanDirectory} 使用 \texttt{QDirIterator} 递归遍历文件。它只读取适合发给 LLM 的文件。扫描过程中会跳过隐藏路径，并限制单文件大小。每个文件被转换为 \texttt{CodeFile}，保存绝对路径、相对路径、内容和扩展名。
+
+\texttt{formatFilesForLLM} 会把作业要求和每个文件内容拼成 Markdown 代码块。相对路径会写在每个代码块前，便于大模型在反馈中定位文件。
+
+\subsection{HWpilotLLM 大模型交互}
+
+\texttt{HWpilotLLM} 在构造函数中接收 API Key，并设置 DeepSeek 接口地址。发送请求时，它构造 JSON 请求，设置 \texttt{model} 为 \texttt{deepseek-chat}，并通过 \texttt{Authorization: Bearer <key>} 请求头来表明身份。
+
+网络请求使用 Qt 的异步 \texttt{QNetworkAccessManager}，解析 OpenAI 兼容格式中的 \texttt{choices[0].message.content}。如果 Qt 网络请求在无 HTTP 状态码的情况下失败，会尝试使用 \texttt{curl} 作为 fallback，防止与大模型交互意外崩掉。
+
+\subsection{MainWindowPrivate 连接ui界面与后端逻辑}
+
+\texttt{MainWindowPrivate} 是项目中负责协调的类。它构建左侧版本树、AI 分析页、启发式问题页和反馈记录页，并把 UI 事件连接到各模块。
+
+打开项目时，流程为：选择目录、调用 \texttt{ProjectManager} 初始化数据、调用 \texttt{FeedbackStore} 打开反馈仓库、必要时初始化 Git、提示填写 API Key、扫描文件、刷新版本树。
+
+执行 AI 分析时，流程为：重新扫描项目、读取勾选文件、检查 API Key、保存作业要求、整理用户问题和选中反馈历史、构造 system/user messages、调用 \texttt{HWpilotLLM}、接收回复并显示。保存反馈时，程序调用 \texttt{buildFeedbackRecord} 解析 JSON，把结果写入 \texttt{FeedbackStore}。
+
+\subsection{FeedbackStore 状态记忆}
+
+\texttt{FeedbackStore} 专门维护 \texttt{feedbacks.json}。它支持添加反馈、更新单条问题状态、批量更新状态、重命名反馈记录、标记问题已复查，以及在 Git 提交后把原本关联当前工作区的反馈重关联到新 commit。
+
+这种设计使反馈记录不依赖程序运行时内存，关闭程序后仍能在下次打开同一作业目录时恢复。
+
+\subsection{GitService 版本控制}
+
+\texttt{GitService} 通过 \texttt{QProcess} 调用命令行 Git。
+
+项目在 Git pathspec 中排除了 \texttt{.hwpilot/**}，避免把本地反馈记录和 API Key 误提交到作业版本快照中。提交时只添加真实作业文件的变化，再根据新 HEAD 把当前工作区反馈重新关联到新的提交中。
+
+\subsection{AppText、Render 辅助}
+
+\texttt{AppText} 用表格的方式保存界面文字和 prompt 内容，并通过 \texttt{QSettings} 记录当前语言。\texttt{Render} 则负责 HTML 转义、Markdown 转 HTML、JSON 提取、diff 可读化和反馈详情的渲染。
+
+换句话说，显示给用户的文字内容是通过该模块管理的，方便开发也美化 ui 界面。
+
+\section{小组成员分工情况}
+\begin{center}
+\begin{tabular}{p{3cm}p{4cm}p{6.2cm}}
+\toprule
+成员 & 负责模块 & 主要工作 \\
+\midrule
+杨若辰 & 界面框架搭建 & 设计 Qt 主窗口、版本树、AI 分析页、反馈记录页，将项目的雏形框架搭建起来，给后续具体细节开发打好基础。 \\
+宋睿宇 & AI 与 Prompt 的处理 & 封装 DeepSeek API 请求，设计反馈、反馈复查和启发式问题的 prompt，并解析大模型的回复内容。 \\
+全体成员 & ui 界面优化 & 调整界面 ui，包括滚轮状态记忆，状态染色，功能分区。 \\
+宋睿宇 & 项目收尾与撰写报告 & 修复小 bug，整理 README 与本报告。 \\
+杨若辰 & 项目验收 & 检查 GitHub 仓库状态，确认代码提交完整、所有内容正常渲染、功能完整，模拟验收。\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{项目总结与反思}
+
+\subsection{设计收获}
+
+本项目最大的收获是把大模型的能力加入一个相对完整的项目流程中。直接调用大模型并不难，难点在于如何组织上下文、如何让返回结果可解析、如何把反馈和代码版本关联起来。
+
+另一个收获是 Git 底层运行逻辑。为了将版本控制加入我们的项目，我们首先花了两周时间研究 Git 底层的运行逻辑，包括一个 commit 包含的内容、Tree 节点的版本保存思路等，同时我们也学会了在日常学习中使用 Git、GitHub 管理我们的代码。
+
+\subsection{不足与改进方向}
+
+项目仍有一些可以继续完善的地方。比如当学生完成了整个学期的学习之后，项目可以开发一个功能，通过当前作业文件夹中所有版本的反馈记录生成一个复习建议以及学习报告，帮助学生从整体上掌握一整门课程的内容，不至于使得各次作业之间是独立的。
+
+另外，还可以加入离线演示模式、测试用例自动生成等功能，使它更适合学生长期使用。
+
+\end{document}

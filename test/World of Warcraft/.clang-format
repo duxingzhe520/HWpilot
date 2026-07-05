@@ -1,0 +1,48 @@
+# C++ formatting rules for this project.
+# Usage: clang-format -i Fighting2.cpp
+
+BasedOnStyle: Google
+Language: Cpp
+Standard: c++17
+
+# Fighting2.cpp is written with 4-space indentation and attached braces.
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+BreakBeforeBraces: Attach
+
+# Keep the code readable without aggressively wrapping the long cout lines.
+ColumnLimit: 140
+
+# Match local pointer/reference style: Warrior*, auto&, const Weapon&.
+PointerAlignment: Left
+ReferenceAlignment: Pointer
+
+# Preserve the compact enum style used near the top of Fighting2.cpp.
+AllowShortEnumsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# Keep access labels flush with the class body, e.g.:
+# class X {
+# public:
+#     ...
+# };
+AccessModifierOffset: -4
+
+# Keep includes in the order the author wrote them.
+SortIncludes: Never
+
+# Match the current spacing style for calls and control flow.
+SpaceBeforeParens: ControlStatements
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+SpaceAfterCStyleCast: false
+
+# Constructor initializer lists may wrap, but stay compact when possible.
+ConstructorInitializerIndentWidth: 4
+BreakConstructorInitializers: BeforeComma
+
+# Make switch/case blocks readable if this project grows into them later.
+IndentCaseLabels: true
